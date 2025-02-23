@@ -75,7 +75,7 @@ const Remarks = () => {
             <div className="px-20 w-full flex-col flex items-center justify-center">
                 <div className="font-semibold tracking-widest text-[2.5rem] flex items-center">
                     <Image src={kkk} alt="Description of image" width={100} height={50} />
-                    <label className="">EVALUATION</label>
+                    <label className="">REMARKS</label>
                 </div>
                 <button
                     className="partial-h1"
