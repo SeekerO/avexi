@@ -23,8 +23,8 @@ export default function Home() {
             transition={{ duration: 1, delay: 1.5, ease: "easeOut" }} // Smooth animation
             className="flex gap-5 mt-4 justify-center">
 
-            <Link href={"/Remarks"} className="bg-blue-900 font-semibold px-10 py-3 rounded-md hover:scale-110 duration-300" >REMARKS</Link>
-            <Link href={"/Evaluation"} className="bg-blue-900 font-semibold px-10 py-3 rounded-md hover:scale-110 duration-300">EVALUATION</Link>
+            <Link href={"/Remarks"} className="bg-blue-900 text-white font-semibold px-10 py-3 rounded-md hover:scale-110 duration-300" >REMARKS</Link>
+            <Link href={"/Evaluation"} className="bg-blue-900 text-white font-semibold px-10 py-3 rounded-md hover:scale-110 duration-300">EVALUATION</Link>
           </motion.div>
         </motion.div>
 
