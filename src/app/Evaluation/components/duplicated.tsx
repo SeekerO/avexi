@@ -23,19 +23,6 @@ const Duplicated = ({
     };
   }, [ref]); // Added ref to dependencies
 
-  const handleDownload = () => {
-    const downloadUrl = `https://docs.google.com/spreadsheets/d/19PDiHGVhqjs16YI7ILRdDaC6RKV1evzZ/edit?usp=drive_link&ouid=115365859376902920371&rtpof=true&sd=true`;
-
-    // Create an invisible link and trigger a click
-    const link = document.createElement("a");
-    link.href = downloadUrl;
-    link.setAttribute("download", "EVALUATION TEMPLATE" || "downloaded-file");
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
-
   if (!open) return null;
 
   return (
@@ -45,7 +32,8 @@ const Duplicated = ({
           Template provided to be able to transfer the file.
         </label>
         <a
-          onClick={handleDownload}
+          href="https://docs.google.com/spreadsheets/d/19PDiHGVhqjs16YI7ILRdDaC6RKV1evzZ/edit?usp=drive_link&ouid=115365859376902920371&rtpof=true&sd=true"
+          download
           className="w-full bg-blue-500 justify-center py-2 rounded-md font-bold text-white flex items-center gap-2 hover:bg-blue-700 hover:text-slate-200 duration-300 hover:scale-90 cursor-pointer"
         >
           <MdOutlineFileDownload className="text-[2rem]" />
