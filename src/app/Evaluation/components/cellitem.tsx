@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import convertExcelTimestamp from "../../../lib/util/convertExcelTimestamp";
 import ModalCell from "./modalCellItem";
 const CellItem = ({ cell, cellIndex }: { cell: any; cellIndex: number }) => {
@@ -25,6 +25,23 @@ const CellItem = ({ cell, cellIndex }: { cell: any; cellIndex: number }) => {
       textColor = "text-yellow-600 font-semibold";
   }
 
+  const convertToPreviewLink = useCallback(
+    async (url: string): Promise<string> => {
+      if (typeof url !== "string") return url;
+
+      if (url.includes("view")) {
+        return url.replace(/\/view?.*$/, "/preview");
+      } else if (url.includes("https://bit.ly")) {
+        const expandedURL = await expandUrl(url);
+        console.log(expandedURL);
+        return convertBitLinkToPreview(expandedURL);
+      } else {
+        return convertFolderToPreview(url);
+      }
+    },
+    []
+  );
+
   useEffect(() => {
     const fetchPreviewLink = async () => {
       if (
@@ -37,21 +54,7 @@ const CellItem = ({ cell, cellIndex }: { cell: any; cellIndex: number }) => {
     };
 
     fetchPreviewLink();
-  }, [cell, cellIndex]);
-
-  const convertToPreviewLink = async (url: string): Promise<string> => {
-    if (typeof url !== "string") return url;
-
-    if (url.includes("view")) {
-      return url.replace(/\/view?.*$/, "/preview");
-    } else if (url.includes("https://bit.ly")) {
-      const expandedURL = await expandUrl(url);
-      console.log(expandedURL);
-      return convertBitLinkToPreview(expandedURL);
-    } else {
-      return convertFolderToPreview(url);
-    }
-  };
+  }, [cell, cellIndex, convertToPreviewLink]); // Now safe to include
 
   const expandUrl = async (shortUrl: string): Promise<string> => {
     try {
