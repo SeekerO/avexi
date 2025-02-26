@@ -1,3 +1,5 @@
+"use client"
+
 import { useEffect, useState } from "react";
 import convertExcelTimestamp from "../../../lib/util/convertExcelTimestamp";
 import ModalCell from "./modalCellItem";
