@@ -17,7 +17,8 @@ import kkk from "../../lib/image/KKK.png";
 import moment from "moment";
 import { MdDelete } from "react-icons/md";
 import { BsFiletypeXlsx } from "react-icons/bs";
-import Duplicated from "./components/duplicated";
+import Duplicated from "./components/dowload_template";
+import CellItem from "./components/cellitem";
 
 interface EvaluationData {
   FULLNAME: string;
@@ -25,6 +26,7 @@ interface EvaluationData {
   "MUNICIPALITY/REGION"?: string;
   STATUS: string;
   REMARKS?: string;
+  _copied?: boolean;
 }
 
 const ITEMS_PER_PAGE = 50;
@@ -60,8 +62,8 @@ const Evaluation = () => {
       const reader = new FileReader();
       readers.push(
         new Promise((resolve) => {
-          reader.onload = (e) => {
-            const binaryString = e.target?.result;
+          reader.onload = (e: ProgressEvent<FileReader>) => {
+            const binaryString = e.target?.result as string;
             if (!binaryString) return resolve([]);
 
             const workbook = XLSX.read(binaryString, { type: "binary" });
@@ -69,20 +71,52 @@ const Evaluation = () => {
             const worksheet = workbook.Sheets[sheetName];
             if (!worksheet) return resolve([]);
 
-            const jsonData: EvaluationData[] = XLSX.utils.sheet_to_json(
+            let jsonData: EvaluationData[] = XLSX.utils.sheet_to_json(
               worksheet,
-              { defval: " " }
+              {
+                defval: "", // Use empty string instead of whitespace
+              }
             );
+
+            // Ensure `_copied` column is added before modifying data
+            jsonData = jsonData.map((row) => ({ ...row, _copied: false }));
+
+            let lastNonEmptyValue: any = null; // Store last non-empty value for column 7
+            let lastNonEmptyRowIndex: number | null = null; // Track the last non-empty row index
+
+            jsonData = jsonData.map((row: any, rowIndex: number) => {
+              const newRow = { ...row };
+              const column7Key = Object.keys(newRow)[6]; // Get key for 7th column
+
+              if (column7Key) {
+                if (!newRow[column7Key] && lastNonEmptyValue !== null) {
+                  newRow[column7Key] = lastNonEmptyValue; // Copy value from above
+                  newRow._copied = true; // Mark row as copied
+
+                  // Mark the source row as copied
+                  if (lastNonEmptyRowIndex !== null) {
+                    jsonData[lastNonEmptyRowIndex]._copied = true;
+                  }
+                } else {
+                  lastNonEmptyValue = newRow[column7Key]; // Update last known non-empty value
+                  lastNonEmptyRowIndex = rowIndex; // Update last known non-empty row index
+                }
+              }
+
+              return newRow;
+            });
+
             resolve(jsonData);
           };
+
           reader.readAsBinaryString(file);
         })
       );
     }
 
     Promise.all(readers).then((results) => {
-      const mergedData = results.flat(); // Merge all data into one array
-      setData((prevData) => [...prevData, ...mergedData]); // Append new data to existing data
+      const mergedData = results.flat();
+      setData((prevData) => [...prevData, ...mergedData]);
       setCurrentPage(1);
 
       const compressedData = LZString.compress(JSON.stringify(mergedData));
@@ -91,6 +125,7 @@ const Evaluation = () => {
       } catch {
         sessionStorage.setItem("evaluationData", compressedData);
       }
+
       setLoading(false);
     });
   };
@@ -125,14 +160,20 @@ const Evaluation = () => {
   };
 
   const CountTotal = () => {
-    const full = filteredData.filter((item) =>
-      item.STATUS?.toLowerCase().includes("full")
+    const full = filteredData.filter(
+      (item) =>
+        item.STATUS?.toLowerCase().includes("full") &&
+        item.STATUS?.toLowerCase().includes("compliance")
     ).length;
-    const non = filteredData.filter((item) =>
-      item.STATUS?.toLowerCase().includes("non")
+    const non = filteredData.filter(
+      (item) =>
+        item.STATUS?.toLowerCase().includes("non") &&
+        item.STATUS?.toLowerCase().includes("compliance")
     ).length;
-    const partial = filteredData.filter((item) =>
-      item.STATUS?.toLowerCase().includes("partial")
+    const partial = filteredData.filter(
+      (item) =>
+        item.STATUS?.toLowerCase().includes("partial") &&
+        item.STATUS?.toLowerCase().includes("compliance")
     ).length;
 
     return full + non + partial;
@@ -289,39 +330,14 @@ const Evaluation = () => {
               </thead>
               <tbody>
                 {paginatedData.map((row, rowIndex) => (
-                  <tr
-                    key={rowIndex}
-                    className="border border-gray-950 bg-slate-300"
-                  >
-                    {Object.values(row).map((cell, cellIndex) => {
-                      let textColor = "";
-                      let cellValue = cell ? cell.toString().trim() : " ";
-
-                      // Convert Excel timestamp if applicable
-                      if (typeof cell === "number" && cell > 40000) {
-                        cellValue = convertExcelTimestamp(cell);
-                      }
-
-                      // Apply color styling for first column
-                      if (cellIndex === 0 && typeof cell === "string") {
-                        const lowerCell = cell.toLowerCase();
-                        if (lowerCell.includes("full"))
-                          textColor = "text-green-600 font-semibold";
-                        else if (lowerCell.includes("non"))
-                          textColor = "text-red-600 font-semibold";
-                        else if (lowerCell.includes("partial"))
-                          textColor = "text-yellow-600 font-semibold";
-                      }
-
-                      return (
-                        <td
-                          key={cellIndex}
-                          className={`border border-gray-950 px-4 py-2 text-center ${textColor}`}
-                        >
-                          {cellValue}
-                        </td>
-                      );
-                    })}
+                  <tr key={rowIndex} className={`border border-gray-950 `}>
+                    {Object.values(row).map((cell, cellIndex) => (
+                      <CellItem
+                        key={cellIndex}
+                        cell={cell}
+                        cellIndex={cellIndex}
+                      />
+                    ))}
                   </tr>
                 ))}
               </tbody>
