@@ -17,7 +17,7 @@ import kkk from "../../lib/image/KKK.png";
 import moment from "moment";
 import { MdDelete } from "react-icons/md";
 import { BsFiletypeXlsx } from "react-icons/bs";
-import Duplicated from "./components/dowload_template";
+import Duplicated from "./components/download_template";
 import CellItem from "./components/cellitem";
 
 interface EvaluationData {
