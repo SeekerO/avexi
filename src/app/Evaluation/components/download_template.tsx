@@ -1,3 +1,5 @@
+"use client"
+
 import React, { useEffect, useRef } from "react";
 import { MdOutlineFileDownload } from "react-icons/md";
 
