@@ -201,6 +201,13 @@ const Evaluation = () => {
     return full + non + partial;
   };
 
+  const handleKeyDown = (event:  React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "Enter") {
+      setSearch("")
+    }
+  };
+
+
   return (
     <div className="flex flex-col items-center py-5 bg-slate-300 h-screen text-slate-950">
       <div className="w-full mt-4 px-2">
@@ -238,6 +245,7 @@ const Evaluation = () => {
             <IoSearchOutline className="text-[20px]" />
             <input
               type="text"
+              onKeyDown={handleKeyDown}
               onChange={(e) => setSearch(e.target.value)}
               className={`w-full outline-none px-3 py-2 bg-slate-300 `}
               placeholder={`${
