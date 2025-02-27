@@ -204,6 +204,9 @@ const Evaluation = () => {
   const handleKeyDown = (event:  React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
       setSearch("")
+    }else if (event.key === "-") {
+      event.preventDefault(); // Prevent default "-" input
+      setSearch((prev) => prev.slice(0, -1)); // Simulate backspace
     }
   };
 
