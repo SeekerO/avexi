@@ -247,6 +247,7 @@ const Evaluation = () => {
               type="text"
               onKeyDown={handleKeyDown}
               onChange={(e) => setSearch(e.target.value)}
+              value={search}
               className={`w-full outline-none px-3 py-2 bg-slate-300 `}
               placeholder={`${
                 !controlno ? "Search here.." : "Search Control No..."
