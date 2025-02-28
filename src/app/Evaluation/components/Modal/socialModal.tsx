@@ -32,10 +32,11 @@ const SocialModal = ({
     let formattedLink = "";
     switch (cellIndex) {
       case 19:
-        formattedLink = cellValue.startsWith("http" || "www")
-        ? cellValue
-        : `https://www.facebook.com/${cellValue}`;
-      break;
+        formattedLink =
+          cellValue.startsWith("http") || cellValue.startsWith("www")
+            ? cellValue
+            : `https://www.facebook.com/${cellValue}`;
+        break;
         break;
       case 20:
         formattedLink = `https://www.facebook.com/${cellValue}`;
