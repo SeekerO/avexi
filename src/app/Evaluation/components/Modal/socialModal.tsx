@@ -89,7 +89,7 @@ const SocialModal = ({
   }, [cellIndex, cellValue]);
 
   if (!open) return null;
-
+  // test
   return (
     <div className="fixed inset-0 w-screen h-screen z-50 flex items-center justify-center bg-black bg-opacity-50">
       <div className="w-[80vw] h-[90vh] bg-white p-4 rounded-lg shadow-lg relative">
