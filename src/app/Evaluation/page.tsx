@@ -14,14 +14,14 @@ import Duplicated from "./components/Template/download_template";
 import CellItem from "./components/util/cellitem";
 
 import { BsFiletypeXlsx } from "react-icons/bs";
-import { MdDelete } from "react-icons/md";
-import { MdNumbers } from "react-icons/md";
+import { MdDelete, MdNumbers } from "react-icons/md";
 import {
   IoSearchOutline,
   IoChevronBack,
   IoCloudUploadOutline,
 } from "react-icons/io5";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
+import { FaCheck, FaTimes } from "react-icons/fa";
 
 interface EvaluationData {
   FULLNAME: string;
@@ -47,6 +47,8 @@ const Evaluation = () => {
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false); // Opeing the xlsx modal
   const [controlno, setControlNo] = useState(false);
+
+  const [hiddenColumns, setHiddenColumns] = useState<string[]>([]);
 
   useLayoutEffect(() => {
     const storedData =
@@ -217,6 +219,38 @@ const Evaluation = () => {
     }
   };
 
+  const toggleColumn = (column: string) => {
+    setHiddenColumns((prevHidden) =>
+      prevHidden.includes(column)
+        ? prevHidden.filter((col) => col !== column)
+        : [...prevHidden, column]
+    );
+  };
+
+  const ColumnVisibilityDropdown = () => {
+    return (
+      <div className="relative inline-block text-left">
+        <select
+          className="px-4 py-2 bg-slate-100 rounded-md "
+          onChange={(e) => toggleColumn(e.target.value)}
+        >
+          <option value="">Select Column</option>
+          {Object.keys(filteredData[0] || {}).map((column) => (
+            <option
+              key={column}
+              value={column}
+              className="w-[300px] flex gap-2"
+            >
+              {!hiddenColumns.includes(column) ? "✔️" : "❌"}
+
+              {column}
+            </option>
+          ))}
+        </select>
+      </div>
+    );
+  };
+
   return (
     <div className="flex flex-col items-center py-5 bg-slate-300 h-screen text-slate-950">
       <div className="w-full mt-4 px-2">
@@ -325,6 +359,9 @@ const Evaluation = () => {
           TOTAL: {CountTotal()}
         </label>
       </div>
+      <div className="py-3 w-full px-10">
+        <ColumnVisibilityDropdown />
+      </div>
 
       <div className="w-[95%] overflow-auto">
         {filteredData.length > 0 && (
@@ -374,14 +411,17 @@ const Evaluation = () => {
             <table className="hidden lg:table w-full border-collapse border border-gray-950 bg-white">
               <thead>
                 <tr className="bg-slate-950 text-white uppercase font-semibold">
-                  {Object.keys(filteredData[0]).map((key) => (
-                    <th
-                      key={key}
-                      className="border border-gray-950 px-4 text-center"
-                    >
-                      {key}
-                    </th>
-                  ))}
+                  {Object.keys(filteredData[0] || {}).map(
+                    (key) =>
+                      !hiddenColumns.includes(key) && (
+                        <th
+                          key={key}
+                          className="border border-gray-950 px-4 text-center"
+                        >
+                          {key}
+                        </th>
+                      )
+                  )}
                 </tr>
               </thead>
               <tbody>
@@ -402,14 +442,17 @@ const Evaluation = () => {
                     return valA - valB; // Sort numbers in ascending order (lowest first)
                   })
                   .map((row, rowIndex) => (
-                    <tr key={rowIndex} className={`border border-gray-950 `}>
-                      {Object.values(row).map((cell, cellIndex) => (
-                        <CellItem
-                          key={cellIndex}
-                          cell={cell}
-                          cellIndex={cellIndex}
-                        />
-                      ))}
+                    <tr key={rowIndex} className="border border-gray-950">
+                      {Object.entries(row).map(
+                        ([key, value], cellIndex) =>
+                          !hiddenColumns.includes(key) && (
+                            <CellItem
+                              key={cellIndex}
+                              cell={value}
+                              cellIndex={cellIndex}
+                            />
+                          )
+                      )}
                     </tr>
                   ))}
               </tbody>
