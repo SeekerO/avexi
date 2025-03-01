@@ -5,12 +5,10 @@ const SocialModal = ({
   cellValue,
   cellIndex,
   open,
-  setOpen,
 }: {
   cellValue: string | null;
   cellIndex: number;
   open: boolean;
-  setOpen: (value: boolean) => void;
 }) => {
   const [link, setLink] = useState<string>("");
 
@@ -92,7 +90,6 @@ const SocialModal = ({
   return (
     <div className="fixed inset-0 w-screen h-screen z-50 flex items-center justify-center bg-black bg-opacity-50">
       <div className="w-[80vw] h-[90vh] bg-white p-4 rounded-lg shadow-lg relative">
-
         {link ? (
           <div className="w-full h-full flex justify-center items-center ">
             {isBlocked ? (
