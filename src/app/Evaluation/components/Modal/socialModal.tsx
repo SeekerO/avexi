@@ -92,17 +92,11 @@ const SocialModal = ({
   return (
     <div className="fixed inset-0 w-screen h-screen z-50 flex items-center justify-center bg-black bg-opacity-50">
       <div className="w-[80vw] h-[90vh] bg-white p-4 rounded-lg shadow-lg relative">
-        <button
-          className="absolute top-4 right-4 text-gray-600 hover:text-black"
-          onClick={() => setOpen(false)}
-        >
-          ✕
-        </button>
 
         {link ? (
-          <div className="w-full h-full flex justify-center">
+          <div className="w-full h-full flex justify-center items-center ">
             {isBlocked ? (
-              <p className="text-center mb-4">
+              <p className="text-center mb-4 h-full w-full items-center justify-center flex ">
                 This site cannot be embedded.{" "}
                 <a
                   href={link}

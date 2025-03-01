@@ -25,11 +25,17 @@ import { AiOutlineLoading3Quarters } from "react-icons/ai";
 
 interface EvaluationData {
   FULLNAME: string;
+  NAME: string;
   POSITION: string;
   "MUNICIPALITY/REGION"?: string;
   STATUS: string;
   REMARKS?: string;
   _copied?: boolean;
+  SEQ: string;
+  REGION: string;
+  PROVINCE: string;
+  "CITY/MUN": string;
+  SEAT: string;
 }
 
 const ITEMS_PER_PAGE = 50;
