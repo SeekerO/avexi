@@ -1,5 +1,8 @@
 "use client";
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 import { useLayoutEffect, useState } from "react";
 import * as XLSX from "xlsx";
 import { IoCloudUploadOutline, IoChevronBack } from "react-icons/io5";
