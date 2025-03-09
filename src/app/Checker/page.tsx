@@ -6,6 +6,7 @@
 import { useLayoutEffect, useState } from "react";
 import * as XLSX from "xlsx";
 import { IoCloudUploadOutline, IoChevronBack } from "react-icons/io5";
+import { MdKeyboardDoubleArrowRight } from "react-icons/md";
 import stringSimilarity from "string-similarity";
 import { MdDelete } from "react-icons/md";
 import Link from "next/link";
@@ -37,72 +38,59 @@ const Checker = () => {
         }
     }, []);
 
-
-
-
     const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>, type: "data_set" | "clc_data") => {
         const file = event.target.files?.[0];
-        if (!file) {
-            alert("Please select a file.");
-            return;
-        }
+        if (!file) return alert("Please select a file.");
 
         const reader = new FileReader();
+
+        reader.onloadend = (e) => {
+            const result = e.target?.result;
+            if (!result) return alert("Error reading file.");
+
+            try {
+                const workbook = XLSX.read(result as ArrayBuffer, { type: "buffer" });
+                const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                const jsonData = XLSX.utils.sheet_to_json(sheet, { defval: "" });
+
+                if (jsonData.length === 0) return alert("Uploaded file is empty.");
+
+                const storageKey = type === "data_set" ? "data_set" : "clc_data";
+                const setDataFunction = type === "data_set" ? setDataSet : setDataSetEvaluated;
+
+                setDataFunction(jsonData);
+                sessionStorage.setItem(storageKey, JSON.stringify(jsonData));
+            } catch (error) {
+                console.error("Error processing file:", error);
+                alert("Error processing file. Please try again.");
+            }
+        };
+
+        reader.onerror = () => alert("Error reading file. Please try again.");
         reader.readAsArrayBuffer(file);
-
-        reader.onload = (e) => {
-            if (!e.target?.result) {
-                alert("Error reading file.");
-                return;
-            }
-
-            const bufferArray = e.target.result as ArrayBuffer;
-            const workbook = XLSX.read(bufferArray, { type: "buffer" });
-            const sheetName = workbook.SheetNames[0];
-            const sheet = workbook.Sheets[sheetName];
-            let jsonData: any[] = XLSX.utils.sheet_to_json(sheet, { defval: "" });
-
-            // Filter out empty rows
-            jsonData = jsonData.filter((row) => Object.values(row)[0] !== "");
-
-            if (type === "data_set") {
-                setDataSet(jsonData);
-                sessionStorage.setItem("data_set", JSON.stringify(jsonData));
-
-            } else if (type === "clc_data") {
-                setDataSetEvaluated(jsonData);
-                sessionStorage.setItem("clc_data", JSON.stringify(jsonData));
-            }
-        };
-
-        reader.onerror = (error) => {
-            console.error("File reading error:", error);
-            alert("Error reading file. Please try again.");
-        };
     };
 
+
     const matchNames = () => {
-        if (!dataSet.length || !dataSetEvaluated.length) {
-            alert("Please upload both datasets.");
-            return;
-        }
+        if (!dataSet?.length || !dataSetEvaluated?.length) return alert("Please upload both datasets.");
 
-        const matches: any[] = [];
+        const normalizedDataSet = dataSet.map(entry => ({
+            name: entry.FULLNAME,
+            region: entry.REGION,
+            normalizedName: normalizeName(entry.FULLNAME),
+        }));
 
-        dataSetEvaluated.forEach((evalEntry) => {
+        const matches = dataSetEvaluated.reduce((acc, evalEntry) => {
             const { FULLNAME: nameA, REGION: regionA } = evalEntry;
             const normalizedA = normalizeName(nameA);
 
-            const bestMatch = dataSet
-                .map((clcEntry) => ({
-                    name: clcEntry.FULLNAME,
-                    region: clcEntry.REGION,
-                    score: stringSimilarity.compareTwoStrings(normalizedA, normalizeName(clcEntry.FULLNAME)),
-                }))
-                .sort((a, b) => b.score - a.score)[0]; // Get the best match
+            const bestMatch = normalizedDataSet.reduce((best, clcEntry) => {
+                const score = stringSimilarity.compareTwoStrings(normalizedA, clcEntry.normalizedName);
+                return score > best.score ? { ...clcEntry, score } : best;
+            }, { name: "", region: "", score: 0 });
 
-            if (bestMatch && bestMatch.score > 0.7) { // Threshold for similarity
-                matches.push({
+            if (bestMatch.score > 0.7) {
+                acc.push({
                     nameA,
                     regionA,
                     nameB: bestMatch.name,
@@ -110,25 +98,23 @@ const Checker = () => {
                     similarity: bestMatch.score.toFixed(2),
                 });
             }
-        });
+
+            return acc;
+        }, []);
 
         setMatchedData(matches);
-
-
-        // Step 2: Extract distinct different regions
-        const differentRegions = Array.from(
-            new Set(
-                matches
-                    .filter(({ regionA, regionB }) => regionA !== regionB) // Only keep different regions
-                    .map(({ regionB }) => regionB) // Extract regionB
-            )
-        );
-
-        setList(differentRegions);
-
         sessionStorage.setItem("matched_data", JSON.stringify(matches));
-        sessionStorage.setItem("list_data", JSON.stringify(differentRegions));
+
+        const differentRegions = new Set();
+        matches.forEach(({ regionA, regionB }: { regionA: any, regionB: any }) => {
+            if (regionA !== regionB) differentRegions.add(regionB);
+        });
+
+        const regionList = Array.from(differentRegions);
+        setList(regionList);
+        sessionStorage.setItem("list_data", JSON.stringify(regionList));
     };
+
 
     const filteredDataSet = dataSet.filter((row: any) => Object.values(row).some((value) => value?.toString().toLowerCase().includes(searchDataSet.toLowerCase())))
     const filteredDataEval = dataSetEvaluated.filter((row: any) => Object.values(row).some((value) => value?.toString().toLowerCase().includes(searchDataSetEvaluated.toLowerCase())))
@@ -165,7 +151,7 @@ const Checker = () => {
 
 
     return (
-        <div className="h-screen w-screen flex flex-col bg-gray-800 overflow-hidden">
+        <div className="h-screen w-screen flex flex-col bg-slate-800 overflow-hidden">
             <div className="w-full mt-4 mb-4 px-2">
                 <Link
                     href="/"
@@ -175,10 +161,10 @@ const Checker = () => {
                     BACK
                 </Link>
             </div>
-            <div className="px-10">
-                <div className="flex flex-col w-full h-[100px] px-5 py-2 bg-gray-100 rounded-t-xl">
+            <div className="px-10 shadow-lg">
+                <div className="bg-slate-100 flex flex-col w-full h-[100px] px-5 pt-2 rounded-t-xl">
                     <div className="flex items-center justify-between">
-                        <h1 className="text-[1.7rem] font-semibold tracking-widest">CHECKER</h1>
+                        <h1 className="text-[1.7rem] font-semibold tracking-widest text-slate-800">CHECKER</h1>
                         <div className="text-[1.7rem] font-semibold tracking-widest flex gap-5 text-white">
                             <button onClick={() => removeFunction("data_set")}
                                 className="flex items-center text-[1rem] bg-red-500 px-2 py-1 rounded-md gap-1 hover:scale-110 duration-300 hover:bg-red-800"><MdDelete className="text-[1.2rem]" /> Delete Data Set</button>
@@ -188,12 +174,19 @@ const Checker = () => {
                                 className="flex items-center text-[1rem] bg-red-500 px-2 py-1 rounded-md gap-1 hover:scale-110 duration-300 hover:bg-red-800"><MdDelete className="text-[1.2rem]" /> Delete All</button>
                         </div>
                     </div>
-                    <div>Step</div>
+                    <div className="flex gap-2 items-center italic font-semibold w-full justify-center text-blue-600 pt-4">
+                        <div>HOW TO USE: </div>
+                        <div>UPLOAD EVALUATED NAMES</div>
+                        <MdKeyboardDoubleArrowRight className="text-[1.5rem]" />
+                        <div>UPLOAD CLC NAMES</div>
+                        <MdKeyboardDoubleArrowRight className="text-[1.5rem]" />
+                        <div>RUN CHECKING</div>
+                    </div>
                 </div>
 
-                <div className="flex w-full h-[75vh] bg-slate-100 p-5 rounded-b-xl gap-2">
+                <div className="bg-slate-100 flex w-full h-[75vh] px-2 pb-2 rounded-b-xl gap-2">
                     {/* Upload Box for Evaluated Data */}
-                    <div className="flex flex-col w-[50vh] h-full shrink-0 bg-gray-800 text-white rounded-lg overflow-x-hidden overflow-y-auto">
+                    <div className="flex flex-col w-[50vh] h-full shrink-0 bg-slate-800 text-white rounded-lg overflow-x-hidden overflow-y-auto">
 
                         {dataSet.length === 0 ? (
                             <div className="h-full w-full flex items-center justify-center">
@@ -228,10 +221,10 @@ const Checker = () => {
                     </div>
 
                     {/* Results Section */}
-                    <div className="w-full h-full flex flex-col bg-gray-800 p-4 rounded-lg">
+                    <div className="w-full h-full flex flex-col bg-slate-800 p-4 rounded-lg">
                         <div className="flex flex-col border-b-[1px] w-full border-slate-500 mb-2 py-2 gap-2 items-center justify-between">
                             <div className="w-full flex items-center justify-between">
-                                {dataSetEvaluated.length !== 0 && dataSet.length !== 0 && <button
+                                {dataSetEvaluated.length === 0 && dataSet.length === 0 && <button
                                     onClick={matchNames}
                                     className="bg-gray-100 text-gray-800 py-1 px-4 h-fit rounded-md hover:bg-blue-500 duration-300"
                                 >
@@ -243,7 +236,7 @@ const Checker = () => {
                                 </div>
                             </div>
                             <div className="flex flex-wrap justify-center gap-2 w-full">
-                                {list.map(value => (<a onClick={() => setSearchResult(value)} key={value} className="text-white border-[1px] border-gray-100 px-2 rounded-md text-sm">{value}</a>))}
+                                {list.map(value => (<a onClick={() => setSearchResult(value)} key={value} className="text-white border-[1px]  border-gray-100 px-2 rounded-md text-sm duration-300 hover:border-blue-500 hover:text-blue-500 cursor-pointer">{value}</a>))}
                             </div>
                         </div>
 
@@ -263,7 +256,7 @@ const Checker = () => {
                     </div>
 
                     {/* Upload Box for CLC Data */}
-                    <div className="flex flex-col w-[50vh] h-full shrink-0 bg-slate-400 text-black rounded-lg overflow-x-hidden overflow-y-auto">
+                    <div className="flex flex-col w-[50vh] h-full shrink-0 bg-slate-500 text-black rounded-lg overflow-x-hidden overflow-y-auto">
                         {dataSetEvaluated.length === 0 ? (
                             <div className="h-full w-full flex items-center justify-center">
                                 <div className="flex flex-col">
@@ -284,7 +277,7 @@ const Checker = () => {
                                 <SearchBar searchText={searchDataSetEvaluated} searchSetter={setSearchDataSetEvaluated} />
                             </div>
                             {filteredDataEval.map((value, index) => (
-                                <div key={index} className="text-[0.9rem] items-center flex p-2 gap-2 border-b border-slate-900 justify-between">
+                                <div key={index} className="text-[0.9rem] items-center flex p-2 gap-2 border-b text-slate-900 border-slate-900 justify-between">
                                     <div className="font-semibold">{value.FULLNAME}</div>
                                 </div>
                             ))}
