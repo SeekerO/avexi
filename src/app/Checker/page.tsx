@@ -224,12 +224,12 @@ const Checker = () => {
                     <div className="w-full h-full flex flex-col bg-slate-800 p-4 rounded-lg">
                         <div className="flex flex-col border-b-[1px] w-full border-slate-500 mb-2 py-2 gap-2 items-center justify-between">
                             <div className="w-full flex items-center justify-between">
-                                {dataSetEvaluated.length === 0 && dataSet.length === 0 && <button
+                                <button
                                     onClick={matchNames}
                                     className="bg-gray-100 text-gray-800 py-1 px-4 h-fit rounded-md hover:bg-blue-500 duration-300"
                                 >
                                     Check
-                                </button>}
+                                </button>
 
                                 <div className="w-[50vh]">
                                     <SearchBar searchText={searchResult} searchSetter={setSearchResult} />
@@ -279,6 +279,9 @@ const Checker = () => {
                             {filteredDataEval.map((value, index) => (
                                 <div key={index} className="text-[0.9rem] items-center flex p-2 gap-2 border-b text-slate-900 border-slate-900 justify-between">
                                     <div className="font-semibold">{value.FULLNAME}</div>
+                                    <div className="w-[100px] bg-slate-100 text-black shrink-0 font-semibold flex items-center justify-center py-1 rounded-md shadow-md">
+                                        {value.REGION}
+                                    </div>
                                 </div>
                             ))}
                         </>
