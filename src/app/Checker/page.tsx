@@ -283,7 +283,10 @@ const Checker = () => {
                 </div>
               ) : (
                 <>
-                  <div className="px-2 pt-2">
+                  <div className="px-2 pt-2 flex items-center gap-2">
+                    <div className="p-2 rounded-md">
+                      {filteredDataSet.length}
+                    </div>
                     <SearchBar
                       searchText={searchDataSet}
                       searchSetter={setSearchDataSet}
@@ -327,7 +330,10 @@ const Checker = () => {
                 </div>
               ) : (
                 <>
-                  <div className="px-2 pt-2">
+                  <div className="px-2 pt-2 flex items-center gap-2">
+                    <div className="p-2 rounded-md">
+                      {filteredDataEval.length}
+                    </div>
                     <SearchBar
                       searchText={searchDataSetEvaluated}
                       searchSetter={setSearchDataSetEvaluated}
@@ -377,6 +383,9 @@ const Checker = () => {
                 </div>
 
                 <div className="w-[50vh] flex items-center gap-2 relative">
+                  <div className="p-2 rounded-md">
+                    {filteredDataMatch.length}
+                  </div>
                   <SearchBar
                     searchText={searchResult}
                     searchSetter={setSearchResult}
@@ -389,7 +398,11 @@ const Checker = () => {
                     Not Matched
                   </button>
 
-                  <ShowNotMatched open={openNotMatched} setOpen={setOpenNotMatched} data={dataNotmatched} />
+                  <ShowNotMatched
+                    open={openNotMatched}
+                    setOpen={setOpenNotMatched}
+                    data={dataNotmatched}
+                  />
                 </div>
               </div>
               <div className="flex flex-wrap justify-center gap-2 w-full">
@@ -418,23 +431,25 @@ const Checker = () => {
                     <label>
                       {match.nameA} ({match.regionA}) ⇄ {match.nameB}{" "}
                       <span
-                        className={`font-semibold ${match.similarity * 100 >= 90
-                          ? "text-green-500"
-                          : match.similarity * 100 < 50
+                        className={`font-semibold ${
+                          match.similarity * 100 >= 90
+                            ? "text-green-500"
+                            : match.similarity * 100 < 50
                             ? "text-red-500"
                             : "text-yellow-500"
-                          }`}
+                        }`}
                       >
                         ({match.regionB})
                       </span>
                     </label>
                     <div
-                      className={`${match.similarity * 100 >= 90
-                        ? "bg-green-500"
-                        : match.similarity * 100 < 50
+                      className={`${
+                        match.similarity * 100 >= 90
+                          ? "bg-green-500"
+                          : match.similarity * 100 < 50
                           ? "bg-red-500"
                           : "bg-yellow-500"
-                        } text-[0.7rem] border-[1px] border-white h-10 w-10 flex items-center justify-center p-2 rounded-full ml-10`}
+                      } text-[0.7rem] border-[1px] border-white h-10 w-10 flex items-center justify-center p-2 rounded-full ml-10`}
                     >
                       {match.similarity * 100}%
                     </div>
@@ -525,8 +540,15 @@ const CheckerSettings = ({
   );
 };
 
-
-const ShowNotMatched = ({ open, setOpen, data }: { open: boolean, setOpen: React.Dispatch<SetStateAction<boolean>>, data: any }) => {
+const ShowNotMatched = ({
+  open,
+  setOpen,
+  data,
+}: {
+  open: boolean;
+  setOpen: React.Dispatch<SetStateAction<boolean>>;
+  data: any;
+}) => {
   const [search, setSearch] = useState<string>("");
 
   const filteredDataMatch = data.filter((row: any) =>
@@ -551,23 +573,35 @@ const ShowNotMatched = ({ open, setOpen, data }: { open: boolean, setOpen: React
   }, []);
 
   if (!open) return null;
-  return (<div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 top-0">
-    <div ref={ref} className="bg-gray-800 w-[100vh] h-[90vh] rounded-md p-2 gap-y-2 overflow-hidden">
-      <div className="flex justify-center items-center text-[1.2rem] font-semibold">
-        <h1 className="font-semibold text-white text-[2rem]">Not Matched Data</h1>
-      </div>
-      <div className="flex justify-center items-center">
-        <SearchBar searchText={search} searchSetter={setSearch} />
-      </div>
-      {/* <pre>{JSON.stringify(filteredDataMatch, null, 2)}</pre> */}
-      <div className="overflow-auto h-[70vh] px-2 pt-1">
-        {filteredDataMatch?.map((value: any, index: number) => (
-          <div key={index} className="flex justify-between items-center border-b border-gray-300 text-white py-1">
-            <div>{value.nameA}</div>
-            <div className="px-4 bg-slate-500 text-white rounded-md font-semibold">{value.regionA}</div>
-          </div>
-        ))}
+  return (
+    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 top-0">
+      <div
+        ref={ref}
+        className="bg-gray-800 w-[100vh] h-[90vh] rounded-md p-2 gap-y-2 overflow-hidden"
+      >
+        <div className="flex justify-center items-center text-[1.2rem] font-semibold">
+          <h1 className="font-semibold text-white text-[2rem]">
+            Not Matched Data
+          </h1>
+        </div>
+        <div className="flex justify-center items-center">
+          <SearchBar searchText={search} searchSetter={setSearch} />
+        </div>
+        {/* <pre>{JSON.stringify(filteredDataMatch, null, 2)}</pre> */}
+        <div className="overflow-auto h-[70vh] px-2 pt-1">
+          {filteredDataMatch?.map((value: any, index: number) => (
+            <div
+              key={index}
+              className="flex justify-between items-center border-b border-gray-300 text-white py-1"
+            >
+              <div>{value.nameA}</div>
+              <div className="px-4 bg-slate-500 text-white rounded-md font-semibold">
+                {value.regionA}
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
-  </div>)
-}
+  );
+};
