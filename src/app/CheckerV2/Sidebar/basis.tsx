@@ -1,3 +1,8 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
+"use client";
+
 import React, { SetStateAction } from "react";
 import SearchBar from "@/lib/components/searchbar";
 const BASIS = ({
