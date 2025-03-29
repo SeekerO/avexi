@@ -13,17 +13,16 @@ import {
 import Link from "next/link";
 import * as XLSX from "xlsx";
 import {
-  IoCloudUploadOutline,
   IoChevronBack,
   IoSettingsSharp,
 } from "react-icons/io5";
-import { MdKeyboardDoubleArrowRight } from "react-icons/md";
-import { MdDelete } from "react-icons/md";
+import { AiOutlineLoading3Quarters } from "react-icons/ai";
 
-import convertExcelTimestamp from "@/lib/util/convertExcelTimestamp";
-
-import moment from "moment";
 import stringSimilarity from "string-similarity";
+import SideBarChecker from "./Sidebar/sidebar_component_checkerv2";
+
+import SearchBar from "@/lib/components/searchbar";
+import { Sling as Hamburger } from 'hamburger-react'
 
 const CheckerV2 = () => {
   //    DATA SET
@@ -42,15 +41,15 @@ const CheckerV2 = () => {
   const [dataNotmatched, setDataNotMatched] = useState<any>([]);
   const [openNotMatched, setOpenNotMatched] = useState<boolean>(false);
 
-  //    SIDE BAR
-  const [openBasisMatch, setOpenBasisMatch] = useState<boolean>(false);
+  //    SEARCH PARAM
+  const [searchResult, setSearchResult] = useState<string>("");
+
+  //    SIDEBAR
   const [openSideBar, setOpenSideBar] = useState<boolean>(false);
 
-  //    SEARCH PARAM
-  const [searchDataSet, setSearchDataSet] = useState<string>("");
-  const [searchDataSetEvaluated, setSearchDataSetEvaluated] =
-    useState<string>("");
-  const [searchResult, setSearchResult] = useState<string>("");
+
+  //    LOADING
+  const [loading, setLoading] = useState<boolean>(false)
 
   useLayoutEffect(() => {
     try {
@@ -172,19 +171,7 @@ const CheckerV2 = () => {
     sessionStorage.setItem("list_data", JSON.stringify(regionList));
   };
 
-  const filteredDataSet = dataSet.filter((row: any) =>
-    Object.values(row).some((value) =>
-      value?.toString().toLowerCase().includes(searchDataSet.toLowerCase())
-    )
-  );
-  const filteredDataEval = dataSetEvaluated.filter((row: any) =>
-    Object.values(row).some((value) =>
-      value
-        ?.toString()
-        .toLowerCase()
-        .includes(searchDataSetEvaluated.toLowerCase())
-    )
-  );
+
   const filteredDataMatch = matchedData.filter((row: any) =>
     Object.values(row).some((value) =>
       value?.toString().toLowerCase().includes(searchResult.toLowerCase())
@@ -229,7 +216,7 @@ const CheckerV2 = () => {
           <div className="flex gap-2 font-semibold text-[2rem] w-fit px-3 tracking-widest text-center text-slate-950 bg-slate-100 rounded-br-2xl">
             <Link
               href="/"
-              className="text-slate-100 flex gap-1 items-center font-semibold text-slate-950 hover:text-blue-700 items-center"
+              className=" flex gap-1 font-semibold text-slate-950 hover:text-blue-700 items-center"
             >
               <IoChevronBack />
             </Link>
@@ -254,136 +241,51 @@ const CheckerV2 = () => {
         <div className="h-full w-full flex p-2">
           <div className="bg-slate-100 h-full w-full rounded-md flex">
             {/* SIDEBAR */}
-            <div className="bg-slate-800 text-white w-[30%] h-full shrink-0 items-center flex flex-col px-2 gap-y-2 justify-center overflow-auto">
-              <div className="flex flex-col w-full mt-2">
-                {filteredDataSet.length === 0 ? (
-                  <label className="group/basis w-full text-center py-2 bg-slate-950 hover:py-4 hover:bg-slate-600 hover:rounded-md cursor-pointer duration-300 rounded-lg flex items-center justify-center gap-1 hover:text-[1.1rem] text-[1rem]">
-                    <IoCloudUploadOutline className="group-hover/basis:text-[1.4rem] duration:300" />{" "}
-                    UPLOAD DATA BASIS
-                    <input
-                      type="file"
-                      accept=".xlsx, .xls, .csv"
-                      onChange={(e) => handleFileUpload(e, "data_set")}
-                      className="hidden"
-                    />
-                  </label>
-                ) : (
-                  <button
-                    onClick={() => removeFunction("data_set")}
-                    className="flex items-center text-[1rem] bg-red-500 px-2 py-1 rounded-md gap-1 hover:py-3 duration-300 hover:bg-red-800 justify-center"
-                  >
-                    <MdDelete className="text-[1.2rem]" /> DELETE DATA BASIS
-                  </button>
-                )}
-              </div>
-
-              <div className="flex flex-col w-full">
-                {filteredDataEval.length === 0 ? (
-                  <label className="group/match w-full text-center py-2 bg-slate-950 hover:py-4 hover:bg-slate-600 hover:rounded-md cursor-pointer duration-300 rounded-lg flex items-center justify-center gap-1 hover:text-[1.1rem] text-[1rem]">
-                    <IoCloudUploadOutline className="group-hover/match:text-[1.4rem] duration:300" />
-                    UPLOAD DATA TO MATCH
-                    <input
-                      type="file"
-                      accept=".xlsx, .xls, .csv"
-                      onChange={(e) => handleFileUpload(e, "clc_data")}
-                      className="hidden"
-                    />
-                  </label>
-                ) : (
-                  <button
-                    onClick={() => removeFunction("clc_data")}
-                    className="flex items-center text-[1rem] bg-red-500 px-2 py-1 rounded-md gap-1 hover:py-3 duration-300 hover:bg-red-800 justify-center"
-                  >
-                    <MdDelete className="text-[1.2rem]" /> DELETE DATA TO MATCH
-                  </button>
-                )}
-              </div>
-
-              <div className="h-full w-full mt-3 gap-1 flex-col flex">
-                <div className="flex gap-2 items-center justify-center w-full">
-                  {dataSet.length !== 0 && (
-                    <button
-                      onClick={() => setOpenBasisMatch(false)}
-                      className={`group/buttonBasis w-32 h-8 hover:scale-110 duration-300 cursor-pointer skew-x-12 items-center justify-center flex ${
-                        !openBasisMatch
-                          ? "bg-slate-100 text-slate-950"
-                          : "bg-slate-950"
-                      }`}
-                    >
-                      <label className="flex -skew-x-12 group-hover/buttonBasis:text-[15px] duration-300 cursor-pointer">
-                        BASIS
-                      </label>
-                    </button>
-                  )}
-
-                  {dataSetEvaluated.length !== 0 && (
-                    <button
-                      onClick={() => setOpenBasisMatch(true)}
-                      className={`group/buttonMatch w-32 h-8 hover:scale-110 duration-300 cursor-pointer  skew-x-12 items-center justify-center flex ${
-                        openBasisMatch
-                          ? "bg-slate-100 text-slate-950"
-                          : "bg-slate-950"
-                      }`}
-                    >
-                      <label className="flex -skew-x-12 group-hover/buttonMatch:text-[15px] duration-300 cursor-pointer">
-                        MATCH
-                      </label>
-                    </button>
-                  )}
-                </div>
-                <div className="w-full h-full flex mt-3">
-                  {(filteredDataEval.length !== 0 ||
-                    filteredDataSet.length !== 0) && (
-                    <>
-                      <BASIS
-                        open={openBasisMatch}
-                        filteredDataEval={filteredDataEval}
-                        setSearchDataSetEvaluated={setSearchDataSetEvaluated}
-                        searchDataSetEvaluated={searchDataSetEvaluated}
-                      />
-                      <MATCH
-                        open={openBasisMatch}
-                        filteredDataSet={filteredDataSet}
-                        searchDataSet={searchDataSetEvaluated}
-                        setSearchDataSet={setSearchDataSetEvaluated}
-                      />
-                    </>
-                  )}
-                </div>
-              </div>
+            <div className={`${openSideBar ? "w-[80%] lg:w-[30%] " : "w-[0%]"} duration-300 bg-slate-950 h-full rounded-md flex flex-col overflow-hidden absolute lg:relative`}>
+              <SideBarChecker
+                open={openSideBar}
+                setOpen={setOpenSideBar}
+                dataSetEvaluated={dataSetEvaluated}
+                dataSet={dataSet}
+                handleFileUpload={handleFileUpload}
+                removeFunction={removeFunction}
+              />
             </div>
             {/* END SIDEBAR */}
 
             {/* MAIN */}
             <div className=" w-full h-full flex flex-col overflow-auto py-2 px-2">
-              <div className=" rounded-md flex justify-between text-white items-center bg-slate-950 px-2 py-1">
-                <button
-                  onClick={matchNames}
-                  className="bg-slate-100 text-slate-950 w-[150px] py-1 rounded-md hover:bg-green-500 hover:w-[170px] duration-300 font-semibold"
-                >
-                  RUN
-                </button>
-                <div className="flex gap-2 items-center">
-                  <div className="p-2 rounded-md text-white">
-                    {filteredDataMatch.length}
-                  </div>
-                  <SearchBar
-                    searchText={searchResult}
-                    searchSetter={setSearchResult}
-                  />
-
+              <div className="flex gap-2 items-center w-full">
+                <div className="z-0"><Hamburger toggled={openSideBar} toggle={setOpenSideBar} /></div>
+                <div className="w-full rounded-md flex justify-between text-white items-center bg-slate-950 px-2 py-1">
                   <button
-                    onClick={() => setOpenNotMatched(!openNotMatched)}
-                    className="bg-gray-100 text-gray-800 py-0.5 px-4 h-fit rounded-md hover:bg-blue-500 hover:text-white duration-300 text-nowrap"
+                    onClick={matchNames}
+                    className="bg-slate-100 text-slate-950 w-[150px] py-1 rounded-md hover:bg-green-500 hover:w-[170px] duration-300 font-semibold"
                   >
-                    Not Matched
+                    RUN
                   </button>
+                  <div className="flex gap-2 items-center">
+                    <div className="p-2 rounded-md text-white">
+                      {filteredDataMatch.length}
+                    </div>
+                    <SearchBar
+                      searchText={searchResult}
+                      searchSetter={setSearchResult}
+                    />
 
-                  <ShowNotMatched
-                    open={openNotMatched}
-                    setOpen={setOpenNotMatched}
-                    data={dataNotmatched}
-                  />
+                    <button
+                      onClick={() => setOpenNotMatched(!openNotMatched)}
+                      className="bg-gray-100 text-gray-800 py-0.5 px-4 h-fit rounded-md hover:bg-blue-500 hover:text-white duration-300 text-nowrap"
+                    >
+                      Not Matched
+                    </button>
+
+                    <ShowNotMatched
+                      open={openNotMatched}
+                      setOpen={setOpenNotMatched}
+                      data={dataNotmatched}
+                    />
+                  </div>
                 </div>
               </div>
               <div className=" flex flex-col h-[81vh] w-full overflow-auto pt-2">
@@ -395,25 +297,23 @@ const CheckerV2 = () => {
                     <label>
                       {match.nameA} ({match.regionA}) ⇄ {match.nameB}{" "}
                       <span
-                        className={`font-semibold ${
-                          match.similarity * 100 >= 90
-                            ? "text-green-500"
-                            : match.similarity * 100 < 50
+                        className={`font-semibold ${match.similarity * 100 >= 90
+                          ? "text-green-500"
+                          : match.similarity * 100 < 50
                             ? "text-red-500"
                             : "text-yellow-500"
-                        }`}
+                          }`}
                       >
                         ({match.regionB})
                       </span>
                     </label>
                     <div
-                      className={`${
-                        match.similarity * 100 >= 90
-                          ? "bg-green-500 text-green-700"
-                          : match.similarity * 100 < 50
+                      className={`${match.similarity * 100 >= 90
+                        ? "bg-green-500 text-green-700"
+                        : match.similarity * 100 < 50
                           ? "bg-red-500 text-red-700"
                           : "bg-yellow-500 text-yellow-700"
-                      } text-[0.7rem] border-[1px] font-boldborder-white h-10 w-10 flex items-center justify-center p-2 rounded-full ml-10`}
+                        } text-[0.7rem] border-[1px] font-boldborder-white h-10 w-10 flex items-center justify-center p-2 rounded-full ml-10`}
                     >
                       {match.similarity * 100}%
                     </div>
@@ -422,6 +322,12 @@ const CheckerV2 = () => {
               </div>
             </div>
             {/* END MAIN */}
+
+            {loading && (
+              <div className="absolute inset-0 flex items-center justify-center bg-slate-900/70">
+                <AiOutlineLoading3Quarters className="text-slate-10 text-[2rem] animate-spin" />
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -431,79 +337,6 @@ const CheckerV2 = () => {
 
 export default CheckerV2;
 
-// COMPONENTS
-
-const BASIS = ({
-  open,
-  filteredDataEval,
-  setSearchDataSetEvaluated,
-  searchDataSetEvaluated,
-}: {
-  open: boolean;
-  filteredDataEval: any;
-  setSearchDataSetEvaluated: React.Dispatch<SetStateAction<string>>;
-  searchDataSetEvaluated: string;
-}) => {
-  if (!open) return null;
-  return (
-    <div className="bg-slate-500 w-full h-[60vh] overflow-y-auto overflow-x-hidden">
-      <div className="px-2 pt-2 flex items-center gap-2">
-        <div className="p-2 rounded-md">{filteredDataEval.length}</div>
-        <SearchBar
-          searchText={searchDataSetEvaluated}
-          searchSetter={setSearchDataSetEvaluated}
-        />
-      </div>
-      {filteredDataEval.map((value: any, index: number) => (
-        <div
-          key={index}
-          className="text-[0.9rem] items-center flex p-2 gap-2 border-b text-slate-900 border-slate-900 justify-between"
-        >
-          <div className="font-semibold text-white">{value.FULLNAME}</div>
-          <div className="w-[100px] bg-slate-100 text-black shrink-0 font-semibold flex items-center justify-center py-1 rounded-md shadow-md">
-            {value.REGION}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-};
-
-const MATCH = ({
-  open,
-  filteredDataSet,
-  searchDataSet,
-  setSearchDataSet,
-}: {
-  open: boolean;
-  filteredDataSet: any;
-  searchDataSet: string;
-  setSearchDataSet: React.Dispatch<SetStateAction<string>>;
-}) => {
-  if (open) return null;
-  return (
-    <div className="bg-slate-500 w-full h-[60vh] overflow-y-auto overflow-x-hidden">
-      <div className="px-2 pt-2 flex items-center gap-2">
-        <div className="p-2 rounded-md">{filteredDataSet.length}</div>
-        <SearchBar searchText={searchDataSet} searchSetter={setSearchDataSet} />
-      </div>
-      {filteredDataSet.map((value: any, index: number) => (
-        <div
-          key={index}
-          className="text-[0.9rem] items-center flex p-2 gap-2 border-b border-slate-300 justify-between"
-        >
-          <div className="font-semibold ">{value.FULLNAME}</div>
-          <div className="w-[100px] bg-slate-100 text-black shrink-0 font-semibold flex items-center justify-center py-1 rounded-md shadow-md">
-            {value.REGION > 4000
-              ? convertExcelTimestamp(value.REGION)
-              : value.REGION}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-};
-
 // UTILS
 
 const normalizeName = (name: string) => {
@@ -512,26 +345,6 @@ const normalizeName = (name: string) => {
     .replace(/\b(Jr|Sr|II|III|IV|V)\b/gi, "") // Remove suffixes
     .toLowerCase()
     .trim();
-};
-
-const SearchBar = ({
-  searchText,
-  searchSetter,
-}: {
-  searchText: string;
-  searchSetter: React.Dispatch<React.SetStateAction<string>>;
-}) => {
-  return (
-    <div className="h-[30px] w-full bg-slate-100 rounded-md">
-      <input
-        type="text"
-        value={searchText}
-        onChange={(e) => searchSetter(e.target.value)}
-        placeholder="Search"
-        className="w-full h-full bg-transparent px-2 text-black outline-none"
-      />
-    </div>
-  );
 };
 
 const CheckerSettings = ({
@@ -564,7 +377,7 @@ const CheckerSettings = ({
   return (
     <div
       ref={ref}
-      className="absolute right-5 py-2 px-1 w-[200px] bg-slate-700 mt-1 text-white rounded-b-md rounded-l-md flex flex-col gap-2 text-slate-950"
+      className="absolute right-5 py-2 px-1 w-[200px] bg-slate-700 mt-1 rounded-b-md rounded-l-md flex flex-col gap-2 text-slate-950"
     >
       <h1 className="w-full text-center px-1 font-bold">SETTINGS</h1>
       <div className="flex px-1 gap-2 items-center">
@@ -642,6 +455,9 @@ const ShowNotMatched = ({
           ))}
         </div>
       </div>
+
+
+
     </div>
   );
 };
