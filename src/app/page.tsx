@@ -3,12 +3,12 @@
 import kkk from "../lib/image/KKK.png";
 import Image from "next/image";
 import Link from "next/link";
-import { motion } from "framer-motion"; // ✅ Correct import
+import { motion } from "framer-motion";
 
 export default function Home() {
   return (
     <div className="flex flex-col items-center justify-center h-screen w-screen bg-slate-300">
-      <div className=" flex flex-col justify-center items-center w-fit ">
+      <div className=" flex flex-col justify-center items-center w-fit">
         <motion.div
           initial={{ y: -200, opacity: 0 }} // Start from above screen
           animate={{ y: 0, opacity: 1 }} // Fall down to normal position
@@ -40,10 +40,10 @@ export default function Home() {
               EVALUATION
             </Link>
             <Link
-              href={"/CheckerV2"}
+              href={"/Matcher"}
               className="bg-blue-900 text-white font-semibold px-10 py-3 rounded-md hover:scale-110 duration-300"
             >
-              CHECKER
+              Matcher
             </Link>
           </motion.div>
         </motion.div>
