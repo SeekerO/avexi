@@ -1,3 +1,6 @@
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
 import { useEffect, useRef, useState } from "react";
 import { AiOutlineMenuFold } from "react-icons/ai";
 import { RiCloseFill } from "react-icons/ri";
@@ -46,8 +49,9 @@ const SideMenu = ({
       {/* Side Menu */}
       <div
         ref={ref}
-        className={`absolute duration-500 overflow-hidden justify-between flex flex-col right-0 mr-10 w-[200px] bg-slate-200 dark:bg-slate-700 shadow-md rounded-l-md ${side ? "h-[300px] px-2 py-2" : "h-[0px]"
-          }`}
+        className={`absolute duration-500 overflow-hidden justify-between flex flex-col right-0 mr-10 w-[200px] bg-slate-200 dark:bg-slate-700 shadow-md rounded-l-md ${
+          side ? "h-[300px] px-2 py-2" : "h-[0px]"
+        }`}
       >
         <div className="flex gap-1 items-center mt-5">
           <label className="font-semibold tracking-wide">Threshold</label>
@@ -75,7 +79,11 @@ const SideMenu = ({
               set={setOpenUnmatchedList}
             />
           </div>
-        ) : <label className="w-full italic font-thin text-center">No Unmatched Data</label>}
+        ) : (
+          <label className="w-full italic font-thin text-center">
+            No Unmatched Data
+          </label>
+        )}
       </div>
     </>
   );

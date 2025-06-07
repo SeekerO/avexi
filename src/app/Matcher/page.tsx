@@ -1,3 +1,6 @@
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
 "use client";
 
 import React, { useRef, useState } from "react";
@@ -37,7 +40,11 @@ const Matcher = () => {
     const nodeBuffer1 = Buffer.from(file1Buffer);
     const nodeBuffer2 = Buffer.from(file2Buffer);
 
-    const result = await compareExcelFilesFuzzy(nodeBuffer1, nodeBuffer2, threshold);
+    const result = await compareExcelFilesFuzzy(
+      nodeBuffer1,
+      nodeBuffer2,
+      threshold
+    );
     console.log(result);
     setRes(result);
   };
@@ -50,8 +57,9 @@ const Matcher = () => {
 
   const filteredData1 = filterNames(res?.newData1);
   const filteredData2 = filterNames(res?.newData2);
-  const filteredResults = res?.matched?.filter((item: any) => item?.row1[0].toLowerCase().includes(inputSearch1))
-
+  const filteredResults = res?.matched?.filter((item: any) =>
+    item?.row1[0].toLowerCase().includes(inputSearch1)
+  );
 
   const handleDeleteData = () => {
     setDataSet1(null);
@@ -75,37 +83,45 @@ const Matcher = () => {
           {/* Dataset 1 */}
           <div className="w-full h-[50%] bg-slate-100 dark:bg-slate-700 shadow-inner rounded-md p-2 gap-2 flex flex-col">
             <div className="flex justify-between items-center">
-              <label className="font-semibold tracking-wider text-[1.2rem] italic ">DATA SET 1</label>
+              <label className="font-semibold tracking-wider text-[1.2rem] italic ">
+                DATA SET 1
+              </label>
               <div className="flex items-center gap-1 text-blue-700 dark:text-blue-500">
-                {res?.newData1.length > 0 && <>
-                  <IoMdPerson />
-                  <label>{res?.newData1.length}</label>
-                </>}
+                {res?.newData1.length > 0 && (
+                  <>
+                    <IoMdPerson />
+                    <label>{res?.newData1.length}</label>
+                  </>
+                )}
               </div>
-
             </div>
 
             <div className="flex items-center gap-1 p-1 bg-gray-300 dark:bg-gray-600 text-gray-800 rounded-md">
               <IoSearch className="text-white text-[1.2rem]" />
-              <SearchBar searchText={inputSearch1} searchSetter={setInputSearch1} />
+              <SearchBar
+                searchText={inputSearch1}
+                searchSetter={setInputSearch1}
+              />
             </div>
 
             <div
-              className={`h-full w-full bg-slate-200 dark:bg-slate-600 flex flex-col shadow-md rounded-md p-3 gap-1 ${res?.data1?.length ? "items-start" : "items-center "
-                }`}
+              className={`h-full w-full bg-slate-200 dark:bg-slate-600 flex flex-col shadow-md rounded-md p-3 gap-1 ${
+                res?.data1?.length ? "items-start" : "items-center "
+              }`}
             >
               {res?.newData1 ? (
-                filteredData1.map((value: string[], index: number) => (
-                  value.length !== 0 && (
-                    <div
-                      key={index}
-                      className="flex justify-between w-full dark:text-slate-300 text-slate-600 border border-slate-500 px-2 py-1 rounded-md"
-                    >
-                      <label className="font-bold">{value[0]}</label>
-                      <label>{value[1]}</label>
-                    </div>
-                  )
-                ))
+                filteredData1.map(
+                  (value: string[], index: number) =>
+                    value.length !== 0 && (
+                      <div
+                        key={index}
+                        className="flex justify-between w-full dark:text-slate-300 text-slate-600 border border-slate-500 px-2 py-1 rounded-md"
+                      >
+                        <label className="font-bold">{value[0]}</label>
+                        <label>{value[1]}</label>
+                      </div>
+                    )
+                )
               ) : (
                 <UploadButton set={setDataSet1} delete1={delete1} />
               )}
@@ -115,31 +131,37 @@ const Matcher = () => {
           {/* Dataset 2 */}
           <div className="w-full h-[50%] bg-slate-100 dark:bg-slate-700 shadow-inner rounded-md p-2 gap-2 flex flex-col">
             <div className="flex justify-between items-center">
-              <label className="font-semibold tracking-wider text-[1.2rem] italic ">DATA SET 2</label>
+              <label className="font-semibold tracking-wider text-[1.2rem] italic ">
+                DATA SET 2
+              </label>
               <div className="flex items-center gap-1 text-blue-700 dark:text-blue-500">
-                {res?.newData2.length > 0 && <>
-                  <IoMdPerson />
-                  <label>{res?.newData2.length}</label>
-                </>}
+                {res?.newData2.length > 0 && (
+                  <>
+                    <IoMdPerson />
+                    <label>{res?.newData2.length}</label>
+                  </>
+                )}
               </div>
             </div>
 
             <div
-              className={`h-full w-full bg-slate-200 dark:bg-slate-600 flex flex-col shadow-md rounded-md p-3 gap-1 ${res?.data2?.length ? "items-start" : "items-center"
-                }`}
+              className={`h-full w-full bg-slate-200 dark:bg-slate-600 flex flex-col shadow-md rounded-md p-3 gap-1 ${
+                res?.data2?.length ? "items-start" : "items-center"
+              }`}
             >
               {res?.newData2 ? (
-                filteredData2.map((value: string[], index: number) => (
-                  value.length !== 0 && (
-                    <div
-                      key={index}
-                      className="flex justify-between w-full dark:text-slate-300 text-slate-600 border border-slate-500 px-2 py-1 rounded-md"
-                    >
-                      <label className="font-bold">{value[0]}</label>
-                      <label>{value[1]}</label>
-                    </div>
-                  )
-                ))
+                filteredData2.map(
+                  (value: string[], index: number) =>
+                    value.length !== 0 && (
+                      <div
+                        key={index}
+                        className="flex justify-between w-full dark:text-slate-300 text-slate-600 border border-slate-500 px-2 py-1 rounded-md"
+                      >
+                        <label className="font-bold">{value[0]}</label>
+                        <label>{value[1]}</label>
+                      </div>
+                    )
+                )
               ) : (
                 <UploadButton set={setDataSet2} delete1={delete1} />
               )}
@@ -154,10 +176,12 @@ const Matcher = () => {
               <>
                 <div className="flex items-center gap-2">
                   <div className="flex items-center gap-1 text-blue-700 dark:text-blue-500">
-                    {res?.newData2.length > 0 && <>
-                      <IoMdPerson />
-                      <label>{res?.newData2.length}</label>
-                    </>}
+                    {res?.newData2.length > 0 && (
+                      <>
+                        <IoMdPerson />
+                        <label>{res?.newData2.length}</label>
+                      </>
+                    )}
                   </div>
                   <button
                     onClick={handleMatchingMethod}
@@ -166,14 +190,14 @@ const Matcher = () => {
                     <FaPlay />
                   </button>
                 </div>
-                {res &&
+                {res && (
                   <button
                     onClick={handleDeleteData}
                     className="text-[1.4rem] hover:text-red-500 hover:scale-110"
                   >
                     <MdDeleteOutline />
                   </button>
-                }
+                )}
                 <SideMenu
                   res={res}
                   threshold={threshold}
@@ -188,12 +212,13 @@ const Matcher = () => {
               filteredResults.map((value: any, index: number) => (
                 <div
                   key={index}
-                  className={`flex justify-between items-center gap-1 dark:text-slate-300 text-slate-600  bg-slate-100 dark:bg-transparent p-1 rounded-md w-full ${value.score > 90
-                    ? "border-2 border-green-600"
-                    : value.score > 85
+                  className={`flex justify-between items-center gap-1 dark:text-slate-300 text-slate-600  bg-slate-100 dark:bg-transparent p-1 rounded-md w-full ${
+                    value.score > 90
+                      ? "border-2 border-green-600"
+                      : value.score > 85
                       ? "border-2 border-yellow-600"
                       : "border-2 border-red-600"
-                    }`}
+                  }`}
                 >
                   <div className="flex flex-col gap-2 w-full px-2 sm:px-4 md:px-2">
                     <div className="flex gap-1 sm:gap-2 items-center">
@@ -215,12 +240,13 @@ const Matcher = () => {
                     </div>
                   </div>
                   <label
-                    className={`flex items-center justify-center mr-5 rounded-full w-10 h-10 shrink-0 flex-none ${value.score > 90
-                      ? "border-2 border-green-600 text-green-600"
-                      : value.score > 85
+                    className={`flex items-center justify-center mr-5 rounded-full w-10 h-10 shrink-0 flex-none ${
+                      value.score > 90
+                        ? "border-2 border-green-600 text-green-600"
+                        : value.score > 85
                         ? "border-2 border-yellow-600 text-yellow-600"
                         : "border-2 border-red-600 text-red-600"
-                      }`}
+                    }`}
                   >
                     {value.score}
                   </label>
@@ -232,7 +258,7 @@ const Matcher = () => {
           </div>
         </div>
       </div>
-    </div >
+    </div>
   );
 };
 
