@@ -1,8 +1,23 @@
 // fetcherExcel.ts
 const SHEET_ID = "1CCOXZ_ZMMSoRQltEIfZ6VOBfQc9RhjoJoGcXTsKe0gQ";
-const SHEET_NAME = "REGION V"; // or your sheet name
+const SHEET_NAME = "REGION V";
 
-type SheetRow = { [key: string]: any };
+type GoogleSheetCell = {
+  v?: string | number | boolean | null;
+  f?: string; // formatted value
+};
+
+type GoogleSheetRow = {
+  c: (GoogleSheetCell | null)[];
+};
+
+type GoogleSheetResponse = {
+  status?: string;
+  errors?: { detailed_message?: string }[];
+  table?: {
+    rows: GoogleSheetRow[];
+  };
+};
 
 export async function fetchSheetData(): Promise<
   Record<string, string | number | boolean | null>[]
@@ -12,19 +27,14 @@ export async function fetchSheetData(): Promise<
       SHEET_NAME
     )}`;
 
-    console.log("Fetching from URL:", url);
-
     const response = await fetch(url);
-
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
     const text = await response.text();
-    console.log("Raw response:", text.substring(0, 200) + "...");
 
-    // Google Sheets returns JSONP, we need to extract the JSON part
-    let jsonString = text;
+    let jsonString: string;
 
     if (text.includes("google.visualization.Query.setResponse(")) {
       const start = text.indexOf("(") + 1;
@@ -39,10 +49,7 @@ export async function fetchSheetData(): Promise<
       jsonString = text.substring(jsonStart, jsonEnd);
     }
 
-    console.log("Extracted JSON:", jsonString.substring(0, 200) + "...");
-
-    const json = JSON.parse(jsonString);
-    console.log("Parsed JSON structure:", json);
+    const json: GoogleSheetResponse = JSON.parse(jsonString);
 
     if (json.status === "error") {
       throw new Error(
@@ -52,55 +59,40 @@ export async function fetchSheetData(): Promise<
       );
     }
 
-    if (!json.table || !json.table.rows) {
-      console.log("Available keys:", Object.keys(json));
+    if (!json.table?.rows) {
       throw new Error("Unexpected response structure - no table.rows found");
     }
 
-    console.log("Number of rows:", json.table.rows.length);
-    console.log("First few rows:", json.table.rows.slice(0, 3));
-
-    const processedRows = json.table.rows.map(
-      (row: SheetRow, index: number) => {
-        const cells = row.c || [];
-        console.log(`Row ${index} cells:`, cells);
-
-        return cells.map((cell: SheetRow) => {
-          if (!cell) return "";
-
-          if (cell.v !== undefined && cell.v !== null) {
-            return cell.v;
-          }
-
-          if (cell.f !== undefined) {
-            return cell.f;
-          }
-
-          return "";
-        });
-      }
-    );
-
-    console.log("Processed rows:", processedRows);
+    const processedRows = json.table.rows.map((row) => {
+      const cells = row.c || [];
+      return cells.map((cell) => {
+        if (!cell) return "";
+        if (cell.v !== undefined && cell.v !== null) {
+          return cell.v;
+        }
+        if (cell.f !== undefined) {
+          return cell.f;
+        }
+        return "";
+      });
+    });
 
     if (processedRows.length === 0) {
       return [];
     }
 
-    const headers = processedRows[0].map((header: string) =>
+    const headers = processedRows[0].map((header) =>
       header
         ? header.toString().trim()
         : `Column_${Math.random().toString(36).substr(2, 9)}`
     );
 
-    console.log("Headers:", headers);
-
     const dataRows = processedRows.slice(1);
 
-    const result = dataRows.map((row: SheetRow) => {
+    const result = dataRows.map((row) => {
       const obj: Record<string, string | number | boolean | null> = {};
 
-      headers.forEach((header: string, colIndex: number) => {
+      headers.forEach((header, colIndex) => {
         const value = row[colIndex];
 
         if (value === undefined || value === null || value === "") {
@@ -119,7 +111,6 @@ export async function fetchSheetData(): Promise<
       return obj;
     });
 
-    console.log("Final result:", result);
     return result;
   } catch (error) {
     console.error("Error fetching sheet data:", error);

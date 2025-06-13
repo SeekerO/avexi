@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { useEffect, useRef, useState } from "react";
 import { AiOutlineMenuFold } from "react-icons/ai";
 import { RiCloseFill } from "react-icons/ri";

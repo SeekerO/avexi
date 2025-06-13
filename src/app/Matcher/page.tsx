@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import React, { useRef, useState } from "react";
 
@@ -49,8 +50,8 @@ const Matcher = () => {
     );
   };
 
-  const filteredData1 = filterNames(res?.newData1);
-  const filteredData2 = filterNames(res?.newData2);
+  const filteredData1 = filterNames(res?.data1);
+  const filteredData2 = filterNames(res?.data2);
   const filteredResults = res?.matched?.filter((item: any) =>
     item?.row1[0].toLowerCase().includes(inputSearch1)
   );
@@ -80,10 +81,10 @@ const Matcher = () => {
                 DATA SET 1
               </label>
               <div className="flex items-center gap-1 text-blue-700 dark:text-blue-500">
-                {res?.newData1.length > 0 && (
+                {res?.data1?.length > 0 && (
                   <>
                     <IoMdPerson />
-                    <label>{res?.newData1.length}</label>
+                    <label>{res?.data1.length}</label>
                   </>
                 )}
               </div>
@@ -98,11 +99,11 @@ const Matcher = () => {
             </div>
 
             <div
-              className={`h-full w-full bg-slate-200 dark:bg-slate-600 flex flex-col shadow-md rounded-md p-3 gap-1 ${
+              className={`h-full w-full overflow-auto bg-slate-200 dark:bg-slate-600 flex flex-col shadow-md rounded-md p-3 gap-1 ${
                 res?.data1?.length ? "items-start" : "items-center "
               }`}
             >
-              {res?.newData1 ? (
+              {res?.data1 ? (
                 filteredData1.map(
                   (value: string[], index: number) =>
                     value.length !== 0 && (
@@ -128,21 +129,21 @@ const Matcher = () => {
                 DATA SET 2
               </label>
               <div className="flex items-center gap-1 text-blue-700 dark:text-blue-500">
-                {res?.newData2.length > 0 && (
+                {res?.data2?.length > 0 && (
                   <>
                     <IoMdPerson />
-                    <label>{res?.newData2.length}</label>
+                    <label>{res?.data2.length}</label>
                   </>
                 )}
               </div>
             </div>
 
             <div
-              className={`h-full w-full bg-slate-200 dark:bg-slate-600 flex flex-col shadow-md rounded-md p-3 gap-1 ${
+              className={`h-full w-full overflow-auto bg-slate-200 dark:bg-slate-600 flex flex-col shadow-md rounded-md p-3 gap-1 ${
                 res?.data2?.length ? "items-start" : "items-center"
               }`}
             >
-              {res?.newData2 ? (
+              {res?.data2 ? (
                 filteredData2.map(
                   (value: string[], index: number) =>
                     value.length !== 0 && (
@@ -169,10 +170,10 @@ const Matcher = () => {
               <>
                 <div className="flex items-center gap-2">
                   <div className="flex items-center gap-1 text-blue-700 dark:text-blue-500">
-                    {res?.newData2.length > 0 && (
+                    {res?.data2?.length > 0 && (
                       <>
                         <IoMdPerson />
-                        <label>{res?.newData2.length}</label>
+                        <label>{res?.data2.length}</label>
                       </>
                     )}
                   </div>
