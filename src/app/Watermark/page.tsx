@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import JSZip from "jszip";
+import Image from "next/image";
 
 export default function Watermark() {
   const [watermark, setWatermark] = useState<File | null>(null);
@@ -308,7 +309,7 @@ export default function Watermark() {
                 />
               </svg>
             </button>
-            <img
+            <Image
               src={previewImageUrl}
               alt="Preview"
               className="max-w-full max-h-full object-contain"

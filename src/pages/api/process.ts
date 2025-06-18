@@ -1,4 +1,5 @@
 // pages/api/process.ts
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextApiRequest, NextApiResponse } from "next";
 import formidable from "formidable";
 import sharp from "sharp";
@@ -121,12 +122,10 @@ export default async function handler(
     res.status(200).json({ previews });
   } catch (error) {
     console.error("Overall processing error:", error);
-    res
-      .status(500)
-      .json({
-        error:
-          "Failed to process images. Please try again with valid image files.",
-      });
+    res.status(500).json({
+      error:
+        "Failed to process images. Please try again with valid image files.",
+    });
   } finally {
     // Clean up all temporary files created by formidable
     for (const filePath of uploadedFilePaths) {

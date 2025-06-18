@@ -13,14 +13,6 @@ const Main = () => {
 
 export default Main;
 
-const Card_input = () => {
-  return <div className=""></div>;
-};
-
-const Sidebar = () => {
-  return <div></div>;
-};
-
 import BreadCrumb from "@/app/component/breadcrumb";
 import Image from "next/image";
 import kkk from "@/lib/image/KKK.png";
