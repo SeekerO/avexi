@@ -1,5 +1,6 @@
 // app/context/ImageEditorContext.tsx
 "use client";
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import React, { createContext, useContext, useState, ReactNode } from "react";
 

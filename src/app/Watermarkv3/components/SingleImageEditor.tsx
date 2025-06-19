@@ -1,5 +1,6 @@
 // app/components/SingleImageEditor.tsx
 "use client";
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import React, { useEffect, useRef } from "react";
 // Corrected import path for ImageEditorContext

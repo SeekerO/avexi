@@ -1,5 +1,6 @@
 // app/components/ImageUploader.tsx
 "use client";
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import React, { useRef } from "react";
 // Corrected import path for ImageEditorContext

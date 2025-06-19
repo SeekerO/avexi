@@ -1,5 +1,6 @@
 // app/components/ImageControls.tsx
 "use client";
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import React from "react";
 // Corrected import path for ImageEditorContext
