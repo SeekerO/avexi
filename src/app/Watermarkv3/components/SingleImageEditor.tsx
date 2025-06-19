@@ -150,9 +150,9 @@ export default function SingleImageEditor({ image, index }: Props) {
     };
 
     return (
-        <div className="bg-white rounded-lg p-4 flex flex-col items-center">
+        <div className="bg-white dark:bg-gray-700 rounded-lg p-4 flex flex-col items-center">
             {/* Canvas for image rendering */}
-            <canvas ref={canvasRef} id={`canvas-${index}`} className="w-full h-auto border border-gray-300 rounded-md mb-4 shadow-sm" />
+            <canvas ref={canvasRef} id={`canvas-${index}`} className="w-full h-auto   rounded-md mb-4 shadow-sm" />
 
             {/* Action buttons */}
             <div className="flex flex-wrap gap-3 justify-center w-full">

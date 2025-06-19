@@ -29,8 +29,8 @@ export default function Home() {
             REMARKS
           </Link>
           <Link
-            href={"/Evaluation"}
-            className="bg-blue-900 text-white font-semibold px-10 py-3 rounded-md hover:scale-110 duration-300"
+            href={"/"}
+            className="bg-gray-700 text-white font-semibold px-10 py-3 rounded-md hover:scale-110 duration-300"
           >
             EVALUATION
           </Link>

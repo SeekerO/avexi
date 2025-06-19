@@ -101,15 +101,15 @@ export default function ImageControls() {
     };
 
     return (
-        <div className="space-y-4 mt-6 bg-white p-5 rounded-lg shadow-lg">
+        <div className="space-y-4 mt-6 bg-white dark:bg-gray-800 p-5 rounded-lg shadow-lg">
             {isImageSelected ? (
                 // Controls for a selected image (individual or global applies)
                 <>
-                    <h3 className="text-lg font-bold text-gray-700 border-b pb-2 mb-4">
+                    <h3 className="text-lg font-bold text-gray-700 dark:text-white border-b pb-2 mb-4">
                         Editing: Image {selectedImageIndex! + 1}
                     </h3>
                     <div className="flex items-center justify-between mb-4">
-                        <span className="font-semibold text-gray-700">Apply Global Settings:</span>
+                        <span className="font-semibold text-gray-700  dark:text-white">Apply Global Settings:</span>
                         <input
                             type="checkbox"
                             checked={selectedImage?.useGlobalSettings || false} // Make sure it's a boolean
@@ -120,10 +120,10 @@ export default function ImageControls() {
                 </>
             ) : (
                 // Controls for global settings (when no image is selected or general controls)
-                <h3 className="text-lg font-bold text-gray-700 border-b pb-2 mb-4">Global Watermark Settings</h3>
+                <h3 className="text-lg font-bold text-gray-700  dark:text-white border-b pb-2 mb-4">Global Watermark Settings</h3>
             )}
 
-            <p className="text-sm text-gray-500 mb-4">
+            <p className="text-sm text-gray-500  dark:text-gray-300 mb-4">
                 {isImageSelected && !selectedImage?.useGlobalSettings
                     ? "Adjust settings for this specific image."
                     : "Adjust settings for all images (or images using global settings)."}
@@ -131,9 +131,9 @@ export default function ImageControls() {
 
             {/* Logo Controls Section */}
             <div className="space-y-3 p-3 border border-gray-200 rounded-md">
-                <h4 className="font-semibold text-gray-700">Logo Settings</h4>
+                <h4 className="font-semibold text-gray-700  dark:text-white">Logo Settings</h4>
                 <div>
-                    <label className="font-medium text-gray-600 block mb-1">Logo Position</label>
+                    <label className="font-medium text-gray-600 block mb-1  dark:text-white">Logo Position</label>
                     <select
                         value={currentLogoSettings?.position || "top-left"}
                         onChange={(e) => updateLogoSettings({ position: e.target.value })}
@@ -150,7 +150,7 @@ export default function ImageControls() {
 
                 <div className="flex gap-3">
                     <div className="flex-1">
-                        <label className="font-medium text-gray-600 block mb-1">Logo Width</label>
+                        <label className="font-medium text-gray-600  dark:text-white block mb-1">Logo Width</label>
                         <input
                             type="number"
                             value={currentLogoSettings?.width || 0}
@@ -159,7 +159,7 @@ export default function ImageControls() {
                         />
                     </div>
                     <div className="flex-1">
-                        <label className="font-medium text-gray-600 block mb-1">Logo Height</label>
+                        <label className="font-medium text-gray-600  dark:text-white block mb-1">Logo Height</label>
                         <input
                             type="number"
                             value={currentLogoSettings?.height || 0}
@@ -170,7 +170,7 @@ export default function ImageControls() {
                 </div>
 
                 <div>
-                    <label className="font-medium text-gray-600 block mb-1">Logo Padding X</label>
+                    <label className="font-medium text-gray-600  dark:text-white block mb-1">Logo Padding X</label>
                     <input
                         type="range"
                         min="0"
@@ -183,7 +183,7 @@ export default function ImageControls() {
                 </div>
 
                 <div>
-                    <label className="font-medium text-gray-600 block mb-1">Logo Padding Y</label>
+                    <label className="font-medium text-gray-600  dark:text-white block mb-1">Logo Padding Y</label>
                     <input
                         type="range"
                         min="0"
@@ -198,9 +198,9 @@ export default function ImageControls() {
 
             {/* Footer Controls Section */}
             <div className="space-y-3 p-3 border border-gray-200 rounded-md">
-                <h4 className="font-semibold text-gray-700">Footer Settings</h4>
+                <h4 className="font-semibold text-gray-700  dark:text-white">Footer Settings</h4>
                 <div>
-                    <label className="font-medium text-gray-600 block mb-1">Footer Scale</label>
+                    <label className="font-medium text-gray-600  dark:text-white block mb-1">Footer Scale</label>
                     <input
                         type="range"
                         min="0.1"
@@ -213,7 +213,7 @@ export default function ImageControls() {
                 </div>
 
                 <div>
-                    <label className="font-medium text-gray-600 block mb-1">Footer Opacity</label>
+                    <label className="font-medium text-gray-600  dark:text-white block mb-1">Footer Opacity</label>
                     <input
                         type="range"
                         min="0"
@@ -226,7 +226,7 @@ export default function ImageControls() {
                 </div>
 
                 <div>
-                    <label className="font-medium text-gray-600 block mb-1">Footer Offset X</label>
+                    <label className="font-medium text-gray-600  dark:text-white block mb-1">Footer Offset X</label>
                     <input
                         type="range"
                         min="-500"

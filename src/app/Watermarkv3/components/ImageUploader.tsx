@@ -7,6 +7,9 @@ import React, { useRef } from "react";
 // Corrected import path for ImageEditorContext
 import { useImageEditor } from "./ImageEditorContext";
 
+// Icon from react-icons or any other icon library can be used here
+import { FaImage } from "react-icons/fa6";
+
 // Component for uploading source images, logos, and footers.
 export default function ImageUploader() {
     // Refs for file input elements.
@@ -71,7 +74,7 @@ export default function ImageUploader() {
     return (
         <div className="space-y-6">
             <div>
-                <label className="font-semibold text-gray-700 block mb-2">Upload Main Images</label>
+                <label className="font-semibold text-gray-700 dark:text-gray-100 mb-2 flex gap-2 items-center"><FaImage className="text-[20px]" />Upload Main Images</label>
                 <input
                     type="file"
                     ref={imageInputRef}
@@ -88,7 +91,7 @@ export default function ImageUploader() {
             </div>
 
             <div>
-                <label className="font-semibold text-gray-700 block mb-2">Upload Logo (Optional)</label>
+                <label className="font-semibold text-gray-700 dark:text-gray-100 flex gap-2 items-center"><FaImage className="text-[20px]" />Upload Logo (Optional)</label>
                 <input
                     type="file"
                     ref={logoInputRef}
@@ -104,7 +107,7 @@ export default function ImageUploader() {
             </div>
 
             <div>
-                <label className="font-semibold text-gray-700 block mb-2">Upload Footer (Optional)</label>
+                <label className="font-semibold text-gray-700 dark:text-gray-100 flex gap-2 items-center"><FaImage className="text-[20px]" />Upload Footer (Optional)</label>
                 <input
                     type="file"
                     ref={footerInputRef}
