@@ -2,7 +2,6 @@
 "use client";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint / no - unused - vars */
 
 import React from "react";
 import JSZip from "jszip"; // Import JSZip
@@ -22,7 +21,7 @@ export default function PreviewArea() {
         const zip = new JSZip();
         const folder = zip.folder("watermarked_images"); // Create a folder inside the zip
 
-        for (const [index, image] of images.entries()) {
+        for (const [index] of images.entries()) {
             const canvas = document.getElementById(`canvas-${index}`) as HTMLCanvasElement;
             if (canvas) {
                 // Get image data as a Blob

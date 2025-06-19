@@ -2,7 +2,6 @@
 "use client";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint / no - unused - vars */
 
 import React, { useRef } from "react";
 // Corrected import path for ImageEditorContext
@@ -22,8 +21,6 @@ export default function ImageUploader() {
         setFooter,
         images,
         setSelectedImageIndex,
-        globalLogoSettings, // Get global settings for new image defaults
-        globalFooterSettings, // Get global settings for new image defaults
     } = useImageEditor();
 
     // Handler for uploading multiple main images.

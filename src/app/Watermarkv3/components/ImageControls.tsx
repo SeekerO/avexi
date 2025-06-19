@@ -2,16 +2,11 @@
 "use client";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint / no - unused - vars */
 
 import React from "react";
 // Corrected import path for ImageEditorContext
 import { useImageEditor } from "./ImageEditorContext";
 
-interface Props {
-    // No longer needs 'index' directly as a prop for rendering controls,
-    // it will implicitly get the selected image via context.
-}
 
 // Component to provide controls for adjusting logo and footer settings.
 // It can apply settings globally or to a selected individual image.
