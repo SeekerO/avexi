@@ -3,21 +3,24 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import React from "react";
+import React, { useState } from "react";
 import JSZip from "jszip"; // Import JSZip
 import { saveAs } from 'file-saver'; // For saving the generated zip file
 import { useImageEditor } from "./ImageEditorContext";
 import SingleImageEditor from "./SingleImageEditor";
+import ModalLoading from "./ModalLoading";
 
 // Component to display uploaded images and manage global download.
 export default function PreviewArea() {
     // Destructure necessary values from the image editor context.
     const { images, selectedImageIndex, setSelectedImageIndex } = useImageEditor();
+    const [processing, setProcessing] = useState<boolean>(false)
 
     // Function to download all processed images as a ZIP file.
     const downloadAll = async () => {
         if (images.length === 0) return; // Prevent download if no images
 
+        setProcessing(true); // Set processing state to true while generating the zip
         const zip = new JSZip();
         const folder = zip.folder("watermarked_images"); // Create a folder inside the zip
 
@@ -31,6 +34,7 @@ export default function PreviewArea() {
                 }
             }
         }
+        setProcessing(false); // Reset processing state after zip generation
 
         // Generate the zip file and trigger download
         zip.generateAsync({ type: "blob" })
@@ -80,6 +84,7 @@ export default function PreviewArea() {
                     ))}
                 </div>
             )}
+            <ModalLoading open={processing} />
         </div>
     );
 }
