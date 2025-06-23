@@ -9,6 +9,8 @@ import { saveAs } from 'file-saver'; // For saving the generated zip file
 import { useImageEditor } from "./ImageEditorContext";
 import SingleImageEditor from "./SingleImageEditor";
 import ModalLoading from "./ModalLoading";
+import { HiOutlineFolderDownload } from "react-icons/hi";
+
 
 // Component to display uploaded images and manage global download.
 export default function PreviewArea() {
@@ -47,15 +49,15 @@ export default function PreviewArea() {
     };
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 p-1">
             <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">Image Previews</h2>
                 {images.length > 0 && <button
                     onClick={downloadAll}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105"
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105 flex items-end gap-2"
                     disabled={images.length === 0}
                 >
-                    Download All as ZIP
+                    <HiOutlineFolderDownload className="text-[25px]" /> Download All as ZIP
                 </button>}
             </div>
 
@@ -68,15 +70,15 @@ export default function PreviewArea() {
                     {images.map((image: any, index: number) => (
                         <div
                             key={index}
-                            className={`relative  rounded-lg overflow-hidden transition-all duration-200 ease-in-out ${selectedImageIndex === index
-                                ? "border-blue-500 shadow-xl scale-102 border-4"
+                            className={`relative  rounded-xl overflow-hidden transition-all duration-200 ease-in-out ${selectedImageIndex === index
+                                ? "border-blue-500 shadow-xl scale-102 border-2"
                                 : " hover:border-gray-400 cursor-pointer shadow-md"
                                 }`}
                             onClick={() => setSelectedImageIndex(index)}
                         >
                             <SingleImageEditor image={image} index={index} />
                             {selectedImageIndex === index && (
-                                <div className="absolute inset-0 bg-blue-500 bg-opacity-20 flex items-center justify-center text-white font-bold text-2xl pointer-events-none rounded-lg">
+                                <div className="absolute inset-0 bg-blue-500 bg-opacity-20 flex items-center justify-center text-white font-bold text-2xl pointer-events-none rounded-xl">
                                     SELECTED
                                 </div>
                             )}

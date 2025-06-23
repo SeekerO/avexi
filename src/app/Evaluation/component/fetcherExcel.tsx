@@ -1,6 +1,5 @@
-// fetcherExcel.ts
-const SHEET_ID = "1CCOXZ_ZMMSoRQltEIfZ6VOBfQc9RhjoJoGcXTsKe0gQ";
-const SHEET_NAME = "REGION V";
+// lib/fetcherExcel.ts
+// This file contains the function to fetch data from a Google Sheet.
 
 type GoogleSheetCell = {
   v?: string | number | boolean | null;
@@ -15,65 +14,107 @@ type GoogleSheetResponse = {
   status?: string;
   errors?: { detailed_message?: string }[];
   table?: {
+    cols: { id: string; label: string; type: string }[];
     rows: GoogleSheetRow[];
   };
 };
 
-export async function fetchSheetData(): Promise<
-  Record<string, string | number | boolean | null>[]
-> {
+/**
+ * Extracts the Google Sheet ID from a given URL.
+ * @param url The full URL of the Google Sheet.
+ * @returns The Google Sheet ID as a string, or null if not found.
+ */
+export function extractSheetId(url: string): string | null {
+  const match = url.match(/\/d\/([a-zA-Z0-9_-]+)(?:[\/#?]|$)/);
+  return match ? match[1] : null;
+}
+
+/**
+ * Fetches data from a specified Google Sheet.
+ * @param sheetId The ID of the Google Sheet.
+ * @param sheetName The name of the specific sheet/tab within the spreadsheet.
+ * @returns A Promise that resolves to an array of records, where each record represents a row.
+ */
+export async function fetchSheetData(
+  sheetId: string,
+  sheetName: string
+): Promise<Record<string, string | number | boolean>[]> { // Updated return type to exclude null
+  if (!sheetId || !sheetName) {
+    throw new Error("Sheet ID and Sheet Name cannot be empty.");
+  }
+
   try {
-    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(
-      SHEET_NAME
+    const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(
+      sheetName
     )}`;
 
     const response = await fetch(url);
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      throw new Error(
+        `Network response was not ok. Status: ${response.status} ${response.statusText}`
+      );
     }
 
     const text = await response.text();
-
     let jsonString: string;
 
-    if (text.includes("google.visualization.Query.setResponse(")) {
-      const start = text.indexOf("(") + 1;
-      const end = text.lastIndexOf(")");
-      jsonString = text.substring(start, end);
+    // The Google Visualization API wraps the JSONP response.
+    // We need to extract the JSON string from within the setResponse() call.
+    const jsonpMatch = text.match(
+      /google\.visualization\.Query\.setResponse\((.*)\);/
+    );
+
+
+    if (jsonpMatch && jsonpMatch[1]) {
+      jsonString = jsonpMatch[1]
     } else {
-      const jsonStart = text.indexOf("{");
-      const jsonEnd = text.lastIndexOf("}") + 1;
-      if (jsonStart === -1 || jsonEnd === 0) {
-        throw new Error("No JSON found in response");
+      // Fallback for direct JSON, though less common with gviz/tq endpoint
+      try {
+        // Attempt to parse directly if it's pure JSON (unlikely for gviz/tq)
+        JSON.parse(text);
+        jsonString = text;
+      } catch (e) {
+        throw new Error("Could not extract JSON from Google Sheets response.");
       }
-      jsonString = text.substring(jsonStart, jsonEnd);
     }
 
     const json: GoogleSheetResponse = JSON.parse(jsonString);
 
+    console.log("Fetched Google Sheet Data:", json);
+
     if (json.status === "error") {
       throw new Error(
-        `Google Sheets API error: ${
-          json.errors?.[0]?.detailed_message || "Unknown error"
+        `Google Sheets API error: ${json.errors?.[0]?.detailed_message || "Unknown API error"
         }`
       );
     }
 
-    if (!json.table?.rows) {
-      throw new Error("Unexpected response structure - no table.rows found");
+
+    if (!json.table || !json.table.cols) {
+      throw new Error("Unexpected response structure: 'table' or 'table.cols' not found.");
+    }
+
+    const headers = json.table.cols.map(col => col.label);
+
+    if (!json.table.rows) {
+      // If there are columns but no rows, return an empty array
+      return [];
     }
 
     const processedRows = json.table.rows.map((row) => {
-      const cells = row.c || [];
+      const cells = row.c || []; // Ensure cells is an array even if 'c' is null/undefined
       return cells.map((cell) => {
-        if (!cell) return "";
+        // If cell is null, or its value/formatted value is undefined/null, return ""
+        if (cell === null || (cell.v === undefined && cell.f === undefined)) {
+          return "";
+        }
         if (cell.v !== undefined && cell.v !== null) {
           return cell.v;
         }
         if (cell.f !== undefined) {
           return cell.f;
         }
-        return "";
+        return ""; // Return blank for other empty or undefined cases
       });
     });
 
@@ -81,16 +122,8 @@ export async function fetchSheetData(): Promise<
       return [];
     }
 
-    const headers = processedRows[0].map((header) =>
-      header
-        ? header.toString().trim()
-        : `Column_${Math.random().toString(36).substr(2, 9)}`
-    );
-
-    const dataRows = processedRows.slice(1);
-
-    const result = dataRows.map((row) => {
-      const obj: Record<string, string | number | boolean | null> = {};
+    const result = processedRows.map((row) => {
+      const obj: Record<string, string | number | boolean> = {};
 
       headers.forEach((header, colIndex) => {
         const value = row[colIndex];

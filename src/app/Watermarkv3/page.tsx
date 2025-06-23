@@ -32,8 +32,8 @@ function WatermarkPageContent() {
                         <BreadCrumb />
                     </div>
                     <h1 className="text-2xl font-bold mb-6 text-gray-800 dark:text-gray-100 flex items-center justify-between">Watermark Editor
-                        <div onClick={handleDeleteAll} className="flex items-center justify-center w-8 h-8 bg-red-500 rounded-full cursor-pointer hover:bg-red-200 transition-colors duration-300">
-                            <MdDelete className="text-gray-100 hover:text-red-500 text-[15px]" />
+                        <div onClick={handleDeleteAll} className="flex items-center justify-center w-8 h-8 bg-red-500 rounded-full cursor-pointer hover:bg-red-200 transition-colors duration-300 text-gray-100 hover:text-red-500">
+                            <MdDelete className=" text-[15px]" />
                         </div>
                     </h1>
 

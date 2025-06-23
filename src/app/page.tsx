@@ -30,7 +30,7 @@ export default function Home() {
           </Link>
           <Link
             href={"/"}
-            className="bg-gray-700 text-white font-semibold px-10 py-3 rounded-md hover:scale-110 duration-300"
+            className="bg-gray-700 text-white font-semibold px-10 py-3 rounded-md hover:scale-100 duration-300 cursor-not-allowed"
           >
             EVALUATION
           </Link>
