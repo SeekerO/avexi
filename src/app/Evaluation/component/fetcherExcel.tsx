@@ -1,6 +1,9 @@
 // lib/fetcherExcel.ts
 // This file contains the function to fetch data from a Google Sheet.
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+
 type GoogleSheetCell = {
   v?: string | number | boolean | null;
   f?: string; // formatted value
@@ -74,7 +77,7 @@ export async function fetchSheetData(
         JSON.parse(text);
         jsonString = text;
       } catch (e) {
-        throw new Error("Could not extract JSON from Google Sheets response.");
+        throw new Error("Could not extract JSON from Google Sheets response." + e);
       }
     }
 

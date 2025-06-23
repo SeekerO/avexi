@@ -39,7 +39,6 @@ const HomePage: React.FC = () => {
         {/* Tailwind CSS CDN */}
         {/* Inter Font */}
         {/* XLSX library CDN for client-side Excel export */}
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
       </Head>
 
       {/* Retractable Sidebar (Left Side) */}

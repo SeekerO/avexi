@@ -1,6 +1,8 @@
 // components/SheetViewer.tsx
 'use client'; // Required for client-side components in Next.js App Router
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { fetchSheetData } from './fetcherExcel'; // Adjust the path as necessary
 import * as XLSX from 'xlsx'; // Import the xlsx library
@@ -529,7 +531,7 @@ const SheetViewer: React.FC<SheetViewerProps> = ({ sheetId: propSheetId, sheetNa
                         ) : (
                             displayedData.map((row, rowIndex) => (
                                 <tr key={rowIndex} className="hover:bg-gray-50 ">
-                                    {visibleColumns.map((header, colIndex) => {
+                                    {visibleColumns.map((header) => {
                                         const isCurrentlyEditing = editingCell?.rowIndex === (rowIndex + (currentPage - 1) * itemsPerPage) && editingCell?.colName === header;
                                         const cellValue = row[header];
                                         const isUrl = typeof cellValue === 'string' && cellValue.startsWith('https://');
@@ -616,7 +618,7 @@ const SheetViewer: React.FC<SheetViewerProps> = ({ sheetId: propSheetId, sheetNa
 
                         <>
                             <p className="text-sm text-gray-600 mb-2">
-                                Attempting to display embedded content. If it doesn't load, it might be due to security settings or an invalid embed link.
+                                {"Attempting to display embedded content. If it doesn't load, it might be due to security settings or an invalid embed link."}
                             </p>
                             <div className="flex-grow flex items-center justify-center border border-gray-300 rounded-md overflow-hidden">
                                 <iframe

@@ -1,9 +1,12 @@
 // app/components/SingleImageEditor.tsx
 "use client";
 
-import React, { RefObject, SetStateAction, useEffect, useRef } from "react";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+import React, { useEffect, useRef } from "react";
 // Corrected import path for ImageEditorContext
 import { useImageEditor } from "./ImageEditorContext";
+import ModalPreview from "./ModalPreview"
 // Icons for download, delete, and maximize actions
 import { MdDelete } from "react-icons/md";
 import { FiDownload, FiMaximize2 } from "react-icons/fi";
@@ -13,14 +16,6 @@ interface SingleImageEditorProps {
     index: number;
 }
 
-interface ModalPreviewProps {
-    // Allow canvasRef.current to be null
-    canvasRef: React.RefObject<HTMLCanvasElement | null>;
-    open: boolean;
-    onClose: React.Dispatch<SetStateAction<boolean>>;
-    // Changed this prop name for clarity as we'll use it to grab the modal's canvas
-    modalCanvasId: string;
-}
 
 // Helper function to calculate the position of the logo based on its settings.
 const calculatePosition = (
@@ -73,8 +68,8 @@ export default function SingleImageEditor({ image, index }: SingleImageEditorPro
     const { logo, footer, setImages, setSelectedImageIndex, globalLogoSettings, globalFooterSettings } = useImageEditor();
     const [openPreview, setOpenPreview] = React.useState(false);
 
-    const activeLogoSettings = image.useGlobalSettings ? globalLogoSettings : image.individualLogoSettings;
-    const activeFooterSettings = image.useGlobalSettings ? globalFooterSettings : image.individualFooterSettings;
+    const activeLogoSettings = image?.useGlobalSettings ? globalLogoSettings : image.individualLogoSettings;
+    const activeFooterSettings = image?.useGlobalSettings ? globalFooterSettings : image.individualFooterSettings;
 
     useEffect(() => {
         const canvas = canvasRef.current;
@@ -182,76 +177,3 @@ export default function SingleImageEditor({ image, index }: SingleImageEditorPro
     );
 }
 
-const ModalPreview = ({ canvasRef, open, onClose, modalCanvasId }: ModalPreviewProps) => {
-    if (!open) return null;
-
-    // Use a local ref for the canvas element *inside* the modal
-    const modalCanvasRef = useRef<HTMLCanvasElement>(null);
-    const ref = useRef<HTMLDivElement>(null)
-
-    const handleClickOutside = (event: MouseEvent) => {
-        // Check if the click target is NOT within the modal's content area
-        // event.target as Node is important for TypeScript with .contains()
-        if (ref.current && !ref.current.contains(event.target as Node)) {
-            onClose(false); // Close the modal
-        }
-    };
-
-    useEffect(() => {
-        document.addEventListener("mousedown", handleClickOutside);
-
-        return () => {
-            document.removeEventListener("mousedown", handleClickOutside);
-        };
-    }, []);
-
-    useEffect(() => {
-        const handleKeyDown = (event: KeyboardEvent) => {
-            if (event.key === 'Escape') {
-                onClose(false); // Close the modal
-            }
-        };
-
-        // Attach the event listener when the component mounts
-        window.addEventListener('keydown', handleKeyDown);
-
-        // Clean up the event listener when the component unmounts
-        return () => {
-            window.removeEventListener('keydown', handleKeyDown);
-        };
-    }, []);
-
-
-
-    useEffect(() => {
-        const originalCanvas = canvasRef.current;
-        const modalCanvas = modalCanvasRef.current; // Use the local ref for the modal's canvas
-
-        if (originalCanvas && modalCanvas) {
-            const ctx = modalCanvas.getContext('2d');
-            if (ctx) {
-                // Set modal canvas dimensions to match the original
-                modalCanvas.width = originalCanvas.width;
-                modalCanvas.height = originalCanvas.height;
-                // Draw the content of the original canvas onto the modal's canvas
-                ctx.drawImage(originalCanvas, 0, 0);
-            }
-        }
-    }, [open, canvasRef, modalCanvasId]); // Re-run when modal opens or original canvas ref changes
-
-    return (
-        <div
-            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
-            onClick={() => onClose(false)}
-        >
-            <div
-                ref={ref}
-                className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg relative max-w-5xl w-full max-h-[97vh] overflow-auto"
-                onClick={(e) => e.stopPropagation()}
-            >
-                {/* Assign the local ref to this canvas element */}
-                <canvas ref={modalCanvasRef} id={modalCanvasId} className="w-full h-auto rounded-md mb-4 shadow-sm border border-gray-300 dark:border-gray-600" />
-            </div>
-        </div>
-    );
-}
