@@ -155,9 +155,9 @@ const ChatLayout = ({ handle }: { handle: () => void }) => {
     };
 
     return (
-        <div className="w-80 md:w-96 h-[60vh] bg-white rounded-lg shadow-xl flex flex-col overflow-hidden">
+        <div className="w-80 md:w-96 h-[60vh] bg-white dark:bg-gray-900 rounded-lg shadow-xl flex flex-col overflow-hidden">
             {/* Chat Header */}
-            <div className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-md">
+            <div className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-600 dark:from-gray-600 to-blue-500 dark:to-gray-800 text-white shadow-md">
                 <div className="flex items-center gap-2">
                     <div className="relative gap-1 mt-2 mr-1">
                         <RiRobot2Fill className=" z-10 text-slate-100 text-2xl" />
@@ -177,7 +177,7 @@ const ChatLayout = ({ handle }: { handle: () => void }) => {
             </div>
 
             {/* Chat Messages Area */}
-            <div className="flex-1 p-4 bg-slate-200 overflow-y-auto custom-scrollbar relative flex flex-col">
+            <div className="flex-1 p-4 bg-slate-200 dark:bg-slate-700 overflow-y-auto custom-scrollbar relative flex flex-col">
                 {messages.length === 0 && (
                     <div className="text-center text-gray-500 p-5 text-lg">
                         <span>
@@ -197,7 +197,7 @@ const ChatLayout = ({ handle }: { handle: () => void }) => {
                     >
                         <div
                             className={`p-3 rounded-lg max-w-[70%] text-sm shadow-md break-words leading-tight
-                                ${msg.sender === "user" ? "bg-blue-200 text-blue-800" : "bg-gray-400 text-white"}`}
+                                ${msg.sender === "user" ? "bg-blue-200 dark:bg-blue-300 text-blue-800" : "bg-gray-400 text-white dark:bg-gray-800"}`}
                         >
                             {msg.sender === "ai" ? (
                                 <div className="markdown-content">
@@ -216,7 +216,7 @@ const ChatLayout = ({ handle }: { handle: () => void }) => {
                 ))}
                 {isLoading && (
                     <div className="flex justify-start mb-3">
-                        <div className="bg-gray-200 text-gray-600 p-3 rounded-lg max-w-[70%] shadow-md italic">
+                        <div className="bg-gray-200 dark:bg-gray-800 dark:text-gray-300 text-gray-600 p-3 rounded-lg max-w-[70%] shadow-md italic">
                             AI is typing...
                         </div>
                     </div>
@@ -236,11 +236,11 @@ const ChatLayout = ({ handle }: { handle: () => void }) => {
             )}
 
             {/* Chat Input Area */}
-            <div className="p-4 border-t border-gray-200 bg-white relative">
+            <div className="p-4 border-t border-gray-200 bg-white dark:bg-gray-700 relative">
                 <div className="flex items-center gap-3">
                     <textarea
                         ref={inputRef}
-                        className="flex-1 p-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none custom-scrollbar"
+                        className="dark:bg-slate-800  dark:text-white flex-1 p-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none custom-scrollbar"
                         rows={2}
                         placeholder="Type your message..."
                         value={input}
