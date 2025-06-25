@@ -148,8 +148,8 @@ export default function SingleImageEditor({ image, index }: SingleImageEditorPro
     const modalCanvasId = `modal-canvas-${index}`;
 
     return (
-        <div className="bg-white dark:bg-gray-700 rounded-lg p-4 flex flex-col items-center">
-            <canvas ref={canvasRef} id={`canvas-${index}`} className="w-full h-auto rounded-md mb-4 shadow-sm" />
+        <div className="bg-white dark:bg-gray-700 rounded-lg p-4 flex flex-col items-center ">
+            <canvas ref={canvasRef} id={`canvas-${index}`} className={`w-full h-auto rounded-md mb-4 shadow-sm`} />
 
             <div className="flex flex-wrap gap-3 justify-center w-full">
                 <button

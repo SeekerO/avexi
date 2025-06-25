@@ -2,7 +2,6 @@
 // This is the main application entry point (for Next.js Pages Router).
 "use client"
 
-import Head from 'next/head';
 import React, { useState, useEffect } from 'react';
 import SheetViewer from './component/SheerViewer'; // Adjust path
 import { extractSheetId } from './component/fetcherExcel'; // Import the helper function

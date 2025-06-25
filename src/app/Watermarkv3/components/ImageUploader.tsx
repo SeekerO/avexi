@@ -10,6 +10,10 @@ import { useImageEditor } from "./ImageEditorContext";
 // Icon from react-icons or any other icon library can be used here
 import { FaImage } from "react-icons/fa6";
 
+import Logo from "@/lib/image/COMELEC.png"
+import Footer from "@/lib/image/FOOTER.png"
+import { StaticImageData } from "next/image";
+
 // Component for uploading source images, logos, and footers.
 export default function ImageUploader() {
     // Refs for file input elements.
@@ -71,6 +75,28 @@ export default function ImageUploader() {
         }
     };
 
+    const handleDefault = async () => { // Make the function async
+        try {
+            const imageLOGO = (Logo as StaticImageData).src; // Cast to StaticImageData if TypeScript complains
+            const imageFOOTER = (Footer as StaticImageData).src
+
+            const responseLOGO = await fetch(imageLOGO);
+            const responseFOOTER = await fetch(imageFOOTER)
+
+            if (!responseLOGO.ok || !responseFOOTER.ok) {
+                throw new Error(`HTTP error! status: ${responseLOGO.status}`);
+            }
+
+            const imageBlobLOGO = await responseLOGO.blob();
+            const imageBlobFOOTER = await responseFOOTER.blob()
+            setLogo(URL.createObjectURL(imageBlobLOGO));
+            setFooter(URL.createObjectURL(imageBlobFOOTER))
+
+        } catch (error) {
+            console.error("Error setting default logo:", error);
+        }
+    };
+
     return (
         <div className="space-y-6 px-">
             <div className="flex flex-col gap-1 dark:bg-gray-800 bg-white shadow-lg p-4 rounded-lg">
@@ -120,6 +146,9 @@ export default function ImageUploader() {
                                file:bg-green-50 file:text-green-700
                                hover:file:bg-green-100"
                 />
+            </div>
+            <div className="flex justify-center">
+                <button onClick={handleDefault} className="hover:bg-opacity-50 bg-yellow-50 text-yellow-800 px-4 py-1 rounded-full cursor-pointer ">COMELEC Footer & Logo</button>
             </div>
         </div>
     );
