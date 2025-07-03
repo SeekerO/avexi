@@ -35,7 +35,7 @@ export default function PreviewArea() {
         const signal = abortControllerRef.current.signal;
 
         const zip = new JSZip();
-        const folder = zip.folder("watermarked_images");
+        const folder = zip.folder(fileName);
 
         try {
             for (const [index] of images.entries()) {

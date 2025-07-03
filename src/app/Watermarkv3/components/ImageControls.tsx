@@ -173,8 +173,14 @@ export default function ImageControls() {
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Logo Padding X: <span className="font-normal text-gray-500 dark:text-gray-400">{currentLogoSettings?.paddingX || 0}</span>
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex gap-2 items-center">
+                        Logo Padding X:
+                        <input type="number"
+                            onChange={(e) => updateLogoSettings({ paddingX: parseInt(e.target.value) })}
+                            value={currentLogoSettings?.paddingX || 0}
+                            className="w-[50px] h-fit p-1 bg-transparent outline-none border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white transition duration-150 ease-in-out sm:text-sm"
+                        />
+                        {/*  <span className="font-normal text-gray-500 dark:text-gray-400">{currentLogoSettings?.paddingX || 0}</span> */}
                     </label>
                     <input
                         type="range"
@@ -188,8 +194,13 @@ export default function ImageControls() {
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Logo Padding Y: <span className="font-normal text-gray-500 dark:text-gray-400">{currentLogoSettings?.paddingY || 0}</span>
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex gap-2 items-center">
+                        Logo Padding Y:
+                        <input type="number"
+                            onChange={(e) => updateLogoSettings({ paddingY: parseInt(e.target.value) })}
+                            value={currentLogoSettings?.paddingY || 0}
+                            className="w-[50px] h-fit p-1 bg-transparent outline-none border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white transition duration-150 ease-in-out sm:text-sm"
+                        />
                     </label>
                     <input
                         type="range"
@@ -207,8 +218,13 @@ export default function ImageControls() {
                 <h4 className="text-xl font-semibold text-gray-800 dark:text-gray-100">Footer Settings</h4>
 
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Footer Scale: <span className="font-normal text-gray-500 dark:text-gray-400">{currentFooterSettings?.scale || 0}</span>
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex gap-2 items-center">
+                        Footer Scale:
+                        <input type="number"
+                            onChange={(e) => updateFooterSettings({ scale: parseFloat(e.target.value) })}
+                            value={currentFooterSettings?.scale || 0}
+                            className="w-[50px] h-fit p-1 bg-transparent outline-none border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white transition duration-150 ease-in-out sm:text-sm"
+                        />
                     </label>
                     <input
                         type="range"
@@ -222,8 +238,13 @@ export default function ImageControls() {
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Footer Opacity: <span className="font-normal text-gray-500 dark:text-gray-400">{currentFooterSettings?.opacity || 0}</span>
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex gap-2 items-center">
+                        Footer Opacity:
+                        <input type="number"
+                            value={currentFooterSettings?.opacity || 0}
+                            onChange={(e) => updateFooterSettings({ opacity: parseFloat(e.target.value) })}
+                            className="w-[50px] h-fit p-1 bg-transparent outline-none border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white transition duration-150 ease-in-out sm:text-sm"
+                        />
                     </label>
                     <input
                         type="range"
@@ -237,8 +258,13 @@ export default function ImageControls() {
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Footer Offset X: <span className="font-normal text-gray-500 dark:text-gray-400">{currentFooterSettings?.offsetX || 0}</span>
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex gap-2 items-center">
+                        Footer Offset X:
+                        <input type="number"
+                            value={currentFooterSettings?.offsetX || 0}
+                            onChange={(e) => updateFooterSettings({ offsetX: parseInt(e.target.value) })}
+                            className="w-[50px] h-fit p-1 bg-transparent outline-none border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white transition duration-150 ease-in-out sm:text-sm"
+                        />
                     </label>
                     <input
                         type="range"
