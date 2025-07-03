@@ -119,8 +119,6 @@ export default function SingleImageEditor({ image, index }: SingleImageEditorPro
                     let y = img.height - fHeight
                     const x = offsetX;
 
-                    if (y > offsetY) y = offsetY
-
 
 
 

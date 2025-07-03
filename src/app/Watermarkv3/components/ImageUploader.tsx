@@ -258,15 +258,24 @@ export default function ImageUploader() {
             </div>
             <div className="flex justify-center ">
                 <button
+                    disabled
                     onClick={handleDefault}
-                    className="relative inline-flex items-center justify-center px-8 py-3 text-base font-semibold text-white bg-gradient-to-br from-yellow-500 to-orange-500 rounded-full shadow-lg
-           hover:from-yellow-600 hover:to-orange-600 hover:shadow-xl
-           focus:outline-none focus:ring-4 focus:ring-yellow-300 dark:focus:ring-yellow-800
-           transition-all duration-300 ease-in-out transform hover:-translate-y-0.5"
+                    className="relative inline-flex items-center justify-center px-8 py-3 text-base font-semibold text-slate-400 bg-gray-600 rounded-full cursor-not-allowed"
                 >
                     <span className="relative z-10">COMELEC Footer & Logo</span>
                 </button>
             </div>
         </div>
     );
+
+
 }
+
+{/*
+    
+    bg-gradient-to-br from-yellow-500 to-orange-500 rounded-full shadow-lg
+           hover:from-yellow-600 hover:to-orange-600 hover:shadow-xl
+           focus:outline-none focus:ring-4 focus:ring-yellow-300 dark:focus:ring-yellow-800
+           transition-all duration-300 ease-in-out transform hover:-translate-y-0.5
+    
+    */}
