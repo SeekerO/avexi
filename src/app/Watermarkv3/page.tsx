@@ -14,13 +14,8 @@ import { MdDelete } from "react-icons/md";
 // Main page component for the watermark application.
 function WatermarkPageContent() {
     // Access the images from the context to conditionally display messages.
-    const { images } = useImageEditor();
+    const { images, removeAllImages } = useImageEditor();
 
-    const handleDeleteAll = () => {
-        // Logic to delete all images can be added here.  
-        window.location.reload()
-        console.log("Delete all images clicked");
-    }
 
     return (
         <div className="min-h-screen flex flex-col font-sans overflow-hidden ">
@@ -34,7 +29,7 @@ function WatermarkPageContent() {
                     <h1 className="text-2xl font-bold mb-6 text-gray-800 dark:text-gray-100 flex items-center justify-between">Watermark Editor
 
                         {images.length !== 0 &&
-                            <div onClick={handleDeleteAll} className="flex items-center justify-center w-8 h-8 bg-red-500 rounded-full cursor-pointer hover:bg-red-200 transition-colors duration-300 text-gray-100 hover:text-red-500">
+                            <div onClick={removeAllImages} className="flex items-center justify-center w-8 h-8 bg-red-500 rounded-full cursor-pointer hover:bg-red-200 transition-colors duration-300 text-gray-100 hover:text-red-500">
                                 <MdDelete className=" text-[15px]" />
                             </div>
                         }

@@ -1,7 +1,7 @@
 // components/Wrapper.tsx
 import React from 'react';
 import DarkModeToggle from '@/lib/components/dark-button';
-import ChatHead from './chathead';
+import ChatHead from '../api/chathead';
 
 interface WrapperProps {
     children: React.ReactNode;

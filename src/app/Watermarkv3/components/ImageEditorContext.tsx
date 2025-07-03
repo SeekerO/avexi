@@ -16,6 +16,7 @@ interface FooterSettings {
     opacity: number;
     scale: number;
     offsetX: number;
+    offsetY: number;
 }
 
 // Defines the structure for image data, including a flag for global settings
@@ -40,6 +41,8 @@ interface ImageEditorContextProps {
     setFooter: (url: string) => void;
     selectedImageIndex: number | null;
     setSelectedImageIndex: (index: number | null) => void;
+
+    removeAllImages: () => void;
 
     // New: Global settings that can be applied to all images
     globalLogoSettings: WatermarkSettings;
@@ -70,7 +73,15 @@ export const ImageEditorProvider = ({ children }: { children: ReactNode }) => {
         opacity: 1,
         scale: 1,
         offsetX: 0,
+        offsetY: 0,
     });
+
+    const removeAllImages = () => {
+        // Revoke object URLs to prevent memory leaks
+        images.forEach(image => URL.revokeObjectURL(image.url));
+        setImages([]);
+        setSelectedImageIndex(null); // Deselect any image when all are removed
+    };
 
     return (
         <ImageEditorContext.Provider
@@ -87,6 +98,7 @@ export const ImageEditorProvider = ({ children }: { children: ReactNode }) => {
                 setGlobalLogoSettings,
                 globalFooterSettings,
                 setGlobalFooterSettings,
+                removeAllImages
             }}
         >
             {children}
@@ -103,3 +115,7 @@ export const useImageEditor = () => {
     return context;
 };
 
+
+export const removeAllImages = () => {
+
+}

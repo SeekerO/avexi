@@ -110,12 +110,19 @@ export default function SingleImageEditor({ image, index }: SingleImageEditorPro
                 footerImg.onload = () => {
                     const scale = activeFooterSettings.scale;
                     const offsetX = activeFooterSettings.offsetX;
+                    const offsetY = activeFooterSettings.offsetY;
                     const opacity = activeFooterSettings.opacity;
+
 
                     const fWidth = footerImg.naturalWidth * scale;
                     const fHeight = footerImg.naturalHeight * scale;
-                    const y = img.height - fHeight;
+                    let y = img.height - fHeight
                     const x = offsetX;
+
+                    if (y > offsetY) y = offsetY
+
+
+
 
                     ctx.globalAlpha = opacity;
                     ctx.drawImage(footerImg, x, y, fWidth, fHeight);

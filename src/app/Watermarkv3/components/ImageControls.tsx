@@ -275,6 +275,27 @@ export default function ImageControls() {
                         className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer range-thumb-blue dark:bg-gray-700 transition duration-150 ease-in-out"
                     />
                 </div>
+
+                <div hidden>
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex gap-2 items-center">
+                        Footer Offset Y:
+                        <input type="number"
+                            value={currentFooterSettings?.offsetY || 0}
+                            onChange={(e) => updateFooterSettings({ offsetY: parseInt(e.target.value) })}
+                            className="w-[50px] h-fit p-1 bg-transparent outline-none border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white transition duration-150 ease-in-out sm:text-sm"
+                        />
+                    </label>
+                    <input
+                        type="range"
+                        min="-1000"
+                        max="100"
+                        value={currentFooterSettings?.offsetY || 0}
+                        onChange={(e) => updateFooterSettings({ offsetY: parseInt(e.target.value) })}
+                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer range-thumb-blue dark:bg-gray-700 transition duration-150 ease-in-out"
+                    />
+                    <span className="italic font-thin text-xs text-gray-500">Don't adjust if not needed.</span>
+                </div>
+
             </div>
         </div>
     );
