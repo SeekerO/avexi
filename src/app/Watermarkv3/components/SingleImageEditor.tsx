@@ -116,7 +116,7 @@ export default function SingleImageEditor({ image, index }: SingleImageEditorPro
 
                     const fWidth = footerImg.naturalWidth * scale;
                     const fHeight = footerImg.naturalHeight * scale;
-                    let y = img.height - fHeight
+                    const y = img.height - fHeight
                     const x = offsetX;
 
 
