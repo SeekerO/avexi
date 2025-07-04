@@ -110,7 +110,7 @@ export default function SingleImageEditor({ image, index }: SingleImageEditorPro
                 footerImg.onload = () => {
                     const scale = activeFooterSettings.scale;
                     const offsetX = activeFooterSettings.offsetX;
-                    const offsetY = activeFooterSettings.offsetY;
+                    // const offsetY = activeFooterSettings.offsetY;
                     const opacity = activeFooterSettings.opacity;
 
 

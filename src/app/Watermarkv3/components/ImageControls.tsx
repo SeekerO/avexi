@@ -293,7 +293,7 @@ export default function ImageControls() {
                         onChange={(e) => updateFooterSettings({ offsetY: parseInt(e.target.value) })}
                         className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer range-thumb-blue dark:bg-gray-700 transition duration-150 ease-in-out"
                     />
-                    <span className="italic font-thin text-xs text-gray-500">Don't adjust if not needed.</span>
+                    <span className="italic font-thin text-xs text-gray-500">{`Don't adjust if not needed.`}</span>
                 </div>
 
             </div>
