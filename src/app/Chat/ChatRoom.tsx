@@ -10,6 +10,7 @@ import { setTyping } from "./setTyping";
 import { uploadFile } from "./uploadFile";
 import { ref, onValue, get } from "firebase/database";
 import { db } from "./firebase";
+import Image from "next/image";
 
 interface ChatRoomProps {
     chatId: string;
@@ -179,7 +180,7 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
                                 {isOnline}
                                 {participantProfilePic && (
                                     <div className="relative"> {/* Use a relative container for the dot */}
-                                        <img
+                                        <Image
                                             src={participantProfilePic}
                                             alt={`${participantName}'s profile`}
                                             className="w-6 h-6 rounded-full mr-2 object-cover"
@@ -216,7 +217,7 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
                         return (
                             <div key={msg.id} className={`mb-2 flex items-start ${msg.senderId === user.uid ? 'justify-end' : ''}`}>
                                 {msg.senderId !== user.uid && senderProfilePic && (
-                                    <img
+                                    <Image
                                         src={senderProfilePic}
                                         alt={`${senderName}'s profile`}
                                         className="w-8 h-8 rounded-full mr-2 object-cover"
