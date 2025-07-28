@@ -304,10 +304,11 @@ export default function ChatRoom({ chatId, canChat }: ChatRoomProps) {
     }
 
     return (
-        <div className="flex h-full border rounded-lg shadow-md bg-gray-50 font-sans">
+        <div className="flex h-full  shadow-md  font-sans">
             {/* Users Sidebar (Left) */} {/* Changed from Participants Sidebar */}
-            <div className="w-1/4 p-4 border-r border-gray-200 bg-white overflow-y-auto rounded-l-lg">
-                <h3 className="text-lg font-semibold mb-4 text-gray-800 border-b pb-2">Users in Chat</h3> {/* Changed from Participants */}
+            <div className="w-1/4 p-4 border-r border-gray-200 dark:border-gray-600 bg-white dark:bg-slate-800 overflow-y-auto rounded-l-lg">
+
+                <h3 className="text-lg font-semibold mb-4 text-gray-800 dark:text-white border-b pb-2">Users in Chat</h3> {/* Changed from Participants */}
                 <ul>
                     {usersInChat.map((uid) => { // Changed from participants
                         const userDetail = userDetails[uid];
@@ -316,7 +317,7 @@ export default function ChatRoom({ chatId, canChat }: ChatRoomProps) {
                         const isOnline = onlineUsers[uid]; // Get online status
 
                         return (
-                            <li key={uid} className="flex items-center mb-3">
+                            <li key={uid} className="flex items-center mb-3 ">
                                 {userProfilePic && (
                                     <div className="relative">
                                         <Image
@@ -330,7 +331,7 @@ export default function ChatRoom({ chatId, canChat }: ChatRoomProps) {
                                         <span className={`absolute bottom-0 right-2 w-3 h-3 ${isOnline ? "bg-green-500" : "bg-gray-500"} rounded-full border-2 border-white`}></span>
                                     </div>
                                 )}
-                                <span className="text-sm font-medium text-gray-700">
+                                <span className="text-sm font-medium text-gray-700 dark:text-white">
                                     {userName}
                                     {uid === user.uid && " (You)"}
                                 </span>
@@ -343,8 +344,8 @@ export default function ChatRoom({ chatId, canChat }: ChatRoomProps) {
             {/* Chat Content (Right) */}
             <div className="flex flex-col flex-grow">
                 {/* Chat Header with Name */}
-                <div className="p-4 border-b border-gray-200 bg-white">
-                    <h3 className="text-lg font-semibold text-gray-800">
+                <div className="p-4 border-b border-gray-200 bg-white dark:bg-slate-800 dark:border-gray-600">
+                    <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
                         {chatName || "Direct Chat"}
                     </h3>
                 </div>
@@ -352,14 +353,14 @@ export default function ChatRoom({ chatId, canChat }: ChatRoomProps) {
 
                 {/* Typing Indicator */}
                 {typingUsers.length > 0 && (
-                    <div className="text-sm text-gray-600 px-4 py-2 bg-gray-100 border-b border-gray-200 animate-pulse">
+                    <div className="text-sm text-gray-600 px-4 py-2 bg-gray-100 border-b border-gray-200 dark:border-gray-600 animate-pulse">
                         {typingUsers.map((uid) => userDetails[uid]?.name || `User ${uid.substring(0, 4)}`).join(", ")}{" "}
                         {typingUsers.length === 1 ? "is" : "are"} typing...
                     </div>
                 )}
 
 
-                <div className="flex-grow overflow-y-auto p-4 bg-white border-b border-gray-200">
+                <div className="flex-grow overflow-y-auto p-4 bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-gray-600">
                     {messages.length === 0 && (
                         <div className="text-center text-gray-500 mt-10 text-lg">
                             No messages yet. Start the conversation!
@@ -450,7 +451,6 @@ export default function ChatRoom({ chatId, canChat }: ChatRoomProps) {
                                             <span className={`block text-xs opacity-80 mt-1 ${isMyMessage ? "text-right" : "text-left"}`}>
                                                 {msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Sending...'}
                                             </span>
-                                            {/* Read Receipts (Chat Heads) - only for sender's last message */}
 
 
                                             <div className="flex justify-end absolute right-0">
@@ -458,7 +458,7 @@ export default function ChatRoom({ chatId, canChat }: ChatRoomProps) {
                                                     reader.profilePic && (
                                                         <>
                                                             {usersInChat.length === 2 ? <span className="font-light text-xs text-gray-200 italic">
-                                                                <BiCheckDouble size={20} className="text-gray-300" />
+                                                                <BiCheckDouble size={20} className="text-gray-500" />
                                                             </span> :
                                                                 <>
                                                                     <Image
@@ -510,7 +510,7 @@ export default function ChatRoom({ chatId, canChat }: ChatRoomProps) {
                 </div>
 
                 {/* Input and Send Button Area */}
-                <div className="flex p-4 border-t border-gray-200 bg-white rounded-b-lg">
+                <div className="flex p-4 border-t border-gray-200 bg-white dark:bg-gray-800 dark:border-gray-700 rounded-b-lg">
                     <input
                         value={input}
                         onChange={handleTyping}
@@ -518,7 +518,7 @@ export default function ChatRoom({ chatId, canChat }: ChatRoomProps) {
                             if (e.key === 'Enter') handleSend();
                         }}
                         placeholder={canChat ? "Type a message..." : "You do not have permission to send messages."}
-                        className="flex-grow border border-gray-300 rounded-l-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
+                        className="flex-grow border border-gray-300  rounded-l-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-base text-black"
                         disabled={!canChat} // Disable input if canChat is false
                     />
                     <input

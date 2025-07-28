@@ -12,7 +12,7 @@ import Image from 'next/image';
 
 import { FaUserGroup } from "react-icons/fa6";
 import { IoPersonSharp } from "react-icons/io5";
-
+import { IoMdNotifications } from "react-icons/io";
 interface ChatListProps {
     onSelectChat: (chatId: string) => void;
     currentUserId: string;
@@ -288,13 +288,13 @@ export default function ChatList({ onSelectChat, currentUserId, canChat }: ChatL
     }
 
     return (
-        <div className="flex h-full font-sans">
+        <div className="flex h-full font-sans ">
             {/* Your Chats Section */}
-            <div className="w-1/2 border-r border-gray-200 p-4 overflow-y-auto bg-white rounded-l-lg shadow-inner">
-                <h3 className="text-xl font-bold mb-4 text-gray-800">Your Chats</h3>
+            <div className="w-1/2 border-r border-gray-200 p-4 overflow-y-auto bg-white dark:bg-gray-800 rounded-l-lg shadow-inner">
+                <h3 className="text-xl font-bold mb-4 text-gray-800 dark:text-white">Your Chats</h3>
                 <ul className="space-y-3">
                     {chatsWithUnread.length === 0 && (
-                        <li className="text-gray-500 text-sm py-4 text-center">No chats found. Create a new one!</li>
+                        <li className="text-gray-500 dark:text-white text-sm py-4 text-center">No chats found. Create a new one!</li>
                     )}
                     {chatsWithUnread
                         .sort((a, b) => (b.lastMessageTimestamp || b.createdAt) - (a.lastMessageTimestamp || a.createdAt))
@@ -302,20 +302,23 @@ export default function ChatList({ onSelectChat, currentUserId, canChat }: ChatL
                             <li
                                 key={chat.id}
                                 onClick={() => onSelectChat(chat.id)}
-                                className="cursor-pointer p-3 rounded-lg hover:bg-blue-50 transition-colors duration-200 flex flex-col justify-between items-start border border-gray-100"
+                                className="cursor-pointer p-3 rounded-lg hover:dark:bg-blue-500 hover:bg-gray-200 transition-colors duration-200 flex flex-col justify-between items-start border border-gray-100"
                             >
                                 <div className="flex justify-between w-full items-center">
-                                    <span className="font-medium text-gray-800 text-base flex gap-1 items-center">
+                                    <span className="font-medium text-gray-800 dark:text-white text-base flex gap-1 items-center">
                                         {chat.isGroupChat ? <FaUserGroup /> : <IoPersonSharp />} {getChatDisplayName(chat)}
                                     </span>
-                                    {chat.unreadCount && chat.unreadCount > 0 && (
-                                        <span className="ml-3 bg-red-500 text-white text-xs font-bold rounded-full h-6 w-6 flex items-center justify-center animate-bounce-once">
-                                            {chat.unreadCount}
-                                        </span>
+                                    {chat.unreadCount !== 0 && (
+                                        <div className=' text-white  text-md bg-red-600 rounded-full w-fit px-2 h-7 flex items-center justify-center'>
+                                            <IoMdNotifications size={19} />
+                                            <span className="">
+                                                {chat.unreadCount}
+                                            </span>
+                                        </div>
                                     )}
                                 </div>
                                 {chat.lastMessageContent && (
-                                    <p className="text-sm text-gray-500 mt-1 truncate w-full gap-1 flex items-center">
+                                    <p className="text-sm text-gray-500 dark:text-gray-200 mt-1 truncate w-full gap-1 flex items-center">
                                         {/* Simplified logic here as senderName is already resolved */}
                                         {chat.lastMessageSenderName && (
                                             <span className="font-semibold">
@@ -331,10 +334,10 @@ export default function ChatList({ onSelectChat, currentUserId, canChat }: ChatL
             </div>
 
             {/* Create Chat Section */}
-            <div className="w-1/2 p-4 overflow-y-auto bg-white rounded-r-lg shadow-inner">
-                <h3 className="text-xl font-bold mb-4 text-gray-800">Create New Chat</h3>
+            <div className="w-1/2 p-4 overflow-y-auto bg-white dark:bg-slate-800 rounded-r-lg shadow-inner">
+                <h3 className="text-xl font-bold mb-4 text-gray-800 dark:text-white">Create New Chat</h3>
                 <div className="mb-5">
-                    <label htmlFor="newChatName" className="block text-sm font-medium text-gray-700 mb-1">
+                    <label htmlFor="newChatName" className="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-400">
                         Group Chat Name (Optional for 1-on-1)
                     </label>
                     <input
@@ -346,8 +349,8 @@ export default function ChatList({ onSelectChat, currentUserId, canChat }: ChatL
                         className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                     />
                 </div>
-                <h4 className="text-base font-semibold mb-3 text-gray-800">Select Users:</h4>
-                <ul className="space-y-2 max-h-48 overflow-y-auto border border-gray-200 p-3 rounded-md mb-5 bg-gray-50">
+                <h4 className="text-base font-semibold mb-3 text-gray-800 dark:text-gray-400">Select Users:</h4>
+                <ul className="space-y-2 max-h-48 overflow-y-auto border border-gray-200 p-3 rounded-md mb-5 bg-gray-50 dark:bg-gray-800 ">
                     {allUsers.length === 0 && (
                         <li className="text-gray-500 text-sm py-2 text-center">No other users available to chat with.</li>
                     )}
@@ -355,7 +358,7 @@ export default function ChatList({ onSelectChat, currentUserId, canChat }: ChatL
                         const isOnline = onlineUsers[u.uid];
                         return (
                             <li key={u.uid} className="flex items-center justify-between py-1.5 border-b border-gray-100 last:border-b-0">
-                                <label htmlFor={`user-${u.uid}`} className="flex items-center text-sm cursor-pointer flex-grow text-gray-700">
+                                <label htmlFor={`user-${u.uid}`} className="flex items-center text-sm cursor-pointer flex-grow text-gray-700 dark:text-gray-300">
                                     {u.profilePic && (
                                         <div className="relative">
                                             <Image

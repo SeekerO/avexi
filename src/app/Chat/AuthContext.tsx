@@ -46,7 +46,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 const userProfileRef = ref(db, `users/${currentUser.uid}`);
                 const snapshot = await get(userProfileRef);
                 let isAdmin = false;
-                let canChat = true; // Default chat permission to true
+                let canChat = false; // Default chat permission to true
 
                 if (snapshot.exists()) {
                     const userData = snapshot.val();

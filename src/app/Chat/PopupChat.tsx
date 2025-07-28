@@ -76,13 +76,13 @@ export default function PopupChat() {
             {isOpen && (
                 <div
                     id="chat-popup-window"
-                    className="bg-white rounded-xl shadow-2xl p-4 w-[90vw] max-w-[800px] h-[70vh] flex flex-col fixed bottom-20 right-4 animate-fade-in-up"
+                    className="bg-white dark:bg-gray-900 rounded-xl shadow-2xl p-4 w-[90vw] max-w-[800px] h-[70vh] flex flex-col fixed bottom-20 right-4 animate-fade-in-up"
                     role="dialog"
                     aria-modal="true"
                     aria-labelledby="chat-popup-title"
                 >
                     {/* Header section with title and navigation */}
-                    <div className="flex justify-between items-center mb-4 pb-2 border-b border-gray-200">
+                    <div className="flex justify-between items-center mb-4 pb-2 border-b border-gray-200 dark:border-gray-700">
                         {/* Back button for chat room or admin panel */}
                         {(currentChatId || showAdminPanel) && (
                             <button
@@ -93,7 +93,7 @@ export default function PopupChat() {
                                 <IoArrowBackCircle size={30} />
                             </button>
                         )}
-                        <h2 id="chat-popup-title" className="text-xl font-bold text-gray-800 flex-grow text-center">
+                        <h2 id="chat-popup-title" className="text-xl font-bold text-gray-800 dark:text-white flex-grow text-center">
                             {showAdminPanel ? "Admin Panel" : (currentChatId ? "Chat Room" : "KKK Chats")}
                         </h2>
                         {/* Close button for the popup */}
