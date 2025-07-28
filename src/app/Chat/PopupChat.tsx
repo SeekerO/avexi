@@ -1,151 +1,166 @@
-// app/Chat/PopupChat.tsx
+// PopupChat.tsx
 "use client";
-import React, { useState, useEffect } from 'react';
-import ChatRoom from './ChatRoom'; // Assuming ChatRoom.tsx is in the same folder
-import { useAuth } from './AuthContext'; // Path adjusted
-import { ref, get, child } from 'firebase/database'; // Import get and child for database queries
-import { db } from './firebase'; // Import your Firebase db instance
-import { CgLogOut } from "react-icons/cg";
+import React, { useState } from 'react';
+import ChatRoom from './ChatRoom'; // Chat room component
+import { useAuth } from './AuthContext'; // Authentication context
+import { CgLogOut } from "react-icons/cg"; // Logout icon
+import ChatList from './ChatList'; // Chat list component
+import { IoArrowBackCircle } from "react-icons/io5"; // Back icon
+import AdminPanel from './AdminPanel'; // Admin panel component
 
-interface PopupChatProps {
-    // You can pass the predefined chat ID as a prop, or hardcode it
-    // For now, let's hardcode it for simplicity, but a prop is more flexible
-    predefinedChatId?: string;
-}
+export default function PopupChat() {
+    const [isOpen, setIsOpen] = useState(false); // State to control chat popup visibility
+    const [currentChatId, setCurrentChatId] = useState<string | null>(null); // State for the currently selected chat room
+    const [showAdminPanel, setShowAdminPanel] = useState(false); // State to control admin panel visibility
+    const { user, loginWithGoogle, logout } = useAuth(); // Get user, login, and logout functions from AuthContext
 
-// Define your specific chat ID here. You MUST create this chat manually in Firebase
-// or ensure it's created by your system with the correct participants.
-const YOUR_PREDEFINED_CHAT_ID = "support_chat_general"; // <<<--- IMPORTANT: REPLACE WITH YOUR ACTUAL CHAT ID
-
-export default function PopupChat({ predefinedChatId }: PopupChatProps) {
-    const [isOpen, setIsOpen] = useState(false);
-    const [currentChatId, setCurrentChatId] = useState<string | null>(null);
-    const [hasAccess, setHasAccess] = useState<boolean | null>(null);
-    const { user, loginWithGoogle, logout } = useAuth();
-
-
-
-
-    useEffect(() => {
-        const checkAccess = async () => {
-            if (user) {
-                console.log("User found, attempting to check access for UID:", user.uid);
-                const chatToJoin = predefinedChatId || YOUR_PREDEFINED_CHAT_ID;
-                const chatParticipantsRef = child(ref(db, 'chats'), `${chatToJoin}/participants/${user.uid}`);
-
-                try {
-                    const snapshot = await get(chatParticipantsRef)
-
-                    if (snapshot.exists() && snapshot.val() === true) {
-                        setHasAccess(true);
-                        setCurrentChatId(chatToJoin);
-                    } else {
-                        setHasAccess(false);
-                        setCurrentChatId(null);
-                    }
-                } catch (error) {
-                    console.error("Error checking chat access (Caught Error):", error); // ALSO CHECK FOR THIS ERROR
-                    setHasAccess(false);
-                    setCurrentChatId(null);
-                }
-            }
-        };
-
-        checkAccess();
-    }, [user, predefinedChatId]);
-
-
+    // Toggles the main chat popup open/closed
     const toggleChat = () => {
         setIsOpen(!isOpen);
-    };
-
-    const handleLoginClick = async () => {
-        try {
-            await loginWithGoogle();
-            // AuthContext's onAuthStateChanged will update the 'user' state,
-            // which in turn triggers the useEffect above to check access.
-        } catch (error) {
-            console.error("Google login failed:", error);
-            // Handle login errors (e.g., show a message to the user)
+        if (isOpen) {
+            // When closing the chat, reset current chat and hide admin panel
+            setCurrentChatId(null);
+            setShowAdminPanel(false);
         }
     };
 
-    const handleLogoutClick = () => {
-        logout();
-        setIsOpen(false); // Close chat on logout
+    // Handles Google login click
+    const handleLoginClick = async () => {
+        try {
+            await loginWithGoogle();
+        } catch (error) {
+            console.error("Google login failed:", error);
+            // In a real app, you'd show a user-friendly error message here (e.g., a toast notification)
+        }
     };
 
+    // Handles logout click
+    const handleLogoutClick = () => {
+        logout(); // Log out the user
+        setIsOpen(false); // Close the chat popup
+        setCurrentChatId(null); // Clear selected chat
+        setShowAdminPanel(false); // Hide admin panel
+    };
+
+    // Callback function to select a specific chat room
+    const handleSelectChat = (chatId: string) => {
+        setCurrentChatId(chatId); // Set the selected chat ID
+        setShowAdminPanel(false); // Hide admin panel if a chat is selected
+    };
+
+    // Navigates back to the chat list or hides the admin panel
+    const handleBackToChatList = () => {
+        setCurrentChatId(null); // Clear current chat
+        setShowAdminPanel(false); // Hide admin panel
+    };
+
+    // Toggles the visibility of the admin panel
+    const handleToggleAdminPanel = () => {
+        setShowAdminPanel(prev => !prev); // Toggle admin panel state
+        setCurrentChatId(null); // Clear current chat when opening admin panel
+    };
 
     return (
-        <div className="fixed bottom-4 right-4 z-50">
+        <div className="fixed bottom-4 right-4 z-50 font-sans">
+            {/* Main button to open/close the chat popup */}
             <button
                 onClick={toggleChat}
-                className="bg-blue-500 text-white rounded-full p-4 shadow-lg focus:outline-none"
+                className="bg-blue-600 text-white rounded-full p-4 shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300 transition-all duration-300 ease-in-out transform hover:scale-105"
+                aria-expanded={isOpen}
+                aria-controls="chat-popup-window"
             >
                 {isOpen ? 'Close Chat' : 'Open Chat'}
             </button>
 
+            {/* Chat Popup Window */}
             {isOpen && (
-                <div className="bg-white rounded-lg shadow-xl p-4 w-[90vh] h-[60vh] flex flex-col fixed bottom-20 right-4">
-                    <div className="flex justify-between items-center mb-2">
-                        <h2 className="text-lg font-semibold">KKK Chat</h2>
-                        <button onClick={toggleChat} className="text-gray-500 hover:text-gray-700">
+                <div
+                    id="chat-popup-window"
+                    className="bg-white rounded-xl shadow-2xl p-4 w-[90vw] max-w-[800px] h-[70vh] flex flex-col fixed bottom-20 right-4 animate-fade-in-up"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="chat-popup-title"
+                >
+                    {/* Header section with title and navigation */}
+                    <div className="flex justify-between items-center mb-4 pb-2 border-b border-gray-200">
+                        {/* Back button for chat room or admin panel */}
+                        {(currentChatId || showAdminPanel) && (
+                            <button
+                                onClick={handleBackToChatList}
+                                className="text-gray-500 hover:text-gray-700 p-1 rounded-full hover:bg-gray-100 transition-colors"
+                                title="Back to Chat List"
+                            >
+                                <IoArrowBackCircle size={30} />
+                            </button>
+                        )}
+                        <h2 id="chat-popup-title" className="text-xl font-bold text-gray-800 flex-grow text-center">
+                            {showAdminPanel ? "Admin Panel" : (currentChatId ? "Chat Room" : "KKK Chats")}
+                        </h2>
+                        {/* Close button for the popup */}
+                        <button
+                            onClick={toggleChat}
+                            className="text-gray-500 hover:text-gray-700 text-3xl p-1 rounded-full hover:bg-gray-100 transition-colors"
+                            title="Close Chat"
+                        >
                             &times;
                         </button>
                     </div>
 
+                    {/* Conditional rendering based on authentication status */}
                     {!user ? (
-                        // This block should show if user is NULL (not logged in)
-                        <div className="flex flex-col items-center justify-center h-full space-y-4">
-                            <p className="text-gray-600">Please log in to access the chat.</p>
+                        <div className="flex flex-col items-center justify-center h-full space-y-6">
+                            <p className="text-lg text-gray-700">Please log in to access the chat.</p>
                             <button
                                 onClick={handleLoginClick}
-                                className="bg-green-500 text-white rounded px-4 py-2 hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500"
+                                className="bg-green-600 text-white rounded-lg px-6 py-3 text-lg font-semibold hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors duration-200 shadow-md"
                             >
                                 Login with Google
                             </button>
-
                         </div>
                     ) : (
-                        // This block should show if user is NOT NULL (logged in)
-                        hasAccess === null ? (
-                            <div className="flex items-center justify-center h-full">
-                                <p className="text-gray-600">Checking access...</p>
-                            </div>
-                        ) : hasAccess ? (
-                            <div className="flex-grow">
-                                <ChatRoom chatId={currentChatId!} />
-                            </div>
-                        ) : (
-                            <div className="flex flex-col items-center justify-center h-full space-y-4">
-                                <p className="text-red-600 font-semibold">Access Denied</p>
-                                <p className="text-gray-600 text-center">You do not have permission to access this chat.</p>
-                                <button
-                                    onClick={handleLogoutClick}
-                                    className="bg-red-500 text-white rounded px-4 py-2 hover:bg-red-600"
-                                >
-                                    Logout
-                                </button>
-                            </div>
-                        )
+                        // Render ChatList, ChatRoom, or AdminPanel based on state
+                        <div className="flex-grow overflow-hidden">
+                            {showAdminPanel ? (
+                                <AdminPanel currentUserId={user.uid} />
+                            ) : currentChatId ? (
+                                <ChatRoom chatId={currentChatId} canChat={user.canChat ?? false} />
+                            ) : (
+                                <ChatList onSelectChat={handleSelectChat} currentUserId={user.uid} canChat={user.canChat ?? false} />
+                            )}
+                        </div>
                     )}
-                    {user && hasAccess && (
-                        <div className='flex items-center justify-between mt-2'>
+
+                    {/* Footer section with user info and action buttons */}
+                    {user && (
+                        <div className='flex items-center justify-between mt-4 pt-3 border-t border-gray-200'>
+                            {/* Logout button */}
                             <button
                                 title="Logout"
                                 onClick={handleLogoutClick}
-                                className="w-fit bg-red-500 text-white rounded px-3 py-1 hover:bg-red-600 flex items-center gap-2"
+                                className="bg-red-500 text-white rounded-lg px-4 py-2 hover:bg-red-600 flex items-center gap-2 font-semibold text-sm transition-colors shadow-sm"
                             >
-                                <CgLogOut size={25} />
+                                <CgLogOut size={22} /> Logout
                             </button>
-                            <div className="text-xs text-gray-500 mt-2">
-                                Logged in as: {user.displayName || user.email}
+
+                            {/* Admin Panel button (only for admins) */}
+                            {user.isAdmin && (
+                                <button
+                                    title="Admin Panel"
+                                    onClick={handleToggleAdminPanel}
+                                    className="bg-purple-600 text-white rounded-lg px-4 py-2 hover:bg-purple-700 flex items-center gap-2 ml-auto font-semibold text-sm transition-colors shadow-sm"
+                                >
+                                    Admin Panel
+                                </button>
+                            )}
+
+                            <div className="text-sm text-gray-600 ml-4">
+                                Logged in as: <span className="font-medium">{user.displayName || user.email}</span>
                             </div>
                         </div>
-
                     )}
                 </div>
             )}
         </div>
     );
 }
+
