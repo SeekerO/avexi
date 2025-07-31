@@ -82,7 +82,7 @@ export default function SingleImageEditor({ image, index }: SingleImageEditorPro
 
     // Get the specific image data from the context's images array
     const currentImage = images[index];
-    const isSelected = selectedImageIndex === index;
+    // const isSelected = selectedImageIndex === index;
 
     // Determine which settings and images to use based on useGlobalSettings flag
     const logoToUse = currentImage.useGlobalSettings ? logo : currentImage.individualLogo;

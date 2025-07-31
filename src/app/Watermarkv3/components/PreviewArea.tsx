@@ -3,7 +3,7 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import JSZip from "jszip"; // Import JSZip
 import { saveAs } from 'file-saver'; // For saving the generated zip file
 import { useImageEditor } from "./ImageEditorContext";
@@ -11,6 +11,8 @@ import SingleImageEditor from "./SingleImageEditor";
 import ModalLoading from "./ModalLoading";
 import { HiOutlineFolderDownload } from "react-icons/hi";
 import { IoImage } from "react-icons/io5";
+
+const CLICK_WINDOW_MS = 1000; // 1 second
 
 export default function PreviewArea() {
     // Destructure necessary values from the image editor context.
@@ -21,7 +23,6 @@ export default function PreviewArea() {
 
     // Use useRef to store the AbortController instance across renders
     const abortControllerRef = useRef<AbortController | null>(null);
-
 
     // Function to download all processed images as a ZIP file.
     const downloadAll = async () => {
@@ -117,6 +118,44 @@ export default function PreviewArea() {
         setDownloadProgress(0);
     };
 
+    const clickTimerRef = useRef<NodeJS.Timeout | null>(null);
+    const lastClickedIndexRef = useRef<number | null>(null);
+    const DOUBLE_CLICK_THRESHOLD_MS = 300;
+
+    const handleSelectImage = useCallback((index: number) => {
+        if (clickTimerRef.current) {
+            clearTimeout(clickTimerRef.current);
+            clickTimerRef.current = null;
+
+            if (lastClickedIndexRef.current === index) {
+                setSelectedImageIndex(null);
+                lastClickedIndexRef.current = null;
+            } else {
+                setSelectedImageIndex(index);
+                lastClickedIndexRef.current = index;
+                clickTimerRef.current = setTimeout(() => {
+                    clickTimerRef.current = null;
+                    lastClickedIndexRef.current = null;
+                }, DOUBLE_CLICK_THRESHOLD_MS);
+            }
+        } else {
+            setSelectedImageIndex(index);
+            lastClickedIndexRef.current = index;
+            clickTimerRef.current = setTimeout(() => {
+                clickTimerRef.current = null;
+                lastClickedIndexRef.current = null;
+            }, DOUBLE_CLICK_THRESHOLD_MS);
+        }
+    }, []);
+
+    useEffect(() => {
+        return () => {
+            if (clickTimerRef.current) {
+                clearTimeout(clickTimerRef.current);
+            }
+        };
+    }, []);
+
     return (
         <div className="space-y-8 p-6 bg-gray-50 dark:bg-gray-900 min-h-screen rounded-lg shadow-inner">
             {/* Header Section */}
@@ -163,11 +202,11 @@ export default function PreviewArea() {
                                     ? "border-4 border-blue-500 shadow-xl scale-102"
                                     : "border-2 border-transparent hover:border-gray-300 dark:hover:border-gray-600 shadow-md hover:shadow-lg"
                                 }`}
-                            onClick={() => setSelectedImageIndex(index)}
+                            onClick={() => handleSelectImage(index)}
                         >
                             <SingleImageEditor image={image} index={index} />
                             {selectedImageIndex === index && (
-                                <div className="absolute inset-0 bg-blue-600 bg-opacity-30 rounded-xl flex items-center justify-center text-white font-bold text-3xl opacity-100 transition-opacity duration-300 pointer-events-none">
+                                <div className="select-none absolute inset-0 bg-blue-600 bg-opacity-30 rounded-xl flex items-center justify-center text-white font-bold text-3xl opacity-100 transition-opacity duration-300 pointer-events-none">
                                     SELECTED
                                 </div>
                             )}

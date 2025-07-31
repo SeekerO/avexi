@@ -1,8 +1,6 @@
 // app/components/ImageEditorContext.tsx
 "use client";
 
-
-import { StdioNull } from "child_process";
 import React, { createContext, useContext, useState, ReactNode } from "react";
 
 // Defines the structure for logo and footer settings

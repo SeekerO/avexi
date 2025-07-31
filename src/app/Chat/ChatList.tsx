@@ -10,8 +10,6 @@ import { ref, onValue } from 'firebase/database';
 import { db } from './firebase/firebase';
 import Image from 'next/image';
 
-import { FaUserGroup } from "react-icons/fa6";
-import { IoPersonSharp } from "react-icons/io5";
 import { IoMdNotifications, IoIosArrowBack } from "react-icons/io";
 import { CiSearch } from "react-icons/ci";
 import { MdGroupAdd } from "react-icons/md";

@@ -13,7 +13,6 @@ import { FaImage } from "react-icons/fa6";
 
 import Logo from "@/lib/image/COMELEC.png"
 import Footer from "@/lib/image/FOOTER.png"
-import { StaticImageData } from "next/image";
 
 // Component for uploading source images, logos, and footers.
 export default function ImageUploader() {

@@ -138,6 +138,7 @@ export default function ChatRoom({ chatId, canChat, toggleChat }: ChatRoomProps)
         } catch (error) {
             const defaultDetail: UserDetail = { name: "Error User", profilePic: null };
             setUserDetails((prev) => ({ ...prev, [uid]: defaultDetail }));
+            console.log(error)
             return defaultDetail;
         }
     }, [userDetails]); // Depend on userDetails for caching logic
@@ -202,6 +203,7 @@ export default function ChatRoom({ chatId, canChat, toggleChat }: ChatRoomProps)
         },
             // Add error handling for the onValue listener itself
             (error) => {
+                console.error("Error fetching chat data:", error);
                 // Optionally redirect or show an error message to the user
                 // router.push('/chats'); // Example: redirect to chat list
             }
@@ -244,6 +246,7 @@ export default function ChatRoom({ chatId, canChat, toggleChat }: ChatRoomProps)
             setInput(""); // Clear input field
             setTyping(chatId, user.uid, false); // Turn off typing indicator
         } catch (error) {
+            console.log(error)
             alert("Failed to send message."); // Use a custom modal in production
         }
     };
@@ -273,6 +276,7 @@ export default function ChatRoom({ chatId, canChat, toggleChat }: ChatRoomProps)
                 const fileUrl = await uploadFile(file, chatId); // Upload file and get URL
                 await sendMessage(chatId, user.uid, fileUrl, "file"); // Send message with file URL
             } catch (error) {
+                console.error("File upload error:", error);
                 alert("Failed to upload file. Please try again."); // Use a custom modal in production
             } finally {
                 e.target.value = ''; // Clear the file input

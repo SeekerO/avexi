@@ -6,7 +6,7 @@
 import React from "react";
 // Corrected import path for ImageEditorContext
 import { useImageEditor } from "./ImageEditorContext";
-
+import { FaImage, FaImages } from "react-icons/fa"; 4
 interface WatermarkSettings {
     position: "top-left" | "top-center" | "top-right" | "bottom-left" | "bottom-center" | "bottom-right";
     width: number;
@@ -14,6 +14,7 @@ interface WatermarkSettings {
     paddingX: number;
     paddingY: number;
 }
+
 
 // Component to provide controls for adjusting logo and footer settings.
 // It can apply settings globally or to a selected individual image.
@@ -56,9 +57,10 @@ export default function ImageControls() {
         ? globalShadowSettings
         : selectedImage?.individualShadowSettings;
 
+    // Corrected: Changed 'currentImage' to 'selectedImage'
     const currentShadowTarget = useGlobal
         ? globalShadowTarget
-        : selectedImage?.individualShadowSettings ? "whole-image" : "none"; // Assuming individual shadow only applies to whole image for simplicity, or add a specific target for individual settings if needed.
+        : (selectedImage?.individualShadowSettings ? "whole-image" : "none"); // Assuming individual shadow only applies to whole image for simplicity, or add a specific target for individual settings if needed.
 
     // Functions to update settings (either global or individual)
     const updateLogoSettings = (settings: Partial<typeof globalLogoSettings>) => {
@@ -99,30 +101,17 @@ export default function ImageControls() {
             {isImageSelected && (
                 <div className="flex items-center justify-between p-3 bg-gray-100 dark:bg-gray-700 rounded-lg shadow-inner">
                     <span className="text-sm font-medium text-gray-700 dark:text-gray-200">Apply Settings:</span>
-                    <div className="flex items-center space-x-4">
-                        <label className="inline-flex items-center cursor-pointer">
-                            <input
-                                type="radio"
-                                className="form-radio h-4 w-4 text-blue-600"
-                                name="settingsScope"
-                                value="global"
-                                checked={useGlobal}
-                                onChange={toggleUseGlobalSettings}
-                            />
-                            <span className="ml-2 text-gray-800 dark:text-gray-100 text-sm">Global</span>
-                        </label>
-                        <label className="inline-flex items-center cursor-pointer">
-                            <input
-                                type="radio"
-                                className="form-radio h-4 w-4 text-purple-600"
-                                name="settingsScope"
-                                value="individual"
-                                checked={!useGlobal}
-                                onChange={toggleUseGlobalSettings}
-                                disabled={!isImageSelected} // Disable if no image is selected
-                            />
-                            <span className="ml-2 text-gray-800 dark:text-gray-100 text-sm">Individual</span>
-                        </label>
+                    <div
+                        className={`relative w-28 h-8 flex items-center rounded-full cursor-pointer transition-colors duration-300 ${useGlobal ? 'bg-blue-600' : 'bg-purple-600'}`}
+                        onClick={toggleUseGlobalSettings}
+                    >
+                        <div
+                            className={`z-50 flex items-center justify-center absolute w-1/2 h-full bg-white rounded-full shadow-md transform transition-transform duration-300 ${useGlobal ? 'translate-x-0' : 'translate-x-full'}`}
+                        >
+                            {useGlobal ? <FaImages /> : <FaImage />}
+                        </div>
+                        <span className={`absolute left-0 w-1/2 text-center text-xs font-semibold transition-colors duration-300 ${useGlobal ? 'text-white' : 'text-gray-200'}`}>Global</span>
+                        <span className={`absolute right-0 w-1/2 text-center text-xs font-semibold transition-colors duration-300 ${useGlobal ? 'text-gray-200' : 'text-white'}`}>Individual</span>
                     </div>
                 </div>
             )}
@@ -364,3 +353,4 @@ export default function ImageControls() {
         </div>
     );
 }
+
