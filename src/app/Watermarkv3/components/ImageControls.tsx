@@ -6,7 +6,7 @@
 import React from "react";
 // Corrected import path for ImageEditorContext
 import { useImageEditor } from "./ImageEditorContext";
-import { FaImage, FaImages } from "react-icons/fa"; 4
+import { FaImage, FaImages } from "react-icons/fa";
 interface WatermarkSettings {
     position: "top-left" | "top-center" | "top-right" | "bottom-left" | "bottom-center" | "bottom-right";
     width: number;
@@ -22,7 +22,6 @@ export default function ImageControls() {
     // Destructure all necessary states and functions from context.
     const {
         images,
-        setImages,
         selectedImageIndex,
         globalLogoSettings,
         setGlobalLogoSettings,

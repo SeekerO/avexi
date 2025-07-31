@@ -12,8 +12,6 @@ import ModalLoading from "./ModalLoading";
 import { HiOutlineFolderDownload } from "react-icons/hi";
 import { IoImage } from "react-icons/io5";
 
-const CLICK_WINDOW_MS = 1000; // 1 second
-
 export default function PreviewArea() {
     // Destructure necessary values from the image editor context.
     const { images, selectedImageIndex, setSelectedImageIndex } = useImageEditor();
