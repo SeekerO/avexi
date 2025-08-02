@@ -229,20 +229,24 @@ const App = () => {
   };
 
   // Handle click on the FAQ topic to start timer and copy
+
   const handleTopicClick = (faq: FaqItem, index: number): void => {
-    // Start timer only if it's not already started
-    if (!faq.timerStartTime) {
+
+    copyToClipboard(faq.details, index); // Attempt to copy first
+
+    if (!faq.timerStartTime && canCopy[index]) {
       setFaqs(prevFaqs => {
         const newFaqs = [...prevFaqs];
-        newFaqs[index] = { ...newFaqs[index], timerStartTime: Date.now() }; // Record current timestamp
+        newFaqs[index] = { ...newFaqs[index], timerStartTime: Date.now() };
         return newFaqs;
       });
-      setCanCopy(prev => ({ ...prev, [index]: false })); // Disable copying when timer starts
-      setMessage('Timer started. Copying disabled for this topic.');
+      setCanCopy(prev => ({ ...prev, [index]: false })); // Disable copying when timer start
+      setMessage('Timer started. Copying disabled for this topic until timer expires.');
+      setTimeout(() => setMessage(''), 3000);
+    } else if (faq.timerStartTime) {
+      setMessage('Timer is already active for this topic. Copying disabled.');
       setTimeout(() => setMessage(''), 3000);
     }
-    // Attempt to copy - copyToClipboard will check canCopy[index]
-    copyToClipboard(faq.details, index);
   };
 
 
