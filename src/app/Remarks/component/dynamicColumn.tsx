@@ -17,8 +17,6 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { SetStateAction, useEffect, useRef, useState } from "react";
 
-import bske from "@/lib/json/bske.json"
-
 import ColorPicker from "./ColorPicker";
 // npm install react-color
 
@@ -195,19 +193,6 @@ export default function DynamicColumn() {
     console.log("Selected color:", color);
   };
 
-  const storeMETA_DATA_BSKE_QUESTIONS = () => {
-    const newMETA_DATA = bske.BSKE
-    if (columns.length > 0) {
-      const old_data = columns;
-      const new_data = [...old_data, ...newMETA_DATA];
-      setColumns(new_data)
-      localStorage.setItem("customColumns", JSON.stringify(new_data))
-    }
-    else {
-      localStorage.setItem("customColumns", JSON.stringify(newMETA_DATA))
-      return setColumns(newMETA_DATA)
-    }
-  }
 
   const filteredData1 = columns.filter((col) =>
     col.title.toLowerCase().includes(searchTerm.toLowerCase())
@@ -350,9 +335,9 @@ export default function DynamicColumn() {
                     </button>
                   </form>
 
-                  <div className="flex flex-col">
-                    <button onClick={storeMETA_DATA_BSKE_QUESTIONS}>fetch</button>
-                    <Link href="/Remarks/Faq">FAQ</Link>
+                  <div className="flex flex-col gap-1 w-full justify-center items-center mt-4">
+                    <div className="h-[1px] w-[40%] bg-slate-500 mb-2" />
+                    <Link href="/Remarks/Faq" className="px-20 py-2 text-[20px] bg-green-500 rounded-full text-white font-semibold w-fit">GO TO FAQ</Link>
                   </div>
                 </>
               ) : (
