@@ -183,6 +183,7 @@ const FAQ = () => {
       }
     };
 
+
     copyText(text);
 
     // Start timer only if it's not already running
@@ -333,7 +334,7 @@ const FAQ = () => {
               const displayTime = formatTime(remainingTime);
 
               // Determine if copy button/action should be visually disabled or show tooltip
-              const canCopyCurrent = faq.timerStartTime === null;
+              const canCopyCurrent = faq.timerStartTime === null || undefined;
 
               return (
                 <div
