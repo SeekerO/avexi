@@ -341,7 +341,7 @@ const FAQ = () => {
 
         {/* FAQ Cards */}
         <div className="space-y-4">
-          {filteredFaqs.length > 0 ? (
+          {filteredFaqs.sort((a, b) => a.timerStartTime === null ? -1 : 1).length > 0 ? (
             filteredFaqs.map((faq, index) => {
               const elapsedTime = faq.timerStartTime ? (currentTime - faq.timerStartTime) / 1000 : 0; // in seconds
               const remainingTime = globalTimerDuration - elapsedTime;
@@ -373,7 +373,7 @@ const FAQ = () => {
                       />
                     ) : (
                       <h2
-                        className={`text-xl font-bold flex flex-col truncate overflow-hidden ${canCopyCurrent ? 'text-gray-900 dark:text-white' : 'text-gray-500 dark:text-gray-400 cursor-not-allowed'}`}
+                        className={`text-xl font-bold flex flex-col truncate w-[25rem] ${canCopyCurrent ? 'text-gray-900 dark:text-white' : 'text-gray-500 dark:text-gray-400 cursor-not-allowed'}`}
                         onClick={(e) => {
                           e.stopPropagation(); // Prevent parent div's click from firing
                           copyToClipboard(faq.details, faq.topic); // This now attempts to copy and starts timer if allowed
