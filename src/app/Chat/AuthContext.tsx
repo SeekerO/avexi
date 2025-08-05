@@ -58,7 +58,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                     canChat,
                 };
                 setUser(userWithRoles);
-                5
+
                 const userStatusRef = ref(db, `presence/${currentUser.uid}`);
                 set(userStatusRef, true);
                 onDisconnect(userStatusRef).set(serverTimestamp());
