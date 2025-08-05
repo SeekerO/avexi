@@ -27,19 +27,6 @@ const formatTime = (totalSeconds: number): string => {
   return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
 };
 
-// Helper function to parse HH:MM:SS string into seconds
-const parseTimeToSeconds = (timeString: string): number => {
-  const parts = timeString.split(':').map(Number);
-  let totalSeconds = 0;
-  if (parts.length === 3) {
-    totalSeconds = parts[0] * 3600 + parts[1] * 60 + parts[2];
-  } else if (parts.length === 2) {
-    totalSeconds = parts[0] * 60 + parts[1];
-  } else if (parts.length === 1) {
-    totalSeconds = parts[0];
-  }
-  return isNaN(totalSeconds) ? 0 : totalSeconds;
-};
 
 const useDebounce = (value: any, delay: number) => {
   const [debouncedValue, setDebouncedValue] = useState<any>(value);
@@ -75,8 +62,23 @@ const FAQ = () => {
   const [message, setMessage] = useState<string>('');
 
   // New state for global timer duration (in seconds)
-  const [globalTimerDuration, setGlobalTimerDuration] = useState<number>(300); // Default to 5 minutes
-  const [globalTimerInput, setGlobalTimerInput] = useState<string>(formatTime(300)); // Input field value
+  const [globalTimerDuration, setGlobalTimerDuration] = useState<number>(() => {
+    try {
+      const savedDuration = localStorage.getItem('globalTimerDuration');
+      // Return the parsed value if it exists, otherwise return the default 300
+      return savedDuration ? parseInt(savedDuration, 10) : 300;
+    } catch (e) {
+      console.error("Failed to load global timer from localStorage, using default.", e);
+      // Fallback to default in case of an error
+      return 300;
+    }
+  });
+
+  // State for timer Hour, Minutes and Seconds
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [hours, setHours] = useState<string>('');
+  const [minutes, setMinutes] = useState<string>('');
+  const [seconds, setSeconds] = useState<string>('');
 
   // State to force re-render for timer updates (only for display)
   const [currentTime, setCurrentTime] = useState<number>(Date.now());
@@ -96,15 +98,6 @@ const FAQ = () => {
   // Reference for the menu container to detect outside clicks
   const menuRef = useRef<HTMLDivElement>(null);
 
-  // State for timer Hour, Minutes and Seconds
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [hours, setHours] = useState<string>('');
-  const [minutes, setMinutes] = useState<string>('');
-  const [seconds, setSeconds] = useState<string>('');
-
-  // ... (Other state and functions like setGlobalTimerDuration, setMessage)
-
-
 
 
   // Effect to load data and global timer from local storage on component mount
@@ -113,12 +106,6 @@ const FAQ = () => {
       const savedFaqs = localStorage.getItem('faqData');
       if (savedFaqs) {
         setFaqs(JSON.parse(savedFaqs));
-      }
-      const savedTimerDuration = localStorage.getItem('globalTimerDuration');
-      if (savedTimerDuration) {
-        const duration = parseInt(savedTimerDuration, 10);
-        setGlobalTimerDuration(duration);
-        setGlobalTimerInput(formatTime(duration));
       }
     } catch (e) {
       console.error("Failed to load data from local storage", e);
