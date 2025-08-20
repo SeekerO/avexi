@@ -1,3 +1,4 @@
+// app/components/ImageUploader.tsx
 "use client";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -39,7 +40,7 @@ export default function ImageUploader() {
     } = useImageEditor();
 
     // ADDED: Logic to determine if individual settings are active for the selected image
-    const isIndividual = selectedImageIndex !== null && !images[selectedImageIndex]?.useGlobalSettings;
+    const isIndividual = selectedImageIndex !== null && !images[selectedImageIndex].useGlobalSettings;
 
     const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         if (event.target.files) {
