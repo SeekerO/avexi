@@ -79,6 +79,7 @@ export default function SingleImageEditor({ image, index, onCanvasReady }: Singl
     const [openPreview, setOpenPreview] = useState<boolean>(false);
     const currentImage = images[index];
 
+
     const logoToUse = currentImage.useGlobalSettings ? logo : currentImage.individualLogo;
     const footerToUse = currentImage.useGlobalSettings ? footer : currentImage.individualFooter;
     const logoSettingsToUse = currentImage.useGlobalSettings ? globalLogoSettings : currentImage.individualLogoSettings;

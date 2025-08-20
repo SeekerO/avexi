@@ -247,6 +247,8 @@ export const ImageEditorProvider = ({ children }: { children: ReactNode }) => {
     };
 
 
+
+
     return (
         <ImageEditorContext.Provider
             value={{

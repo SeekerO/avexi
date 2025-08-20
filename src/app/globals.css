@@ -229,3 +229,21 @@ h1 {
 .animate-bounce-subtle {
   animation: bounce-subtle 3s ease-in-out infinite;
 }
+
+.resizable {
+  position: absolute;
+  border: 2px dashed #000;
+  cursor: move;
+}
+
+.resizable::after {
+  content: '';
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background: #000;
+  border: 2px solid #fff;
+  right: -5px;
+  bottom: -5px;
+  cursor: nwse-resize;
+}
