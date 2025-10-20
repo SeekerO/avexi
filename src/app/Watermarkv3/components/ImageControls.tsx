@@ -3,7 +3,7 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import React, { useEffect } from "react";
+import React from "react";
 // Corrected import path for ImageEditorContext
 import { useImageEditor } from "./ImageEditorContext";
 import { FaImage, FaImages } from "react-icons/fa";

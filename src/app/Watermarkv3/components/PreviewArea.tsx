@@ -27,7 +27,7 @@ export default function PreviewArea() {
 
     const imageBlobGetters = useRef<Map<number, () => Promise<Blob | null>>>(new Map());
 
-    const { saveTemplate, loadTemplate } = useTemplateActions();
+    const { saveTemplate } = useTemplateActions();
 
 
     const handleCanvasReady = useCallback((index: number, getBlobFunc: () => Promise<Blob | null>) => {

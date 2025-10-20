@@ -80,7 +80,7 @@ export default function SingleImageEditor({ image, index, onCanvasReady }: Singl
     const [openPreview, setOpenPreview] = useState<boolean>(false);
     const currentImage = images[index];
 
-    const { saveTemplate, loadTemplate } = useTemplateActions();
+    const { saveTemplate } = useTemplateActions();
 
 
     const logoToUse = currentImage.useGlobalSettings ? logo : currentImage.individualLogo;

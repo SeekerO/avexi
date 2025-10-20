@@ -177,7 +177,7 @@ export default function ImageUploader() {
 
     const UsePreview = () => {
 
-        const previewSettings = window.localStorage.getItem("PreviewSettings")
+        // const previewSettings = window.localStorage.getItem("PreviewSettings")
         return alert(true)
     }
 

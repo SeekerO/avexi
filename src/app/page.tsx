@@ -10,7 +10,7 @@ import { FcGoogle } from "react-icons/fc";
 import { useAuth } from './Chat/AuthContext';
 
 export default function Home() {
-  const { user, loginWithGoogle, logout } = useAuth(); // Get user, login, and logout functions from AuthContext
+  const { user, loginWithGoogle } = useAuth(); // Get user, login, and logout functions from AuthContext
   const [loading, setLoading] = useState<boolean>(false)
   const containerVariants = {
     hidden: { opacity: 0, y: -50 },

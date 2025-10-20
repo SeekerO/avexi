@@ -12,7 +12,7 @@ export default function PopupChat() {
     const [isOpen, setIsOpen] = useState(false); // State to control chat popup visibility
     const [currentChatId, setCurrentChatId] = useState<string | null>(null); // State for the currently selected chat room
     const [showAdminPanel, setShowAdminPanel] = useState(false); // State to control admin panel visibility
-    const { user, loginWithGoogle, logout } = useAuth(); // Get user, login, and logout functions from AuthContext
+    const { user, logout } = useAuth(); // Get user, login, and logout functions from AuthContext
 
     // Toggles the main chat popup open/closed
     const toggleChat = () => {
