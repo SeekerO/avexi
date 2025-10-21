@@ -4,7 +4,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import { useImageEditor } from "./ImageEditorContext";
 
 import { FaImage } from "react-icons/fa6";
