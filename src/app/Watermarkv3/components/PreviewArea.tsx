@@ -157,10 +157,10 @@ export default function PreviewArea() {
     }, []);
 
 
-    const handleSave = () => {
-        // Save a template on a button click
-        saveTemplate();
-    };
+    // const handleSave = () => {
+    //     // Save a template on a button click
+    //     saveTemplate();
+    // };
 
     return (
         <div className="space-y-8 p-6 bg-gray-50 dark:bg-gray-900 min-h-screen rounded-lg shadow-inner">
