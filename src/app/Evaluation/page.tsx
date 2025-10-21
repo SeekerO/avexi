@@ -8,6 +8,8 @@ import { IoSearchOutline } from "react-icons/io5";
 import { MdDelete } from "react-icons/md";
 import BreadCrumb from '../component/breadcrumb';
 import extractIdFromUrl from '@/lib/util/extractIdFromURL';
+import { useAuth } from '../Chat/AuthContext';
+import Link from 'next/link';
 // Define the shape of a row dynamically
 interface SheetRow extends Record<string, string> {
     id: string; // Assuming the first column serves as a unique identifier
@@ -24,6 +26,8 @@ type SheetRange = {
 }
 
 export default function App() {
+
+    const { user } = useAuth();
     const [data, setData] = useState<SheetRow[]>([]);
     const [loading, setLoading] = useState(false); // Changed to false, as data won't load on initial render
     const [isModalOpen, setIsModalOpen] = useState(false); // State to control modal visibility
@@ -213,6 +217,19 @@ export default function App() {
     const DeleteSavedData = () => {
         sessionStorage.removeItem("meta_data")
         window.location.reload()
+    }
+
+
+
+
+    if (user === null) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900">
+                <Link href={"/"} className="text-gray-600 dark:text-gray-400 text-center px-6 py-3 bg-gray-100 dark:bg-gray-800 rounded-xl shadow-md text-base font-medium transition-colors duration-300">
+                    Please log in to access the Watermark Editor.
+                </Link>
+            </div>
+        );
     }
 
     return (

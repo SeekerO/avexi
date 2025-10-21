@@ -3,6 +3,7 @@
 
 
 import React from "react";
+import Link from 'next/link';
 import ImageUploader from "./components/ImageUploader";
 import ImageControls from "./components/ImageControls";
 import PreviewArea from "./components/PreviewArea";
@@ -10,12 +11,23 @@ import BreadCrumb from "../component/breadcrumb";
 // Corrected import path for context assuming it's in app/context/
 import { ImageEditorProvider, useImageEditor } from "./components/ImageEditorContext";
 import { MdDelete } from "react-icons/md";
+import { useAuth } from "../Chat/AuthContext";
 
 // Main page component for the watermark application.
 function WatermarkPageContent() {
     // Access the images from the context to conditionally display messages.
     const { images, removeAllImages } = useImageEditor();
+    const { user } = useAuth();
 
+    if (user === null) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900">
+                <Link href={"/"} className="text-gray-600 dark:text-gray-400 text-center px-6 py-3 bg-gray-100 dark:bg-gray-800 rounded-xl shadow-md text-base font-medium transition-colors duration-300">
+                    Please log in to access the Watermark Editor.
+                </Link>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen flex flex-col font-sans overflow-hidden ">

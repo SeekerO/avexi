@@ -7,12 +7,14 @@ import kkk from "../../lib/image/KKK.png";
 import BreadCrumb from "../component/breadcrumb";
 import { compareExcelFilesFuzzy } from "@/lib/util/compare";
 import SideMenu from "./component/sidemenu";
-
+import { useAuth } from "../Chat/AuthContext";
+import Link from "next/link";
 import { IoSearch } from "react-icons/io5";
 import { MdUploadFile, MdPeopleAlt, MdPlayArrow, MdDelete } from 'react-icons/md';
 
 // Matcher Main Component
 const Matcher = () => {
+  const { user } = useAuth();
   const [dataset1, setDataSet1] = useState<File | null>(null);
   const [dataset2, setDataSet2] = useState<File | null>(null);
   const [res, setRes] = useState<any>(null);
@@ -68,6 +70,18 @@ const Matcher = () => {
     setInputSearch("");
     setError(null);
   };
+
+
+
+  if (user === null) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900">
+        <Link href={"/"} className="text-gray-600 dark:text-gray-400 text-center px-6 py-3 bg-gray-100 dark:bg-gray-800 rounded-xl shadow-md text-base font-medium transition-colors duration-300">
+          Please log in to access the Watermark Editor.
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <div className="overflow-hidden h-screen p-4 sm:p-6 lg:p-8 flex flex-col gap-4 bg-gray-100 dark:bg-gray-900 font-sans antialiased">
