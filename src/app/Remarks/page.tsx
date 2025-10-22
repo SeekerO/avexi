@@ -13,7 +13,6 @@ const Remarks = () => {
 
   if (!user || (user as any).canChat === false) {
 
-    window.location.href = "/";
 
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900">
