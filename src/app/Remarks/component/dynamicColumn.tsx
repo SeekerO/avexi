@@ -35,7 +35,6 @@ import {
   MdAdd,
 } from "react-icons/md";
 import { IoSearchOutline } from "react-icons/io5";
-import Link from "next/link";
 
 // MODIFIED: Added 'id' to Item type for better key management
 type Item = { id: string; label1: string };

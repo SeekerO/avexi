@@ -1,4 +1,6 @@
 "use client"
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 
 import { useAuth } from "../Chat/AuthContext";
 import Link from "next/link";

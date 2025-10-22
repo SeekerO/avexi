@@ -1,11 +1,10 @@
 "use client"
-import React from 'react';
+import React from 'react'
 import DarkModeToggle from '@/lib/components/dark-button';
 import Sidebar from '../sidebar';
 import { useAuth } from '@/app/Chat/AuthContext';
-// 1. Import usePathname for safe and correct path access in Next.js
 import { usePathname } from 'next/navigation';
-
+import PopupChat from '@/app/Chat/PopupChat';
 interface WrapperProps {
     children: React.ReactNode;
 }
@@ -22,7 +21,12 @@ const ThemeWrapper: React.FC<WrapperProps> = ({ children }) => {
         <>
             <main className='flex'>
                 {/* 4. Use the new showSidebar variable */}
-                {showSidebar && <Sidebar />}
+                {showSidebar && <>
+                    <Sidebar />
+                    <div className='absolute bottom-5 right-5 z-50'>
+                        <PopupChat />
+                    </div>
+                </>}
                 {children}
             </main>
             <div className="fixed right-4 top-4">

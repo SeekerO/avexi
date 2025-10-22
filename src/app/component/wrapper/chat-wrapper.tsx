@@ -2,7 +2,6 @@
 "use client"
 import PopupChat from "@/app/Chat/PopupChat";
 import { useAuth } from "@/app/Chat/AuthContext";
-import Sidebar from "../sidebar";
 interface ChatWrapper {
     children: React.ReactNode;
 }

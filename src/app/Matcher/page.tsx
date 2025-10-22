@@ -2,8 +2,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import React, { useRef, useState } from "react";
-import Image from "next/image";
-import kkk from "../../lib/image/KKK.png";
 import BreadCrumb from "../component/breadcrumb";
 import { compareExcelFilesFuzzy } from "@/lib/util/compare";
 import SideMenu from "./component/sidemenu";
