@@ -12,7 +12,7 @@ export default function PopupChat() {
     const [isOpen, setIsOpen] = useState(false); // State to control chat popup visibility
     const [currentChatId, setCurrentChatId] = useState<string | null>(null); // State for the currently selected chat room
     const [showAdminPanel, setShowAdminPanel] = useState(false); // State to control admin panel visibility
-    const { user, logout } = useAuth(); // Get user, login, and logout functions from AuthContext
+    const { user } = useAuth(); // Get user, login, and logout functions from AuthContext
 
     // Toggles the main chat popup open/closed
     const toggleChat = () => {
@@ -25,13 +25,6 @@ export default function PopupChat() {
     };
 
 
-    // Handles logout click
-    const handleLogoutClick = () => {
-        logout(); // Log out the user
-        setIsOpen(false); // Close the chat popup
-        setCurrentChatId(null); // Clear selected chat
-        setShowAdminPanel(false); // Hide admin panel
-    };
 
     // Callback function to select a specific chat room
     const handleSelectChat = (chatId: string) => {
@@ -117,15 +110,6 @@ export default function PopupChat() {
                         </div>
 
                         <div className='flex items-center justify-between mt-1 pt-3'>
-                            {/* Logout button */}
-                            <button
-                                title="Logout"
-                                onClick={handleLogoutClick}
-                                className="bg-red-500 text-white rounded-lg px-4 py-2 hover:bg-red-600 flex items-center gap-2 font-semibold text-sm transition-colors shadow-sm"
-                            >
-                                <CgLogOut size={22} /> Logout
-                            </button>
-
 
                             <div className="text-sm text-gray-600 ml-4 flex items-center gap-1">
                                 Logged in as: <span className="font-medium">{user.displayName || user.email}</span>

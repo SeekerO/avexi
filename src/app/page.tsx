@@ -1,16 +1,22 @@
 "use client"
+
+import { useState } from 'react';
 import Head from 'next/head';
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import kkk from '../lib/image/KKK.png'; // adjust if needed
-import { ImSpinner9 } from "react-icons/im";
-import { useState } from 'react';
+
 import { FcGoogle } from "react-icons/fc";
+import { CiLogout } from "react-icons/ci";
+import { ImSpinner9 } from "react-icons/im";
+
 import { useAuth } from './Chat/AuthContext';
 
+import kkk from '../lib/image/KKK.png'; // adjust if needed
+import DarkModeToggle from '@/lib/components/dark-button';
+
 export default function Home() {
-  const { user, loginWithGoogle } = useAuth(); // Get user, login, and logout functions from AuthContext
+  const { user, loginWithGoogle, logout } = useAuth(); // Get user, login, and logout functions from AuthContext
   const [loading, setLoading] = useState<boolean>(false)
   const containerVariants = {
     hidden: { opacity: 0, y: -50 },
@@ -78,9 +84,15 @@ export default function Home() {
       <Head>
         <title>Home | My App</title>
       </Head>
-      <div className="flex flex-col items-center justify-center h-screen w-screen bg-gray-50 dark:bg-gray-900 font-sans text-gray-800 dark:text-white overflow-hidden p-4">
-
-
+      <main className="flex flex-col items-center justify-center h-screen w-screen bg-gray-50 dark:bg-gray-900 font-sans text-gray-800 dark:text-white overflow-hidden p-4 relative">
+        <div className='py-2'>
+          <DarkModeToggle />
+        </div>
+        <div className="absolute top-5 left-5">
+          <button onClick={logout} className='flex items-center gap-1 font-semibold text-red-500 hover:underline duration-300 hover:text-blue-500'>
+            <CiLogout size={25} /> Logout
+          </button>
+        </div>
         <motion.div
           variants={containerVariants}
           initial="hidden"
@@ -152,7 +164,7 @@ export default function Home() {
             <ImSpinner9 className='animate-spin text-red-500' size={50} />
           </div>
         }
-      </div>
+      </main>
     </>
   );
 }

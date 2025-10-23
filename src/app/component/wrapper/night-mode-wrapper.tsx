@@ -1,5 +1,5 @@
 "use client"
-import React from 'react'
+import React, { useLayoutEffect } from 'react'
 import DarkModeToggle from '@/lib/components/dark-button';
 import Sidebar from '../sidebar';
 import { useAuth } from '@/app/Chat/AuthContext';
@@ -17,6 +17,20 @@ const ThemeWrapper: React.FC<WrapperProps> = ({ children }) => {
     const sidebarVisible = pathname !== "/"
     const showSidebar = sidebarVisible && userAuthenticated;
 
+    useLayoutEffect(() => {
+        const root = window.document.documentElement;
+        const savedTheme = localStorage.getItem("theme-mode");
+
+        const isDarkInitial = savedTheme === "dark" ||
+            (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+        if (isDarkInitial) {
+            root.classList.add('dark');
+        } else {
+            root.classList.remove('dark');
+        }
+    }, []);
+
     return (
         <>
             <main className='flex'>
@@ -29,9 +43,6 @@ const ThemeWrapper: React.FC<WrapperProps> = ({ children }) => {
                 </>}
                 {children}
             </main>
-            <div className="fixed right-4 top-4">
-                <DarkModeToggle />
-            </div>
         </>
     );
 };

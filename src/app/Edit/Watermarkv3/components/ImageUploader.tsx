@@ -9,9 +9,9 @@ import { useImageEditor } from "./ImageEditorContext";
 
 import { FaImage } from "react-icons/fa6";
 
-import Logo from "@/lib/image/COMELEC.png"
-import Footer from "@/lib/image/FOOTER.png"
-// import ConfirmationModal from "./ConfirmationModal";
+// import Logo from "@/lib/image/COMELEC.png"
+// import Footer from "@/lib/image/FOOTER.png"
+// // import ConfirmationModal from "./ConfirmationModal";
 
 export default function ImageUploader() {
     const imageInputRef = useRef<HTMLInputElement>(null);
@@ -165,11 +165,11 @@ export default function ImageUploader() {
     const triggerIndividualLogoInput = () => individualLogoInputRef.current?.click();
     const triggerIndividualFooterInput = () => individualFooterInputRef.current?.click();
 
-    const handleDefault = (event: React.MouseEvent<HTMLButtonElement>) => {
-        event.preventDefault();
-        setLogo(Logo.src);
-        setFooter(Footer.src);
-    }
+    // const handleDefault = (event: React.MouseEvent<HTMLButtonElement>) => {
+    //     event.preventDefault();
+    //     setLogo(Logo.src);
+    //     setFooter(Footer.src);
+    // }
 
     // const closeConfirmationModal = () => {
     //     return setOpenConfirmationModal(!openConfirmationModal)
@@ -283,9 +283,6 @@ export default function ImageUploader() {
                 </>
             )}
 
-            <div className="w-full flex items-center justify-center">
-                <div className="h-[1px] w-[80%] dark:bg-slate-600 bg-slate-300" />
-            </div>
 
             {isIndividual && (
                 <>
@@ -354,15 +351,7 @@ export default function ImageUploader() {
             )}
 
 
-            <div className="flex justify-center ">
-                <button
-                    disabled
-                    onClick={handleDefault}
-                    className="relative inline-flex items-center justify-center px-8 py-3 text-base font-semibold text-slate-400 bg-gray-600 rounded-full cursor-not-allowed"
-                >
-                    <span className="relative z-10">COMELEC Footer & Logo</span>
-                </button>
-            </div>
+
         </div>
     );
 }

@@ -8,11 +8,11 @@ import Link from 'next/link';
 import ImageUploader from "./components/ImageUploader";
 import ImageControls from "./components/ImageControls";
 import PreviewArea from "./components/PreviewArea";
-import BreadCrumb from "../component/breadcrumb";
+import BreadCrumb from "../../component/breadcrumb";
 // Corrected import path for context assuming it's in app/context/
 import { ImageEditorProvider, useImageEditor } from "./components/ImageEditorContext";
 import { MdDelete } from "react-icons/md";
-import { useAuth } from "../Chat/AuthContext";
+import { useAuth } from "../../Chat/AuthContext";
 
 // Main page component for the watermark application.
 function WatermarkPageContent() {
