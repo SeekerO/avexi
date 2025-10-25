@@ -111,44 +111,17 @@ export default function Home() {
             />
           </div>
           {user.canChat !== false ?
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 w-full">
+            <div className="flex items-center justify-center h-full gap-3 w-full">
 
               <motion.div onClick={handleLoading} variants={itemVariants}>
                 <Link
-                  href="/Remarks"
+                  href="/dashboard"
                   className="flex items-center justify-center px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold rounded-full shadow-lg hover:shadow-xl transition-all duration-300 ease-in-out transform hover:-translate-y-1 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-gray-800 uppercase tracking-wide"
                 >
-                  Remarks
+                  Dashboard
                 </Link>
               </motion.div>
 
-              <motion.div onClick={handleLoading} variants={itemVariants}>
-                <Link
-                  href="/Evaluation"
-                  className="flex items-center justify-center px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold rounded-full shadow-lg hover:shadow-xl transition-all duration-300 ease-in-out transform hover:-translate-y-1 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-gray-800 uppercase tracking-wide"
-
-                >
-                  Evaluation
-                </Link>
-              </motion.div>
-
-              <motion.div onClick={handleLoading} variants={itemVariants}>
-                <Link
-                  href="/Matcher"
-                  className="flex items-center justify-center px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold rounded-full shadow-lg hover:shadow-xl transition-all duration-300 ease-in-out transform hover:-translate-y-1 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-gray-800 uppercase tracking-wide"
-                >
-                  Matcher
-                </Link>
-              </motion.div>
-
-              <motion.div onClick={handleLoading} variants={itemVariants}>
-                <Link
-                  href="/Edit/Watermarkv4"
-                  className="flex items-center justify-center px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold rounded-full shadow-lg hover:shadow-xl transition-all duration-300 ease-in-out transform hover:-translate-y-1 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-gray-800 uppercase tracking-wide"
-                >
-                  WaterMark
-                </Link>
-              </motion.div>
             </div>
             :
             <div className='flex flex-col gap-1'>
