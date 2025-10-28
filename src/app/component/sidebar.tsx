@@ -123,10 +123,6 @@ const Sidebar: React.FC = () => {
     // Determine the user's role
     const userRole: UserRole = user?.isAdmin ? 'admin' : 'standard';
 
-    // Get all possible page IDs for the backward-compatibility logic
-    const allPageIds = Object.keys(PAGE_PERMISSION_MAP);
-
-    // --- MODIFIED LOGIC START ---
 
     // 1. Determine the effective allowedPages list based on the user's role and the 'allowedPages' variable.
     let allowedPages: string[] | null;
