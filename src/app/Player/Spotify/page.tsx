@@ -28,7 +28,7 @@ const SpotifyPlayer = () => {
     const [playbackState, setPlaybackState] = useState<PlaybackState | null>(null);
     const [isLiked, setIsLiked] = useState(false);
     const [error, setError] = useState('');
-    const [isConnecting, setIsConnecting] = useState(false);
+    // const [isConnecting, setIsConnecting] = useState(false);
 
     // Spotify API configuration
     const CLIENT_ID = process.env.NEXT_PUBLIC_SPOTIFY_CLIENT_ID;
@@ -117,7 +117,7 @@ const SpotifyPlayer = () => {
                 headers: { 'Authorization': `Bearer ${accessToken}` }
             });
         } catch (err) {
-            setError('Error toggling playback');
+            setError('Error toggling playback' + err);
         }
     };
 
@@ -128,7 +128,7 @@ const SpotifyPlayer = () => {
                 headers: { 'Authorization': `Bearer ${accessToken}` }
             });
         } catch (err) {
-            setError(`Error skipping ${direction}`);
+            setError(`Error skipping ${direction}` + err);
         }
     };
 
@@ -139,7 +139,7 @@ const SpotifyPlayer = () => {
                 headers: { 'Authorization': `Bearer ${accessToken}` }
             });
         } catch (err) {
-            setError('Error setting volume');
+            setError('Error setting volume' + err);
         }
     };
 
@@ -150,7 +150,7 @@ const SpotifyPlayer = () => {
                 headers: { 'Authorization': `Bearer ${accessToken}` }
             });
         } catch (err) {
-            setError('Error toggling shuffle');
+            setError('Error toggling shuffle' + err);
         }
     };
 
@@ -165,7 +165,7 @@ const SpotifyPlayer = () => {
                 headers: { 'Authorization': `Bearer ${accessToken}` }
             });
         } catch (err) {
-            setError('Error toggling repeat');
+            setError('Error toggling repeat' + err);
         }
     };
 
@@ -180,7 +180,7 @@ const SpotifyPlayer = () => {
             });
             setIsLiked(!isLiked);
         } catch (err) {
-            setError('Error toggling like');
+            setError('Error toggling like' + err);
         }
     };
 
@@ -191,7 +191,7 @@ const SpotifyPlayer = () => {
                 headers: { 'Authorization': `Bearer ${accessToken}` }
             });
         } catch (err) {
-            setError('Error seeking position');
+            setError('Error seeking position' + err);
         }
     };
 
