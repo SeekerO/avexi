@@ -4,17 +4,17 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useAuth } from "./AuthContext"; // Authentication context
 import { useChatMessages } from "./hooks/useChatMessages"; // Custom hook for messages
-import { sendMessage } from "./firebase/firebase.actions/sendMessage"; // Function to send messages
+import { sendMessage } from "../../lib/firebase/firebase.actions/sendMessage"; // Function to send messages
 import { editMessage } from "./components/messageActions"; // Function to edit messages
 import { setTyping } from "./utils/setTyping"; // Function to set typing status
-import { uploadFile } from "./firebase/firebase.actions/uploadFile"; // Function to upload files
+import { uploadFile } from "../../lib/firebase/firebase.actions/uploadFile"; // Function to upload files
 import { ref, onValue, get, update, serverTimestamp } from "firebase/database"; // Firebase Realtime Database functions
-import { db } from "./firebase/firebase"; // Firebase database instance
+import { db } from "../../lib/firebase/firebase"; // Firebase database instance
 import Image from "next/image"; // Assuming Next.js Image component for optimization
 import { BiCheckDouble } from "react-icons/bi";
 import { AiFillEdit } from "react-icons/ai";
 import { BsThreeDotsVertical } from "react-icons/bs"; // Icon for the 3-dot menu
-import { deleteChat } from "./firebase/firebase.actions/deleteChat"; // Import the new deleteChat function
+import { deleteChat } from "../../lib/firebase/firebase.actions/deleteChat"; // Import the new deleteChat function
 import { useRouter } from "next/navigation"; // For redirection after chat deletion
 import { FaUser } from "react-icons/fa";
 import { IoIosVideocam } from "react-icons/io";

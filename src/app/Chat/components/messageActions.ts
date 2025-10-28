@@ -1,5 +1,5 @@
 // messageActions.ts
-import { db } from "../firebase/firebase";
+import { db } from "../../../lib/firebase/firebase";
 import { ref, update, get, serverTimestamp } from "firebase/database";
 
 /**

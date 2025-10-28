@@ -1,5 +1,5 @@
 // setTyping.ts
-import { db } from "../firebase/firebase";
+import { db } from "../../../lib/firebase/firebase";
 import { ref, set } from "firebase/database";
 
 /**

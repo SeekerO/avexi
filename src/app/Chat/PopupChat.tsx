@@ -4,13 +4,11 @@ import React, { useState } from 'react';
 import ChatRoom from './ChatRoom'; // Chat room component
 import { useAuth } from './AuthContext'; // Authentication context
 import ChatList from './ChatList'; // Chat list component
-import AdminPanel from './AdminPanel'; // Admin panel component
 import { IoArrowBackCircle, IoChatbubblesSharp, IoClose } from "react-icons/io5"; // Back icon
 
 export default function PopupChat() {
     const [isOpen, setIsOpen] = useState(false); // State to control chat popup visibility
     const [currentChatId, setCurrentChatId] = useState<string | null>(null); // State for the currently selected chat room
-    const [showAdminPanel, setShowAdminPanel] = useState(false); // State to control admin panel visibility
     const { user } = useAuth(); // Get user, login, and logout functions from AuthContext
 
     // Toggles the main chat popup open/closed
@@ -19,7 +17,6 @@ export default function PopupChat() {
         if (isOpen) {
             // When closing the chat, reset current chat and hide admin panel
             setCurrentChatId(null);
-            setShowAdminPanel(false);
         }
     };
 
@@ -28,19 +25,11 @@ export default function PopupChat() {
     // Callback function to select a specific chat room
     const handleSelectChat = (chatId: string) => {
         setCurrentChatId(chatId); // Set the selected chat ID
-        setShowAdminPanel(false); // Hide admin panel if a chat is selected
     };
 
     // Navigates back to the chat list or hides the admin panel
     const handleBackToChatList = () => {
         setCurrentChatId(null); // Clear current chat
-        setShowAdminPanel(false); // Hide admin panel
-    };
-
-    // Toggles the visibility of the admin panel
-    const handleToggleAdminPanel = () => {
-        setShowAdminPanel(prev => !prev); // Toggle admin panel state
-        setCurrentChatId(null); // Clear current chat when opening admin panel
     };
 
     const handleToggleCloseChat = () => {
@@ -72,7 +61,7 @@ export default function PopupChat() {
                     {/* Header section with title and navigation */}
                     <div className="flex justify-between items-center mb-4 pb-2 border-b border-gray-200 dark:border-gray-700">
                         {/* Back button for chat room or admin panel */}
-                        {(currentChatId || showAdminPanel) && (
+                        {(currentChatId) && (
                             <button
                                 onClick={handleBackToChatList}
                                 className="text-gray-500 hover:text-gray-700 p-1 rounded-full hover:bg-gray-100 transition-colors"
@@ -84,7 +73,7 @@ export default function PopupChat() {
 
 
                         <h2 id="chat-popup-title" className="text-xl font-bold text-gray-800 dark:text-white flex-grow text-center">
-                            {showAdminPanel ? "Admin Panel" : (currentChatId ? "Chat Room" : "KKK Chats")}
+                            {currentChatId ? "Chat Room" : "KKK Chats"}
                         </h2>
                         {/* Close button for the popup */}
                         <button
@@ -99,13 +88,11 @@ export default function PopupChat() {
                     {/* Conditional rendering based on authentication status */}
                     {user && <>
                         <div className="flex-grow overflow-hidden">
-                            {showAdminPanel ? (
-                                <AdminPanel currentUserId={user.uid} />
-                            ) : currentChatId ? (
+                            {currentChatId ?
                                 <ChatRoom chatId={currentChatId} canChat={user.canChat ?? false} toggleChat={handleToggleCloseChat} />
-                            ) : (
+                                :
                                 <ChatList onSelectChat={handleSelectChat} currentUserId={user.uid} canChat={user.canChat ?? false} />
-                            )}
+                            }
                         </div>
 
                         <div className='flex items-center justify-between mt-1 pt-3'>
@@ -113,15 +100,7 @@ export default function PopupChat() {
                             <div className="text-sm text-gray-600 ml-4 flex items-center gap-1">
                                 Logged in as: <span className="font-medium">{user.displayName || user.email}</span>
                                 {/* Admin Panel button (only for admins) */}
-                                {(user?.isAdmin && !showAdminPanel) && (
-                                    <button
-                                        title="Admin Panel"
-                                        onClick={handleToggleAdminPanel}
-                                        className="text-sm px-3  rounded-full bg-slate-400 text-white hover:bg-slate-500 transition-colors flex items-center gap-1 font-light italic"
-                                    >
-                                        Admin
-                                    </button>
-                                )}
+
                             </div>
 
                         </div>

@@ -2,8 +2,8 @@
 "use client";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { createContext, useContext, useEffect, useState } from "react";
-import { auth, db } from "./firebase/firebase";
+import { createContext, useContext, useEffect, useState, useRef } from "react";
+import { auth, db } from "../../lib/firebase/firebase";
 import {
     GoogleAuthProvider,
     onAuthStateChanged,
@@ -14,11 +14,13 @@ import {
 import { ref, set, onDisconnect, serverTimestamp, get } from "firebase/database";
 import { saveUserProfile } from "./components/saveUserProfile";
 
-// Extend User type to include custom properties like isAdmin and canChat
+// Extend User type to include custom properties like isAdmin and allowedPages
 interface CustomUser extends User {
     isAdmin?: boolean;
     canChat?: boolean;
+    allowedPages?: string[];
 }
+
 
 // Define the shape of the authentication context
 interface AuthContextType {
@@ -34,41 +36,54 @@ const AuthContext = createContext<AuthContextType | null>(null);
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [user, setUser] = useState<CustomUser | null>(null);
 
+    // Use a ref to hold the current user state for reliable cleanup/logout
+    const userRef = useRef(user);
+    userRef.current = user;
+
+
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
             if (currentUser) {
+                // 1. Save/Update Profile
+                // This will use `update` for existing users, preserving existing permissions.
                 await saveUserProfile(currentUser);
 
-
+                // 2. Fetch the SAVED profile to get roles and permissions
                 const userProfileRef = ref(db, `users/${currentUser.uid}`);
                 const snapshot = await get(userProfileRef);
+
                 let isAdmin = false;
                 let canChat = false;
+                // Initialize to undefined. Sidebar handles this by granting all pages 
+                // for old users who have no configured permission field yet.
+                let allowedPages: string[] | undefined = undefined;
 
                 if (snapshot.exists()) {
                     const userData = snapshot.val();
                     isAdmin = userData.isAdmin || false;
                     canChat = userData.canChat !== undefined ? userData.canChat : true;
-                }
 
+                    // **CRITICAL FIX:** Read the allowedPages from the database snapshot
+                    allowedPages = userData.allowedPages;
+                }
 
                 const userWithRoles: CustomUser = {
                     ...currentUser,
                     isAdmin,
                     canChat,
+                    allowedPages, // This is now correctly set from the database
                 };
                 setUser(userWithRoles);
 
+                // Presence/Online Status logic
                 const userStatusRef = ref(db, `presence/${currentUser.uid}`);
                 set(userStatusRef, true);
                 onDisconnect(userStatusRef).set(serverTimestamp());
-                console.log(`User ${currentUser.uid} set to online. onDisconnect set.`);
             } else {
-
-                if (user && user.uid) {
-                    const userStatusRef = ref(db, `presence/${user.uid}`);
+                // Set last online timestamp using the ref to avoid stale state
+                if (userRef.current && userRef.current.uid) {
+                    const userStatusRef = ref(db, `presence/${userRef.current.uid}`);
                     set(userStatusRef, serverTimestamp());
-                    console.log(`User ${user.uid} set to offline on logout.`);
                 }
                 setUser(null);
             }

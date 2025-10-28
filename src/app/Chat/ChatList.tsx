@@ -5,9 +5,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useUserChats } from './hooks/useUserChats';
 import { useAuth } from './AuthContext';
-import { createChat } from './firebase/firebase.actions/createChat';
+import { createChat } from '../../lib/firebase/firebase.actions/createChat';
 import { ref, onValue } from 'firebase/database';
-import { db } from './firebase/firebase';
+import { db } from '../../lib/firebase/firebase';
 import Image from 'next/image';
 
 import { IoMdNotifications, IoIosArrowBack } from "react-icons/io";

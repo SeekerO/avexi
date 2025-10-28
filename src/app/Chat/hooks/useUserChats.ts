@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from "react";
 import { ref, onValue, get } from "firebase/database";
-import { db } from "../firebase/firebase";
+import { db } from "../../../lib/firebase/firebase";
 
 // Interface for a simplified chat object for the list
 interface UserChat {

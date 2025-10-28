@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { ref, onValue, update } from "firebase/database";
-import { db } from "./firebase/firebase";
+import { db } from "../../lib/firebase/firebase";
 import Image from "next/image";
 
 // Interface for user profile data
