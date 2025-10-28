@@ -28,11 +28,11 @@ const SpotifyPlayer = () => {
     const [playbackState, setPlaybackState] = useState<PlaybackState | null>(null);
     const [isLiked, setIsLiked] = useState(false);
     const [error, setError] = useState('');
-    // const [isConnecting, setIsConnecting] = useState(false);
+    const [isConnecting, setIsConnecting] = useState(false);
 
     // Spotify API configuration
     const CLIENT_ID = process.env.NEXT_PUBLIC_SPOTIFY_CLIENT_ID;
-    const REDIRECT_URI = 'https://kkk-tool.vercel.app'; // Must match EXACTLY what's in Spotify Dashboard
+    const REDIRECT_URI = process.env.NEXT_PUBLIC_REDIRECT_URI || 'http://localhost:3000';
     const SCOPES = [
         'user-read-playback-state',
         'user-modify-playback-state',
@@ -117,7 +117,7 @@ const SpotifyPlayer = () => {
                 headers: { 'Authorization': `Bearer ${accessToken}` }
             });
         } catch (err) {
-            setError('Error toggling playback' + err);
+            setError('Error toggling playback');
         }
     };
 
@@ -128,7 +128,7 @@ const SpotifyPlayer = () => {
                 headers: { 'Authorization': `Bearer ${accessToken}` }
             });
         } catch (err) {
-            setError(`Error skipping ${direction}` + err);
+            setError(`Error skipping ${direction}`);
         }
     };
 
@@ -139,7 +139,7 @@ const SpotifyPlayer = () => {
                 headers: { 'Authorization': `Bearer ${accessToken}` }
             });
         } catch (err) {
-            setError('Error setting volume' + err);
+            setError('Error setting volume');
         }
     };
 
@@ -150,7 +150,7 @@ const SpotifyPlayer = () => {
                 headers: { 'Authorization': `Bearer ${accessToken}` }
             });
         } catch (err) {
-            setError('Error toggling shuffle' + err);
+            setError('Error toggling shuffle');
         }
     };
 
@@ -165,7 +165,7 @@ const SpotifyPlayer = () => {
                 headers: { 'Authorization': `Bearer ${accessToken}` }
             });
         } catch (err) {
-            setError('Error toggling repeat' + err);
+            setError('Error toggling repeat');
         }
     };
 
@@ -180,7 +180,7 @@ const SpotifyPlayer = () => {
             });
             setIsLiked(!isLiked);
         } catch (err) {
-            setError('Error toggling like' + err);
+            setError('Error toggling like');
         }
     };
 
@@ -191,7 +191,7 @@ const SpotifyPlayer = () => {
                 headers: { 'Authorization': `Bearer ${accessToken}` }
             });
         } catch (err) {
-            setError('Error seeking position' + err);
+            setError('Error seeking position');
         }
     };
 
