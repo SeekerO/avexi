@@ -1,5 +1,7 @@
 "use client";
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import React, { SetStateAction, useLayoutEffect, useRef, useEffect, useState } from "react";
 import { useImageEditor } from "./ImageEditorContext";
 import { applyPhotoAdjustments } from "../lib/utils/canvasFilters";

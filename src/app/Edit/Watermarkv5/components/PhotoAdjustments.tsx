@@ -318,7 +318,7 @@ export default function PhotoAdjustments() {
             <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
                 <p className="text-xs text-blue-800 dark:text-blue-200">
                     💡 <strong>Tip:</strong> These adjustments apply {useGlobal ? 'to all images' : 'only to the selected image'}.
-                    Toggle "Global/Individual" above to change scope.
+                    {`Toggle "Global/Individual" above to change scope.`}
                 </p>
             </div>
         </div>
