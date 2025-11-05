@@ -1,7 +1,8 @@
 'use client';
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import Image from 'next/image';
 import React, { useState, useCallback } from 'react';
-import { Upload, Download, X, Loader2, Image, Info } from 'lucide-react';
+import { Upload, Download, X, Loader2, Image as ImageIcon, Info } from 'lucide-react';
 import { useAuth } from '../../Chat/AuthContext';
 const BackgroundRemover: React.FC = () => {
     const [originalImage, setOriginalImage] = useState<string | null>(null);
@@ -150,7 +151,7 @@ const BackgroundRemover: React.FC = () => {
                                     className="hidden"
                                 />
                                 <span className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors cursor-pointer inline-flex items-center gap-2">
-                                    <Image className="w-5 h-5" />
+                                    <ImageIcon className="w-5 h-5" />
                                     Choose File
                                 </span>
                             </label>
@@ -173,7 +174,7 @@ const BackgroundRemover: React.FC = () => {
                                 <div>
                                     <h4 className="text-sm font-medium dark:text-gray-100 text-gray-600 mb-2">Original</h4>
                                     <div className="relative aspect-square border-slate-50 bg-white border-dashed border-2 rounded-lg overflow-hidden">
-                                        <img
+                                        <Image
                                             src={originalImage}
                                             alt="Original"
                                             className="w-full h-full object-contain"
@@ -185,7 +186,7 @@ const BackgroundRemover: React.FC = () => {
                                     <h4 className="text-sm font-medium dark:text-gray-100 text-gray-600 mb-2">Processed</h4>
                                     <div className="relative aspect-square border-slate-50 border-2 bg-white rounded-lg overflow-hidden bg-[linear-gradient(45deg,#e5e5e5_25%,transparent_25%,transparent_75%,#e5e5e5_75%,#e5e5e5),linear-gradient(45deg,#e5e5e5_25%,transparent_25%,transparent_75%,#e5e5e5_75%,#e5e5e5)] bg-[length:20px_20px] bg-[position:0_0,10px_10px]">
                                         {processedImage ? (
-                                            <img
+                                            <Image
                                                 src={processedImage}
                                                 alt="Processed"
                                                 className="w-full h-full object-contain"
@@ -200,7 +201,7 @@ const BackgroundRemover: React.FC = () => {
                                                         )}
                                                     </div>
                                                 ) : (
-                                                    <Image className="w-12 h-12" />
+                                                    <ImageIcon className="w-12 h-12" />
                                                 )}
                                             </div>
                                         )}

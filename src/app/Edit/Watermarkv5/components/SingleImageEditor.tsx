@@ -1,6 +1,6 @@
 // app/components/SingleImageEditor.tsx
 "use client";
-
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { useImageEditor } from "./ImageEditorContext";
 import ModalPreview from "./ModalPreview";
@@ -76,10 +76,6 @@ export default function SingleImageEditor({ image, index, onCanvasReady }: Singl
     const currentImage = images[index];
     const { saveTemplate } = useTemplateActions();
 
-    // Safety check - if image doesn't exist, don't render
-    if (!currentImage) {
-        return null;
-    }
 
     // Determine which logos to use
     const logosToRender = currentImage.useGlobalSettings
@@ -96,6 +92,7 @@ export default function SingleImageEditor({ image, index, onCanvasReady }: Singl
     const shadowTargetToUse = currentImage.useGlobalSettings
         ? globalShadowTarget
         : (currentImage.individualShadowSettings ? "whole-image" : "none");
+
 
     // Draw a single logo
     const drawLogo = useCallback((
@@ -220,6 +217,14 @@ export default function SingleImageEditor({ image, index, onCanvasReady }: Singl
         ctx.restore();
     }, []);
 
+
+
+
+
+
+
+
+
     useEffect(() => {
         const canvas = canvasRef.current;
         if (!canvas) return;
@@ -232,7 +237,7 @@ export default function SingleImageEditor({ image, index, onCanvasReady }: Singl
 
         const drawImageAndWatermarks = async () => {
             // STEP 1: Load and Draw the Base Image (Guaranteed first)
-            await new Promise<void>((resolve, reject) => {
+            await new Promise<void>((resolve) => {
                 baseImg.onload = () => {
                     canvas.width = baseImg.width;
                     canvas.height = baseImg.height;
@@ -304,6 +309,13 @@ export default function SingleImageEditor({ image, index, onCanvasReady }: Singl
         drawShadow
     ]);
 
+
+    // Safety check - if image doesn't exist, don't render
+    if (!currentImage) {
+        return null;
+    }
+
+
     const downloadImage = async () => {
         const canvas = canvasRef.current;
         if (canvas) {
@@ -334,6 +346,7 @@ export default function SingleImageEditor({ image, index, onCanvasReady }: Singl
     };
 
     const modalCanvasId = `modal-canvas-${index}`;
+
 
     return (
         <div className="relative group">

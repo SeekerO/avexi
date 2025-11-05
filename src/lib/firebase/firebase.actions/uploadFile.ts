@@ -1,5 +1,4 @@
 // uploadFile.ts
-/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { storage } from "../firebase";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";

@@ -149,7 +149,7 @@ export default function ChatList({ onSelectChat, currentUserId, canChat }: ChatL
         return () => {
             unsubs.forEach(unsub => unsub());
         };
-    }, [user, rawUserChats, currentUserId, canChat, allUsers]);
+    }, [user, rawUserChats, currentUserId, canChat, allUsers, chatsWithUnread.length]);
 
     const handleCreateChat = async () => {
         if (!user || !canChat) return;

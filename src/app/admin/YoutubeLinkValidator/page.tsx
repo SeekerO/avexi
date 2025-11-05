@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { CheckCircle, XCircle, AlertCircle, Copy, Download, ExternalLink, Edit } from 'lucide-react';
+import Image from 'next/image';
 
 interface Song {
     id: string;
@@ -377,7 +378,7 @@ const VideoIDValidatorAndFixer = () => {
                                                 </div>
 
                                                 {result.status === 'valid' && (
-                                                    <img
+                                                    <Image
                                                         src={result.thumbnail}
                                                         alt={result.title}
                                                         className="w-40 h-24 object-cover rounded shadow"

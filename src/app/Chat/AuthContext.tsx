@@ -1,6 +1,5 @@
 // AuthContext.tsx
 "use client";
-/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { createContext, useContext, useEffect, useState, useRef } from "react";
 import { auth, db } from "../../lib/firebase/firebase";

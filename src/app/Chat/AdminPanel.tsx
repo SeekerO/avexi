@@ -1,5 +1,4 @@
 "use client";
-/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import React, { useState, useEffect, useCallback } from "react";
 import { ref, onValue, update } from "firebase/database";

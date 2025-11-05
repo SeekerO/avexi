@@ -3,7 +3,7 @@
 
 import React, { useRef, useState } from "react";
 import { useImageEditor } from "./ImageEditorContext";
-import { FaImage } from "react-icons/fa6";
+import { FaImage, FaImages } from "react-icons/fa6";
 import { Plus } from "lucide-react";
 
 export default function ImageUploader() {
@@ -142,11 +142,12 @@ export default function ImageUploader() {
                     onDrop={(e) => handleDrop(e, 'image')}
                     onClick={triggerImageInput}
                 >
-                    <FaImage className="text-4xl text-gray-400 dark:text-gray-500 mb-3" />
+                    <FaImages className="text-4xl text-gray-400 dark:text-gray-500 mb-3" />
                     <span className="text-lg font-semibold text-gray-700 dark:text-gray-100">Upload Your Images</span>
                     <p className="text-sm text-gray-500 dark:text-gray-400">(Drag & drop or click to browse)</p>
                     <span className="mt-3 inline-flex items-center justify-center px-5 py-2 border border-transparent text-base font-medium rounded-full text-white bg-indigo-600 hover:bg-indigo-700 transition-colors duration-200">
-                        Select Images
+                        <Plus className="w-5 h-5 mr-2" />
+                        Add Images
                     </span>
                 </label>
             </div>
@@ -213,11 +214,15 @@ export default function ImageUploader() {
                             // FIX: Use the correct trigger function
                             onClick={triggerMultiFooterInput}
                         >
-                            <FaImage className="text-4xl text-gray-400 dark:text-gray-500 mb-3" />
+                            <div className="relative">
+                                <FaImage className="text-4xl text-gray-400 dark:text-gray-500 mb-3" />
+                                <Plus className="absolute -top-1 -right-1 w-5 h-5 text-green-600 bg-white dark:bg-gray-800 rounded-full" />
+                            </div>
                             <span className="text-lg font-semibold text-gray-700 dark:text-gray-100">Upload Global Footer</span>
                             <p className="text-sm text-gray-500 dark:text-gray-400">(Optional - Drag & drop or click)</p>
                             <span className="mt-3 inline-flex items-center justify-center px-5 py-2 border border-transparent text-base font-medium rounded-full text-white bg-green-600 hover:bg-green-700 transition-colors duration-200">
-                                Select Footer
+                                <Plus className="w-5 h-5 mr-2" />
+                                Add Footers
                             </span>
                         </label>
                     </div>

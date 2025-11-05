@@ -19,15 +19,15 @@ interface WatermarkSettings {
 // NEW: Calculate distance from edges
 const calculateEdgeDistance = (
     position: string,
-    imgWidth: number = 1000,
-    imgHeight: number = 1000,
-    logoWidth: number,
-    logoHeight: number,
+    // imgWidth: number = 1000,
+    // imgHeight: number = 1000,
+    // logoWidth: number,
+    // logoHeight: number,
     paddingX: number,
     paddingY: number
 ) => {
     let minDistance = Infinity;
-    let edges: string[] = [];
+    const edges: string[] = [];
 
     switch (position) {
         case "top-left":
@@ -68,18 +68,18 @@ export default function ImageControls() {
         images,
         selectedImageIndex,
         globalLogoSettings,
-        setGlobalLogoSettings,
+        // setGlobalLogoSettings,
         globalFooterSettings,
-        setGlobalFooterSettings,
+        // setGlobalFooterSettings,
         globalShadowSettings,
         setGlobalShadowSettings,
         globalShadowTarget,
         setGlobalShadowTarget,
         toggleUseGlobalSettings,
-        updateIndividualLogoSettings,
-        updateIndividualFooterSettings,
+        // updateIndividualLogoSettings,
+        // updateIndividualFooterSettings,
         updateIndividualShadowSettings,
-        footer,
+        // footer,
         globalLogos,
         selectedLogoId,
         setSelectedLogoId,
@@ -126,10 +126,10 @@ export default function ImageControls() {
         currentLogoSettings.position,
         1000,
         1000,
-        currentLogoSettings.width,
-        currentLogoSettings.height,
-        currentLogoSettings.paddingX,
-        currentLogoSettings.paddingY
+        // currentLogoSettings.width,
+        // currentLogoSettings.height,
+        // currentLogoSettings.paddingX,
+        // currentLogoSettings.paddingY
     ) : null;
 
     const updateLogoSettings = (settings: Partial<typeof globalLogoSettings>) => {
@@ -244,12 +244,12 @@ export default function ImageControls() {
                                                 e.stopPropagation();
                                                 handleRemoveLogo(logo.id);
                                             }}
-                                            className="absolute top-1 right-1 p-1 bg-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                                            className="absolute top-1 right-1 p-1 bg-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
                                         >
                                             <Trash2 className="w-3 h-3" />
                                         </button>
                                         {selectedLogoId === logo.id && (
-                                            <div className="absolute inset-0 bg-blue-500 bg-opacity-20 flex items-center justify-center">
+                                            <div className="absolute inset-0 bg-blue-500 bg-opacity-20 flex items-center justify-center z-0">
                                                 <span className="text-white text-xs font-bold bg-blue-600 px-2 py-1 rounded">EDITING</span>
                                             </div>
                                         )}
@@ -423,12 +423,12 @@ export default function ImageControls() {
                                                     e.stopPropagation();
                                                     handleRemoveFooter(footer.id);
                                                 }}
-                                                className="absolute top-1 right-1 p-1 bg-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                                                className="absolute top-1 right-1 p-1 bg-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
                                             >
                                                 <Trash2 className="w-3 h-3" />
                                             </button>
                                             {selectedFooterId === footer.id && (
-                                                <div className="absolute inset-0 bg-green-500 bg-opacity-20 flex items-center justify-center">
+                                                <div className="absolute inset-0 bg-green-500 bg-opacity-20 flex items-center justify-center z-0">
                                                     <span className="text-white text-xs font-bold bg-green-600 px-2 py-1 rounded">EDITING</span>
                                                 </div>
                                             )}

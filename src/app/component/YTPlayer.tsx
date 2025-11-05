@@ -3,6 +3,7 @@ import { Video, Play, Search, ExternalLink, Loader2, Maximize2 } from 'lucide-re
 
 // Import your songs data
 import songsData from '@/lib/json/songs.json';
+import Image from 'next/image';
 
 interface SearchResult {
     id: string;
@@ -255,7 +256,7 @@ const YTPlayer: React.FC<YTPlayerProps> = ({ onPlayVideo }) => {
                                     className="relative cursor-pointer"
                                     onClick={() => handlePlayInPage(video.id)}
                                 >
-                                    <img
+                                    <Image
                                         src={video.thumbnail}
                                         alt={video.title}
                                         className="w-full h-48 object-cover"

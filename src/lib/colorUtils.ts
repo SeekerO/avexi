@@ -1,5 +1,3 @@
-// eslint-disable-next-line prefer-const
-
 export function hexToRgb(hex: string): [number, number, number] | null {
   const shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
   // Expand shorthand form (e.g. "03F") to full form (e.g. "0033FF")

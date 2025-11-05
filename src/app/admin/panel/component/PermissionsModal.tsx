@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+
 
 import React, { useState } from 'react';
 import { PermissionsModalProps, AVAILABLE_PAGES, PageId } from '@/lib/types/adminTypes';
