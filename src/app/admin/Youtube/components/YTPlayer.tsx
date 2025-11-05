@@ -257,6 +257,8 @@ const YTPlayer: React.FC<YTPlayerProps> = ({ onPlayVideo }) => {
                                     onClick={() => handlePlayInPage(video.id)}
                                 >
                                     <Image
+                                        height={192}
+                                        width={100}
                                         src={video.thumbnail}
                                         alt={video.title}
                                         className="w-full h-48 object-cover"

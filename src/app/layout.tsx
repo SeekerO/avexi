@@ -4,7 +4,7 @@ import "./globals.css";
 import UseGuard from "./component/withAuth";
 import ThemeWrapper from "./component/wrapper/night-mode-wrapper";
 import { AuthProvider } from "./Chat/AuthContext";
-import { YouTubePlayerProvider } from "./component/YouTubePlayerContext";
+import { YouTubePlayerProvider } from "@/app/admin/Youtube/components/YouTubePlayerContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

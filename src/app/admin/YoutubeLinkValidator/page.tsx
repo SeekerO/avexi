@@ -379,6 +379,8 @@ const VideoIDValidatorAndFixer = () => {
 
                                                 {result.status === 'valid' && (
                                                     <Image
+                                                        width={160}
+                                                        height={96}
                                                         src={result.thumbnail}
                                                         alt={result.title}
                                                         className="w-40 h-24 object-cover rounded shadow"

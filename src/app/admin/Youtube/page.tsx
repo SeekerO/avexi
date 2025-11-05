@@ -1,6 +1,6 @@
 "use client";
-import YTPlayer from '../../component/YTPlayer';
-import { useYouTubePlayer } from '../../component/YouTubePlayerContext';
+import YTPlayer from './components/YTPlayer';
+import { useYouTubePlayer } from './components/YouTubePlayerContext';
 
 export default function YTPlayerPage() {
     const { playVideo } = useYouTubePlayer();
