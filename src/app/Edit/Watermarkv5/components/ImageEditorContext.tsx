@@ -43,6 +43,39 @@ interface ShadowSettings {
     blur: number;
 }
 
+interface PhotoAdjustments {
+    exposure: number;        // -100 to 100 (affects brightness multiplicatively)
+    brilliance: number;      // -100 to 100 (enhances mid-tones)
+    highlights: number;      // -100 to 100 (bright area recovery)
+    shadows: number;         // -100 to 100 (shadow enhancement)
+    contrast: number;        // -100 to 100 (difference between light/dark)
+    brightness: number;      // -100 to 100 (simple brightness)
+    blackPoint: number;      // 0 to 100 (deepens blacks)
+    saturation: number;      // -100 to 100 (color intensity)
+    vibrance: number;        // -100 to 100 (smart saturation)
+    warmth: number;          // -100 to 100 (temperature adjustment)
+    tint: number;            // -100 to 100 (green/magenta balance)
+    sharpness: number;       // 0 to 100 (edge enhancement)
+    definition: number;      // 0 to 100 (local contrast)
+    noiseReduction: number;  // 0 to 100 (smoothing)
+    vignette: number;        // 0 to 100 (corner darkening)
+}
+
+interface ImageData {
+    file: File;
+    url: string;
+    useGlobalSettings: boolean;
+    individualLogoSettings?: WatermarkSettings;
+    individualFooterSettings?: FooterSettings;
+    individualShadowSettings?: ShadowSettings;
+    individualLogo?: string | null;
+    individualFooter?: string | null;
+    individualLogos?: LogoItem[];
+    individualFooters?: FooterItem[];
+    // NEW: Photo adjustments
+    photoAdjustments?: PhotoAdjustments;
+}
+
 type ShadowTarget = "none" | "footer" | "whole-image";
 
 interface ImageData {
@@ -112,7 +145,35 @@ interface ImageEditorContextType {
     addIndividualFooter: (imageIndex: number, url: string) => string;
     removeIndividualFooter: (imageIndex: number, footerId: string) => void;
     updateIndividualImageFooterSettings: (imageIndex: number, footerId: string, settings: Partial<FooterSettings>) => void;
+
+    reorderGlobalLogos: (newLogos: LogoItem[]) => void;
+    reorderIndividualLogos: (imageIndex: number, newLogos: LogoItem[]) => void;
+    reorderGlobalFooters: (newFooters: FooterItem[]) => void;
+    reorderIndividualFooters: (imageIndex: number, newFooters: FooterItem[]) => void;
+
+    globalPhotoAdjustments: PhotoAdjustments;
+    setGlobalPhotoAdjustments: React.Dispatch<React.SetStateAction<PhotoAdjustments>>;
+    updateIndividualPhotoAdjustments: (settings: Partial<PhotoAdjustments>) => void;
+    resetPhotoAdjustments: () => void;
 }
+
+const defaultPhotoAdjustments: PhotoAdjustments = {
+    exposure: 0,
+    brilliance: 0,
+    highlights: 0,
+    shadows: 0,
+    contrast: 0,
+    brightness: 0,
+    blackPoint: 0,
+    saturation: 0,
+    vibrance: 0,
+    warmth: 0,
+    tint: 0,
+    sharpness: 0,
+    definition: 0,
+    noiseReduction: 0,
+    vignette: 0,
+};
 
 const defaultLogoSettings: WatermarkSettings = {
     position: "bottom-right",
@@ -160,6 +221,40 @@ export const ImageEditorProvider = ({ children }: { children: ReactNode }) => {
     // NEW: Multiple footers state
     const [globalFooters, setGlobalFooters] = useState<FooterItem[]>([]);
     const [selectedFooterId, setSelectedFooterId] = useState<string | null>(null);
+
+    const [globalPhotoAdjustments, setGlobalPhotoAdjustments] = useState<PhotoAdjustments>(defaultPhotoAdjustments);
+
+    const updateIndividualPhotoAdjustments = (settings: Partial<PhotoAdjustments>) => {
+        if (selectedImageIndex !== null) {
+            setImages(prevImages => {
+                const newImages = [...prevImages];
+                newImages[selectedImageIndex] = {
+                    ...newImages[selectedImageIndex],
+                    photoAdjustments: {
+                        ...(newImages[selectedImageIndex].photoAdjustments || defaultPhotoAdjustments),
+                        ...settings
+                    },
+                    useGlobalSettings: false,
+                };
+                return newImages;
+            });
+        }
+    };
+
+    const resetPhotoAdjustments = () => {
+        if (selectedImageIndex !== null) {
+            setImages(prevImages => {
+                const newImages = [...prevImages];
+                newImages[selectedImageIndex] = {
+                    ...newImages[selectedImageIndex],
+                    photoAdjustments: { ...defaultPhotoAdjustments },
+                };
+                return newImages;
+            });
+        } else {
+            setGlobalPhotoAdjustments({ ...defaultPhotoAdjustments });
+        }
+    };
 
     const removeAllImages = () => {
         images.forEach(image => {
@@ -490,6 +585,43 @@ export const ImageEditorProvider = ({ children }: { children: ReactNode }) => {
         });
     };
 
+
+    // NEW: Reorder methods for logos
+    const reorderGlobalLogos = (newLogos: LogoItem[]) => {
+        setGlobalLogos(newLogos);
+    };
+
+    const reorderIndividualLogos = (imageIndex: number, newLogos: LogoItem[]) => {
+        setImages(prevImages => {
+            const newImages = [...prevImages];
+            if (!newImages[imageIndex]) return prevImages;
+
+            newImages[imageIndex] = {
+                ...newImages[imageIndex],
+                individualLogos: newLogos,
+            };
+            return newImages;
+        });
+    };
+
+    // NEW: Reorder methods for footers
+    const reorderGlobalFooters = (newFooters: FooterItem[]) => {
+        setGlobalFooters(newFooters);
+    };
+
+    const reorderIndividualFooters = (imageIndex: number, newFooters: FooterItem[]) => {
+        setImages(prevImages => {
+            const newImages = [...prevImages];
+            if (!newImages[imageIndex]) return prevImages;
+
+            newImages[imageIndex] = {
+                ...newImages[imageIndex],
+                individualFooters: newFooters,
+            };
+            return newImages;
+        });
+    };
+
     return (
         <ImageEditorContext.Provider
             value={{
@@ -540,6 +672,14 @@ export const ImageEditorProvider = ({ children }: { children: ReactNode }) => {
                 addIndividualFooter,
                 removeIndividualFooter,
                 updateIndividualImageFooterSettings,
+                reorderGlobalLogos,
+                reorderIndividualLogos,
+                reorderGlobalFooters,
+                reorderIndividualFooters,
+                globalPhotoAdjustments,
+                setGlobalPhotoAdjustments,
+                updateIndividualPhotoAdjustments,
+                resetPhotoAdjustments,
             }}
         >
             {children}

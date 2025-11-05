@@ -217,8 +217,9 @@ export default function PreviewArea() {
                                 {/* Pass the new callback to SingleImageEditor */}
                                 <SingleImageEditor image={image} index={index} onCanvasReady={handleCanvasReady} />
                                 {selectedImageIndex === index && (
-                                    <div className="select-none absolute inset-0 bg-blue-600 bg-opacity-30 rounded-xl flex items-center justify-center text-white font-bold text-3xl opacity-100 transition-opacity duration-300 pointer-events-none">
-                                        SELECTED
+                                    <div className="select-none absolute inset-0 bg-blue-800/30 rounded-xl flex flex-col items-center justify-center text-white font-bold text-3xl opacity-100 transition-opacity duration-300 pointer-events-none ">
+                                        <h1 className="text-white">SELECTED</h1>
+                                        <span className="font-normal italic text-lg">Double Click to DeSelect</span>
                                     </div>
                                 )}
                             </div>

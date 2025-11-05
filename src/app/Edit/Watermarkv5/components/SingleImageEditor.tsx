@@ -7,6 +7,7 @@ import ModalPreview from "./ModalPreview";
 import { MdDelete } from "react-icons/md";
 import { FiDownload, FiMaximize2 } from "react-icons/fi";
 import { useTemplateActions } from "../components/hooks/useTemplateActions";
+import { applyPhotoAdjustments } from '../lib/utils/canvasFilters';
 
 interface SingleImageEditorProps {
     image: any;
@@ -70,12 +71,16 @@ export default function SingleImageEditor({ image, index, onCanvasReady }: Singl
         setSelectedImageIndex,
         globalLogos,
         globalFooters,
+        globalPhotoAdjustments
     } = useImageEditor();
 
     const [openPreview, setOpenPreview] = useState<boolean>(false);
     const currentImage = images[index];
     const { saveTemplate } = useTemplateActions();
 
+    const photoAdjustmentsToUse = currentImage.useGlobalSettings
+        ? globalPhotoAdjustments
+        : (currentImage.photoAdjustments || globalPhotoAdjustments);
 
     // Determine which logos to use
     const logosToRender = currentImage.useGlobalSettings
@@ -217,14 +222,6 @@ export default function SingleImageEditor({ image, index, onCanvasReady }: Singl
         ctx.restore();
     }, []);
 
-
-
-
-
-
-
-
-
     useEffect(() => {
         const canvas = canvasRef.current;
         if (!canvas) return;
@@ -232,47 +229,42 @@ export default function SingleImageEditor({ image, index, onCanvasReady }: Singl
         const ctx = canvas.getContext("2d");
         if (!ctx) return;
 
-        const baseImg = new Image(); // Renamed to baseImg for clarity
+        const baseImg = new Image();
         baseImg.src = image.url;
 
         const drawImageAndWatermarks = async () => {
-            // STEP 1: Load and Draw the Base Image (Guaranteed first)
+            // STEP 1: Load and Draw the Base Image
             await new Promise<void>((resolve) => {
                 baseImg.onload = () => {
                     canvas.width = baseImg.width;
                     canvas.height = baseImg.height;
                     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-                    // Handle Shadow for WHOLE-IMAGE target FIRST
                     if (shadowTargetToUse === "whole-image" && shadowSettingsToUse) {
                         drawShadow(ctx, canvas.width, canvas.height, shadowSettingsToUse);
                     }
 
-                    // Draw the base image (over the whole-image shadow if present)
                     ctx.drawImage(baseImg, 0, 0);
-
                     resolve();
                 };
                 baseImg.onerror = (e) => {
                     console.error("Failed to load base image:", image.url, e);
-                    // Crucial: Resolve the promise even on error to unblock the rest of the drawing
                     resolve();
                 };
             });
 
-            // If base image failed to load, nothing else can be drawn, but the promise is resolved, so we proceed
             if (baseImg.complete && baseImg.naturalWidth > 0) {
                 const imgWidth = baseImg.width;
                 const imgHeight = baseImg.height;
 
-                // STEP 2: Draw all Logos (Awaited concurrently)
+                // STEP 2: Draw all Logos
                 await Promise.all(
                     logosToRender.map((logoItem: any) =>
                         drawLogo(ctx, logoItem.url, imgWidth, imgHeight, logoItem.settings)
                     )
                 );
 
-                // STEP 3: Draw all Footers (Awaited concurrently)
+                // STEP 3: Draw all Footers
                 await Promise.all(
                     footersToRender.map((footerItem: any) =>
                         drawFooter(
@@ -286,9 +278,12 @@ export default function SingleImageEditor({ image, index, onCanvasReady }: Singl
                         )
                     )
                 );
+
+                // STEP 4: Apply Photo Adjustments (NEW!)
+                applyPhotoAdjustments(canvas, photoAdjustmentsToUse);
             }
 
-            // STEP 4: Announce the canvas is ready
+            // STEP 5: Announce canvas ready
             onCanvasReady(index, async () => {
                 return new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
             });
@@ -303,12 +298,12 @@ export default function SingleImageEditor({ image, index, onCanvasReady }: Singl
         footersToRender,
         shadowSettingsToUse,
         shadowTargetToUse,
+        photoAdjustmentsToUse, // ADD THIS DEPENDENCY
         onCanvasReady,
         drawLogo,
         drawFooter,
         drawShadow
     ]);
-
 
     // Safety check - if image doesn't exist, don't render
     if (!currentImage) {
@@ -405,7 +400,13 @@ export default function SingleImageEditor({ image, index, onCanvasReady }: Singl
                 </button>
             </div>
 
-            <ModalPreview canvasRef={canvasRef} open={openPreview} onClose={setOpenPreview} modalCanvasId={modalCanvasId} />
+            <ModalPreview
+                canvasRef={canvasRef}
+                open={openPreview}
+                onClose={setOpenPreview}
+                modalCanvasId={modalCanvasId}
+                imageIndex={index}
+            />
         </div>
     );
 }

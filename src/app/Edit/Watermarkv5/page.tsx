@@ -13,6 +13,7 @@ import { ImageEditorProvider, useImageEditor } from "./components/ImageEditorCon
 import { MdDelete } from "react-icons/md";
 import { useAuth } from "../../Chat/AuthContext";
 import { Info } from "lucide-react";
+import PhotoAdjustments from "./components/PhotoAdjustments";
 
 // Main page component for the watermark application.
 function WatermarkPageContent() {
@@ -52,6 +53,10 @@ function WatermarkPageContent() {
                         {/* ImageControls is always rendered, it will internally decide if it's showing
                     global controls or individual controls based on selectedImageIndex. */}
                         <ImageControls />
+
+                        <div className="mt-8">
+                            <PhotoAdjustments />
+                        </div>
 
                     </div>
 
