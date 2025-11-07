@@ -16,7 +16,7 @@ const nextConfig: NextConfig = {
     if (!dev && !isServer) {
       config.devtool = false;
     }
-        return config;
+    return config; // MUST be present
   },
 };
 
