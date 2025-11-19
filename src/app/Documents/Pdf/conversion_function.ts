@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 import * as XLSX from "xlsx";
 import { jsPDF } from "jspdf";
 import { PDFDocument } from "pdf-lib";
@@ -39,8 +37,6 @@ export const pdfToWord = async (item: FileItem) => {
   const arrayBuffer = await item.file.arrayBuffer();
   const extractedText = await extractTextFromPDF(arrayBuffer);
 
-  // Create a simple text document
-  // For a real .docx, you'd need the 'docx' library
   const textBlob = new Blob([extractedText], { type: "text/plain" });
   return textBlob;
 };
@@ -57,7 +53,7 @@ export const excelToPDF = async (item: FileItem) => {
     firstSheet = false;
 
     pdf.setFontSize(16);
-    pdf.setFont("", "bold");
+    pdf.setFont("helvetica", "bold");
     pdf.text(sheetName, 14, 15);
 
     const worksheet = workbook.Sheets[sheetName];
@@ -81,12 +77,11 @@ export const excelToPDF = async (item: FileItem) => {
 
       let x = 14;
 
-      // Bold header row
       if (rowIndex === 0) {
-        pdf.setFont("", "bold");
+        pdf.setFont("helvetica", "bold");
         pdf.setFontSize(10);
       } else {
-        pdf.setFont("", "normal");
+        pdf.setFont("helvetica", "normal");
         pdf.setFontSize(9);
       }
 
@@ -109,7 +104,6 @@ export const pdfToExcel = async (item: FileItem) => {
   const arrayBuffer = await item.file.arrayBuffer();
   const extractedText = await extractTextFromPDF(arrayBuffer);
 
-  // Split text into lines and create a basic spreadsheet
   const lines = extractedText.split("\n").filter((line: string) => line.trim());
   const data = lines.map((line: string) => [line]);
 
@@ -136,9 +130,8 @@ export const imagesToPDF = async (fileItems: FileItem[]) => {
       image = await pdfDoc.embedJpg(arrayBuffer);
     }
 
-    // Scale image to fit A4 page while maintaining aspect ratio
-    const pageWidth = 595; // A4 width in points
-    const pageHeight = 842; // A4 height in points
+    const pageWidth = 595;
+    const pageHeight = 842;
     const margin = 40;
     const maxWidth = pageWidth - margin * 2;
     const maxHeight = pageHeight - margin * 2;
@@ -146,7 +139,6 @@ export const imagesToPDF = async (fileItems: FileItem[]) => {
     let width = image.width;
     let height = image.height;
 
-    // Scale down if needed
     if (width > maxWidth || height > maxHeight) {
       const ratio = Math.min(maxWidth / width, maxHeight / height);
       width = width * ratio;
@@ -203,13 +195,13 @@ export const combinePDFs = async (fileItems: FileItem[]) => {
 export const extractTextFromPDF = async (
   arrayBuffer: ArrayBuffer
 ): Promise<string> => {
-  // @ts-expect-error - type mismatch due to third-party lib
-  if (!window.pdfjsLib) {
+  if (!(window as any).pdfjsLib) {
     throw new Error("PDF.js library not loaded");
   }
 
-  // @ts-expect-error - type mismatch due to third-party lib
-  const loadingTask = window.pdfjsLib.getDocument({ data: arrayBuffer });
+  const loadingTask = (window as any).pdfjsLib.getDocument({
+    data: arrayBuffer,
+  });
   const pdf = await loadingTask.promise;
   const textContent: string[] = [];
 

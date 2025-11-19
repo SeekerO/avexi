@@ -1,11 +1,12 @@
 // --- Type Definitions ---\r\n
 export const AVAILABLE_PAGES = [
-  { id: "watermark", name: "Watermark V4", category: "Edit" },
+  { id: "watermarkv4", name: "Watermark V4", category: "Edit" },
+  { id: "watermarkv5", name: "Watermark V5", category: "Edit" },
   { id: "bgremover", name: "BG Remover", category: "Edit" },
   { id: "logomaker", name: "Logo Maker", category: "Edit" },
-  { id: "faq", name: "FAQ", category: "Notes" },
-  { id: "remarks", name: "Remarks", category: "Notes" },
-  { id: "pdf", name: "PDF", category: "Notes" },
+  { id: "faq", name: "FAQ", category: "Document" },
+  { id: "remarks", name: "Remarks", category: "Document" },
+  { id: "pdf", name: "PDF", category: "Document" },
   { id: "matcher", name: "Matcher", category: "Main" },
   { id: "evaluation", name: "Evaluation", category: "Main" },
 ] as const;

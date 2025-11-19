@@ -1,25 +1,14 @@
-'use client'
-/* eslint-disable @typescript-eslint/no-explicit-any */
+"use client"
+
 import React, { useState, useRef, useMemo, useEffect } from 'react';
 import {
     FileUp, FileDown, FileText, FileSpreadsheet, Combine,
-    Loader2, Image, FileType
+    Loader2, Image, FileType, Download, CheckCircle
 } from 'lucide-react';
-import {
-    wordToPDF,
-    pdfToWord,
-    excelToPDF,
-    pdfToExcel,
-    imagesToPDF,
-    htmlToPDF,
-    combinePDFs,
-} from './conversion_function';
-
-import ConversionItem from "./item"
-
+import { wordToPDF, pdfToWord, excelToPDF, pdfToExcel, htmlToPDF, combinePDFs, imagesToPDF } from './conversion_function';
+import ConversionItem from './item';
 
 // --- Type Definitions ---
-
 type ConversionMode =
     'pdf-to-word' | 'pdf-to-excel' | 'word-to-pdf' | 'excel-to-pdf' |
     'combine-pdf' | 'image-to-pdf' | 'html-to-pdf';
@@ -44,38 +33,43 @@ export interface ModeConfig {
     multiple?: boolean;
 }
 
-// --- React Component ---
 
+
+// --- Conversion Item Component ---
+
+
+// --- Main Component ---
 const PDFConverter: React.FC = () => {
     const [mode, setMode] = useState<ConversionMode>('word-to-pdf');
     const [files, setFiles] = useState<FileItem[]>([]);
     const [converting, setConverting] = useState(false);
     const [pdfJsLoaded, setPdfJsLoaded] = useState(false);
+    const [dragActive, setDragActive] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    // Load PDF.js library dynamically
     useEffect(() => {
         const script = document.createElement('script');
         script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
         script.async = true;
         script.onload = () => {
-            // @ts-expect-error - type mismatch due to third-party lib
-            if (window.pdfjsLib) {
-                // @ts-expect-error - type mismatch due to third-party lib
-                window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+            if ((window as any).pdfjsLib) {
+                (window as any).pdfjsLib.GlobalWorkerOptions.workerSrc =
+                    'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
                 setPdfJsLoaded(true);
             }
         };
         document.body.appendChild(script);
 
         return () => {
-            document.body.removeChild(script);
+            if (document.body.contains(script)) {
+                document.body.removeChild(script);
+            }
         };
     }, []);
 
     const allModes: ModeConfig[] = useMemo(() => [
         { id: 'word-to-pdf', label: 'Word to PDF', icon: FileText, accept: '.doc,.docx', outputExt: '.pdf' },
-        { id: 'pdf-to-word', label: 'PDF to Word', icon: FileDown, accept: '.pdf', outputExt: '.docx' },
+        { id: 'pdf-to-word', label: 'PDF to Word', icon: FileDown, accept: '.pdf', outputExt: '.txt' },
         { id: 'excel-to-pdf', label: 'Excel to PDF', icon: FileSpreadsheet, accept: '.xls,.xlsx,.csv', outputExt: '.pdf' },
         { id: 'pdf-to-excel', label: 'PDF to Excel', icon: FileUp, accept: '.pdf', outputExt: '.xlsx' },
         { id: 'image-to-pdf', label: 'Image to PDF', icon: Image, accept: 'image/jpeg,image/png', outputExt: '.pdf', multiple: true },
@@ -84,8 +78,6 @@ const PDFConverter: React.FC = () => {
     ], []);
 
     const currentMode = allModes.find(m => m.id === mode);
-
-    // --- Utility Functions ---
 
     const formatFileSize = (bytes: number): string => {
         if (bytes === 0) return '0 Bytes';
@@ -100,10 +92,7 @@ const PDFConverter: React.FC = () => {
         return `${baseName}${newExtension}`;
     };
 
-    // --- File Handling ---
-
-    const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const selectedFiles = Array.from(e.target.files || []);
+    const processFiles = (selectedFiles: File[]) => {
         if (selectedFiles.length === 0) return;
 
         const newFiles: FileItem[] = selectedFiles.map(file => ({
@@ -119,6 +108,30 @@ const PDFConverter: React.FC = () => {
         } else {
             setFiles(newFiles.slice(0, 1));
         }
+    };
+
+    const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const selectedFiles = Array.from(e.target.files || []);
+        processFiles(selectedFiles);
+    };
+
+    const handleDrag = (e: React.DragEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (e.type === "dragenter" || e.type === "dragover") {
+            setDragActive(true);
+        } else if (e.type === "dragleave") {
+            setDragActive(false);
+        }
+    };
+
+    const handleDrop = (e: React.DragEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setDragActive(false);
+
+        const droppedFiles = Array.from(e.dataTransfer.files);
+        processFiles(droppedFiles);
     };
 
     const removeFile = (id: string) => {
@@ -145,12 +158,17 @@ const PDFConverter: React.FC = () => {
         document.body.removeChild(a);
     };
 
-    // --- Main Conversion Handler ---
+    const downloadAllFiles = () => {
+        files.forEach(file => {
+            if (file.status === 'complete' && file.downloadUrl) {
+                downloadFile(file);
+            }
+        });
+    };
 
     const handleConvert = async () => {
         if (files.length === 0 || !currentMode) return;
 
-        // Check if PDF.js is needed but not loaded
         if ((mode === 'pdf-to-word' || mode === 'pdf-to-excel') && !pdfJsLoaded) {
             alert('PDF text extraction library is still loading. Please wait a moment and try again.');
             return;
@@ -158,7 +176,6 @@ const PDFConverter: React.FC = () => {
 
         setConverting(true);
 
-        // For multi-file modes
         if (currentMode.multiple) {
             setFiles(files.map(f => ({ ...f, status: 'processing' })));
             try {
@@ -189,9 +206,7 @@ const PDFConverter: React.FC = () => {
                     error: error instanceof Error ? error.message : 'Conversion failed'
                 })));
             }
-        }
-        // For single-file modes
-        else {
+        } else {
             const updatedFiles = [...files];
             for (let i = 0; i < updatedFiles.length; i++) {
                 updatedFiles[i] = { ...updatedFiles[i], status: 'processing' };
@@ -244,13 +259,13 @@ const PDFConverter: React.FC = () => {
         setConverting(false);
     };
 
-    // --- Render JSX ---
+    const hasCompletedFiles = files.some(f => f.status === 'complete');
 
     return (
-        <div className="min-h-screen w-screen overflow-y-auto p-4 md:p-8">
+        <div className="min-h-screen w-screen overflow-y-auto bg-gradient-to-br p-4 md:p-8">
             <div className="max-w-5xl mx-auto">
                 <div className="text-center mb-8">
-                    <h1 className="text-4xl font-bold dark:text-slate-100 text-slate-800 mb-2">File Converter Suite</h1>
+                    <h1 className="text-4xl font-bold text-slate-800 mb-2">File Converter Suite</h1>
                     <p className="text-slate-600">Convert files securely in your browser</p>
                     <div className="flex items-center justify-center gap-2 mt-3">
                         <div className={`w-2 h-2 rounded-full ${pdfJsLoaded ? 'bg-green-500' : 'bg-yellow-500 animate-pulse'}`}></div>
@@ -275,8 +290,8 @@ const PDFConverter: React.FC = () => {
                                         clearAll();
                                     }}
                                     className={`p-4 rounded-xl border-2 transition-all duration-200 flex flex-col items-center justify-center ${isActive
-                                        ? 'border-blue-500 bg-blue-50 shadow-md'
-                                        : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+                                        ? 'border-blue-500 bg-blue-90 shadow-md'
+                                        : 'border-slate-200 hover:border-slate-300 hover:bg-slate-800'
                                         }`}
                                 >
                                     <Icon className={`w-8 h-8 mb-2 ${isActive ? 'text-blue-600' : 'text-slate-400'}`} />
@@ -289,8 +304,17 @@ const PDFConverter: React.FC = () => {
                     </div>
                 </div>
 
-                <div className="rounded-2xl shadow-lg p-6 mb-6">
-                    <div className="border-2 border-dashed border-slate-300 rounded-xl p-8 text-center hover:border-slate-400 transition-colors">
+                <div className=" rounded-2xl shadow-lg p-6 mb-6">
+                    <div
+                        className={`border-2 border-dashed rounded-xl p-8 text-center transition-all ${dragActive
+                            ? 'border-blue-500 bg-blue-50'
+                            : 'border-slate-300 hover:border-slate-400'
+                            }`}
+                        onDragEnter={handleDrag}
+                        onDragLeave={handleDrag}
+                        onDragOver={handleDrag}
+                        onDrop={handleDrop}
+                    >
                         <input
                             ref={fileInputRef}
                             type="file"
@@ -301,12 +325,12 @@ const PDFConverter: React.FC = () => {
                             id="file-upload"
                         />
                         <label htmlFor="file-upload" className="cursor-pointer">
-                            <FileUp className="w-12 h-12 mx-auto mb-3 text-slate-400" />
+                            <FileUp className={`w-12 h-12 mx-auto mb-3 ${dragActive ? 'text-blue-500' : 'text-slate-400'}`} />
                             <p className="text-lg font-medium text-slate-700 mb-1">
-                                {currentMode?.multiple ? 'Choose files' : 'Choose file to convert'}
+                                {currentMode?.multiple ? 'Choose or drop files' : 'Choose or drop file to convert'}
                             </p>
                             <p className="text-sm text-slate-500">
-                                {currentMode?.multiple ? 'You can select multiple files' : 'Click to browse'}
+                                {currentMode?.multiple ? 'You can select multiple files' : 'Click to browse or drag & drop'}
                             </p>
                             <p className="text-xs text-slate-400 mt-2">
                                 Accepted: {currentMode?.accept}
@@ -347,6 +371,27 @@ const PDFConverter: React.FC = () => {
                                 </>
                             )}
                         </button>
+                    </div>
+                )}
+
+                {hasCompletedFiles && (
+                    <div className=" border border-green-200 rounded-2xl shadow-lg p-6 mt-6">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <CheckCircle className="w-6 h-6 text-green-600" />
+                                <div>
+                                    <h3 className="text-lg font-semibold text-green-600">Conversion Complete!</h3>
+                                    <p className="text-sm text-green-600">Your files are ready to download</p>
+                                </div>
+                            </div>
+                            <button
+                                onClick={downloadAllFiles}
+                                className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                            >
+                                <Download className="w-4 h-4" />
+                                Download All
+                            </button>
+                        </div>
                     </div>
                 )}
 

@@ -58,14 +58,14 @@ const navItems: NavItem[] = [
         ]
     },
     {
-        name: "Notes",
+        name: "Document",
         href: "",
         icon: FaRegNoteSticky,
         active: false,
         sublinks: [
-            { name: "FAQ", href: "/Remarks/Faq", icon: FaFileAlt, active: true, pagePermissionId: 'faq', sublinks: [] },
-            { name: "Remarks", href: "/Remarks", icon: FaFilePen, active: true, pagePermissionId: 'remarks', sublinks: [] },
-            { name: "PDF", href: "/Pdf", icon: GiCardExchange, active: true, pagePermissionId: 'pdf', sublinks: [] }
+            { name: "FAQ", href: "/Documents/Faq", icon: FaFileAlt, active: true, pagePermissionId: 'faq', sublinks: [] },
+            { name: "Remarks", href: "/Documents/Remarks", icon: FaFilePen, active: true, pagePermissionId: 'remarks', sublinks: [] },
+            { name: "PDF", href: "/Documents/Pdf", icon: GiCardExchange, active: true, pagePermissionId: 'pdf', sublinks: [] }
         ]
     },
     {
