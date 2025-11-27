@@ -84,7 +84,7 @@ export default function RootLayout({
       >
         {/* The AuthProvider and other providers are correctly wrapping the app */}
         <AuthProvider>
-          <UseGuard redirectTo="/login">
+          <UseGuard>
             <ThemeWrapper>
               <YouTubePlayerProvider>
                 {children}

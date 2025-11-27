@@ -3,7 +3,6 @@
 'use client'
 
 import { useEffect, ReactNode, useState } from 'react';
-// 🔑 FIX: Import useRouter for client-side navigation in Next.js
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '../Chat/AuthContext';
 
@@ -14,43 +13,45 @@ interface AuthGuardProps {
 
 const AuthGuard = ({ children, redirectTo = '/login' }: AuthGuardProps) => {
   const [isMounted, setIsMounted] = useState(false);
-  const { user } = useAuth(); // Assuming useAuth provides an isLoading state
-  const router = useRouter(); // Initialize router
-  const pathname = usePathname(); // Get the current path
+  const { user } = useAuth(); // Add isLoading if available
+  const router = useRouter();
+  const pathname = usePathname();
 
-  // 1. Component Did Mount
+  // Component Did Mount
   useEffect(() => {
-    // This ensures client-side logic runs after initial render
     setIsMounted(true);
   }, []);
 
-  // 2. Auth/Redirection Logic
+  // Auth/Redirection Logic
   useEffect(() => {
-    // We only perform the check once the component has mounted and auth status is known.
     if (!isMounted) {
-      return;
+      return; // Wait until mounted AND auth state is loaded
     }
 
     const isLoginPage = pathname === redirectTo;
 
-    // If unauthenticated AND NOT already on the login page, redirect.
+    // Only redirect if user is NOT authenticated AND NOT on login page
     if (!user && !isLoginPage) {
-      // 🔑 FIX: Use Next.js router for redirection
+      // Save the current path to return after login
+      sessionStorage.setItem('redirectAfterLogin', pathname);
       router.replace(redirectTo);
-      // OPTIONAL: You might return null here to prevent flashing content
-      // while the redirect is processing, but letting the children render
-      // in the final return block is also common practice.
     }
 
+    // If user just logged in and there's a saved redirect path
+    if (user && isLoginPage) {
+      const savedPath = sessionStorage.getItem('redirectAfterLogin');
+      if (savedPath && savedPath !== redirectTo) {
+        sessionStorage.removeItem('redirectAfterLogin');
+        router.replace(savedPath);
+      }
+    }
   }, [user, isMounted, redirectTo, pathname, router]);
 
   // --- Render Control ---
 
-  // 1. Initial Load/Verification State: Show placeholder while mounting or authentication state is loading
-  // Check if we are mounted OR if the authentication state is still loading.
+  // Show loading state while auth is being verified
   if (!isMounted) {
-    // 🔑 FIX: Use pathname instead of window.location.pathname
-    // If on the login page, render the content immediately to avoid an unnecessary loading screen
+    // If already on login page, render immediately
     if (pathname === redirectTo) {
       return <>{children}</>;
     }
@@ -63,13 +64,12 @@ const AuthGuard = ({ children, redirectTo = '/login' }: AuthGuardProps) => {
     );
   }
 
-  // 2. Authenticated: Render children
+  // If authenticated, always render children (stay on current page)
   if (user) {
     return <>{children}</>;
   }
 
-  // 3. Unauthenticated: If a redirect happened, this component is unmounting.
-  // If no redirect happened (because we're on the login page), render children (the login form).
+  // If not authenticated, render children (will redirect if not on login page)
   return <>{children}</>;
 };
 
