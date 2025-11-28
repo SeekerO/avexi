@@ -79,65 +79,67 @@ export default function Home() {
     </div>)
   }
 
-  if (user) (
-    <>
-      <Head>
-        <title>KKK Tool - SeekerDev</title>
-      </Head>
-      <main className="flex flex-col items-center justify-center h-screen w-screen bg-gray-50 dark:bg-gray-900 font-sans text-gray-800 dark:text-white overflow-hidden p-4 relative">
-        <div className='py-2'>
-          <DarkModeToggle />
-        </div>
-        <div className="absolute top-5 left-5">
-          <button onClick={logout} className='flex items-center gap-1 font-semibold text-red-500 hover:underline duration-300 hover:text-blue-500'>
-            <CiLogout size={25} /> Logout
-          </button>
-        </div>
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-          className="flex flex-col justify-center items-center p-8 md:p-14 rounded-3xl shadow-2xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 max-w-xl w-full text-center relative overflow-hidden"
-        >
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-700 dark:to-gray-900 opacity-50 rounded-3xl -z-10 animate-pulse-subtle"></div>
-
-          <div className="mb-10 animate-bounce-subtle">
-            <Image
-              src={kkk}
-              alt="Application Logo"
-              width={400}
-              height={80}
-              priority
-            />
+  if (user) {
+    return (
+      <>
+        <Head>
+          <title>KKK Tool - SeekerDev</title>
+        </Head>
+        <main className="flex flex-col items-center justify-center h-screen w-screen bg-gray-50 dark:bg-gray-900 font-sans text-gray-800 dark:text-white overflow-hidden p-4 relative">
+          <div className='py-2'>
+            <DarkModeToggle />
           </div>
-          {user.canChat !== false ?
-            <div className="flex items-center justify-center h-full gap-3 w-full">
+          <div className="absolute top-5 left-5">
+            <button onClick={logout} className='flex items-center gap-1 font-semibold text-red-500 hover:underline duration-300 hover:text-blue-500'>
+              <CiLogout size={25} /> Logout
+            </button>
+          </div>
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            className="flex flex-col justify-center items-center p-8 md:p-14 rounded-3xl shadow-2xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 max-w-xl w-full text-center relative overflow-hidden"
+          >
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-700 dark:to-gray-900 opacity-50 rounded-3xl -z-10 animate-pulse-subtle"></div>
 
-              <motion.div onClick={handleLoading} variants={itemVariants}>
-                <Link
-                  href="/dashboard"
-                  className="flex items-center justify-center px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold rounded-full shadow-lg hover:shadow-xl transition-all duration-300 ease-in-out transform hover:-translate-y-1 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-gray-800 uppercase tracking-wide"
-                >
-                  Dashboard
-                </Link>
-              </motion.div>
-
+            <div className="mb-10 animate-bounce-subtle">
+              <Image
+                src={kkk}
+                alt="Application Logo"
+                width={400}
+                height={80}
+                priority
+              />
             </div>
-            :
-            <div className='flex flex-col gap-1'>
-              <label className='text-lg text-red-500 font-semibold'>It seems you {`don't`} have permission to access this site</label>
-              <label className='italic text-gray-500'>Kindly contact the admin to grant you access.</label>
+            {user.canChat !== false ?
+              <div className="flex items-center justify-center h-full gap-3 w-full">
+
+                <motion.div onClick={handleLoading} variants={itemVariants}>
+                  <Link
+                    href="/dashboard"
+                    className="flex items-center justify-center px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold rounded-full shadow-lg hover:shadow-xl transition-all duration-300 ease-in-out transform hover:-translate-y-1 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-gray-800 uppercase tracking-wide"
+                  >
+                    Dashboard
+                  </Link>
+                </motion.div>
+
+              </div>
+              :
+              <div className='flex flex-col gap-1'>
+                <label className='text-lg text-red-500 font-semibold'>It seems you {`don't`} have permission to access this site</label>
+                <label className='italic text-gray-500'>Kindly contact the admin to grant you access.</label>
+              </div>
+            }
+          </motion.div>
+
+
+          {loading &&
+            <div className='fixed inset-0 z-50 h-screen w-screen bg-black/40 flex items-center justify-center'>
+              <ImSpinner9 className='animate-spin text-red-500' size={50} />
             </div>
           }
-        </motion.div>
-
-
-        {loading &&
-          <div className='fixed inset-0 z-50 h-screen w-screen bg-black/40 flex items-center justify-center'>
-            <ImSpinner9 className='animate-spin text-red-500' size={50} />
-          </div>
-        }
-      </main>
-    </>
-  );
+        </main>
+      </>
+    )
+  }
 }

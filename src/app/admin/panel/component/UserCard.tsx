@@ -3,6 +3,8 @@
 import React from 'react';
 // REMOVED: Image import is no longer needed here
 import { Shield, ShieldOff, Globe, MessageSquareText, MessageSquareOff, Lock } from 'lucide-react';
+import { CiLock, CiUnlock } from "react-icons/ci";
+import { MdFindInPage } from "react-icons/md";
 import { UserCardProps } from '@/lib/types/adminTypes'; // Adjusted import path
 import UserAvatar from '@/lib/components/avatar'; // 🔑 IMPORT THE NEW AVATAR COMPONENT
 
@@ -58,8 +60,8 @@ const UserCard: React.FC<UserCardProps> = React.memo(({
             {/* Chat Access Toggle */}
             <div className="flex justify-between items-center border-b border-gray-100 dark:border-gray-700 pb-3">
                 <span className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center">
-                    {user.canChat ? <MessageSquareText className="w-4 h-4 mr-2 text-green-500" /> : <MessageSquareOff className="w-4 h-4 mr-2 text-red-500" />}
-                    Chat Access
+                    {user.canChat ? <CiLock className="w-4 h-4 mr-2 text-green-500" /> : <CiUnlock className="w-4 h-4 mr-2 text-red-500" />}
+                    Access
                 </span>
 
                 <label className="relative inline-flex items-center cursor-pointer">
@@ -99,7 +101,7 @@ const UserCard: React.FC<UserCardProps> = React.memo(({
             {/* Page Permissions Button */}
             <div className="flex justify-between items-center border-b border-gray-100 dark:border-gray-700 pb-3">
                 <span className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center">
-                    <Lock className="w-4 h-4 mr-2 text-purple-500" />
+                    <MdFindInPage className="w-4 h-4 mr-2 text-purple-500" />
                     Page Access
                 </span>
 

@@ -6,18 +6,12 @@ import Link from "next/link";
 import DarkModeToggle from "@/lib/components/dark-button";
 import { useAuth } from "../Chat/AuthContext";
 import { usePathname } from 'next/navigation';
-import { Search, Settings, ChevronDown } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { CiLogout } from "react-icons/ci";
-import { IoIosSettings, IoLogoBuffer, IoIosColorWand } from "react-icons/io";
-import { FaRegFileImage, FaFileAlt, FaYoutube } from "react-icons/fa";
-import { FaRegNoteSticky, FaFilePen } from "react-icons/fa6";
-import { GiCardExchange } from "react-icons/gi";
-import { IoWater } from "react-icons/io5";
+import { IoIosSettings } from "react-icons/io";
 import { BsLayoutSidebar } from "react-icons/bs";
-import { RiAdminFill } from "react-icons/ri";
 import { LuArrowLeftToLine } from "react-icons/lu";
-import { SiYoutubestudio } from "react-icons/si";
-import { MdOutlineAdminPanelSettings } from "react-icons/md";
+import { navItems, NavItem, UserRole } from "@/lib/types/adminTypes"
 
 // --- Tailwind Class Definitions (omitted for brevity) ---
 const linkBaseClasses = "flex items-center p-3 rounded-lg text-sm transition-all duration-300 ease-in-out whitespace-nowrap overflow-hidden";
@@ -32,71 +26,8 @@ const footerBorderClasses = "border-t border-gray-200/50 dark:border-gray-700/50
 
 // --- Navigation Data Structure ---
 
-type UserRole = 'admin' | 'standard';
 
-interface NavItem {
-    name: string;
-    href: string;
-    icon: React.ElementType;
-    active: boolean;
-    requiredRole?: UserRole;
-    pagePermissionId?: string; // Links to permission system
-    sublinks: NavItem[];
-}
 
-const navItems: NavItem[] = [
-    {
-        name: "Edit",
-        href: "",
-        icon: FaRegFileImage,
-        active: false,
-        sublinks: [
-            { name: "Watermark V4", href: "/Edit/Watermarkv4", icon: IoWater, active: true, requiredRole: 'admin', pagePermissionId: 'watermark', sublinks: [] },
-            { name: "Watermark V5", href: "/Edit/Watermarkv5", icon: IoWater, active: true, pagePermissionId: 'watermark', sublinks: [] },
-            { name: "BG Remover", href: "/Edit/Backgroundremover", icon: IoIosColorWand, active: true, pagePermissionId: 'bgremover', requiredRole: 'admin', sublinks: [] },
-            { name: "Logo Maker", href: "/Edit/LogoMaker", icon: IoLogoBuffer, active: true, pagePermissionId: 'logomaker', sublinks: [] }
-        ]
-    },
-    {
-        name: "Document",
-        href: "",
-        icon: FaRegNoteSticky,
-        active: false,
-        sublinks: [
-            { name: "FAQ", href: "/Documents/Faq", icon: FaFileAlt, active: true, pagePermissionId: 'faq', sublinks: [] },
-            { name: "Remarks", href: "/Documents/Remarks", icon: FaFilePen, active: true, pagePermissionId: 'remarks', sublinks: [] },
-            { name: "PDF", href: "/Documents/Pdf", icon: GiCardExchange, active: true, pagePermissionId: 'pdf', sublinks: [] }
-        ]
-    },
-    {
-        name: "Matcher",
-        href: "/Matcher",
-        icon: Search,
-        active: true,
-        pagePermissionId: 'matcher',
-        sublinks: []
-    },
-    {
-        name: "Evaluation",
-        href: "/Evaluation",
-        icon: Settings,
-        active: true,
-        pagePermissionId: 'evaluation',
-        sublinks: []
-    },
-    {
-        name: "Admin",
-        href: "",
-        icon: MdOutlineAdminPanelSettings,
-        active: false,
-        requiredRole: 'admin',
-        sublinks: [
-            { name: "Admin Panel", href: "/admin/panel", icon: RiAdminFill, active: true, requiredRole: 'admin', sublinks: [] },
-            { name: "Youtube Validator", href: "/admin/YoutubeLinkValidator", icon: SiYoutubestudio, active: true, requiredRole: 'admin', sublinks: [] },
-            { name: "Youtube Config", href: "/admin/Youtube", icon: FaYoutube, active: true, requiredRole: 'admin', sublinks: [] },
-        ]
-    },
-];
 
 // --- Sidebar Component ---
 
