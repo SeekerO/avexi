@@ -218,7 +218,7 @@ export default function ImageControls() {
                 <div className="flex items-center justify-between p-3 bg-gray-100 dark:bg-gray-700 rounded-lg shadow-inner">
                     <span className="text-sm font-medium text-gray-700 dark:text-gray-200">Apply Settings:</span>
                     <div
-                        className={`relative w-28 h-8 flex items-center rounded-full cursor-pointer transition-colors duration-300 ${useGlobal ? 'bg-blue-600' : 'bg-purple-600'}`}
+                        className={`z-0 relative w-28 h-8 flex items-center rounded-full cursor-pointer transition-colors duration-300 ${useGlobal ? 'bg-blue-600' : 'bg-purple-600'}`}
                         onClick={toggleUseGlobalSettings}
                     >
                         <div className={`z-50 flex items-center justify-center absolute w-1/2 h-full bg-white rounded-full shadow-md transform transition-transform duration-300 ${useGlobal ? 'translate-x-0' : 'translate-x-full'}`}>
