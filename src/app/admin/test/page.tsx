@@ -3,8 +3,8 @@ import Game from "./test2";
 
 const page = () => {
     return <>
-        <Tertis />
 
+        <Tertis />
     </>
 };
 
