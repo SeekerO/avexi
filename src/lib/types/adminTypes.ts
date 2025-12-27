@@ -86,6 +86,7 @@ export const navItems: NavItem[] = [
         icon: IoWater,
         active: true,
         pagePermissionId: "watermarkv4",
+        requiredRole: "admin",
         sublinks: [],
       },
       {
@@ -196,6 +197,14 @@ export const navItems: NavItem[] = [
       {
         name: "Youtube Config",
         href: "/admin/Youtube",
+        icon: FaYoutube,
+        active: true,
+        requiredRole: "admin",
+        sublinks: [],
+      },
+      {
+        name: "Test Page",
+        href: "/admin/test",
         icon: FaYoutube,
         active: true,
         requiredRole: "admin",
