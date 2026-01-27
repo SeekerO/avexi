@@ -267,6 +267,7 @@ export const ImageEditorProvider = ({ children }: { children: ReactNode }) => {
         setImages([]);
         setSelectedImageIndex(null);
         setSelectedImages([]);
+
     };
 
     const setIndividualLogo = (index: number, url: string | null) => {
