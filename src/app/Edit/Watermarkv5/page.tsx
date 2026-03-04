@@ -24,7 +24,7 @@ function WatermarkPageContent() {
     if (user && (user as any)?.canChat === true)
 
         return (
-            <div className="min-h-screen flex flex-col font-sans overflow-hidden w-full">
+            <div className="min-h-screen flex flex-col font-sans overflow-hidden w-full ">
                 {/* Left Panel for Uploads and Controls */}
                 <div className="flex min-h-screen">
                     <div className="w-[350px] h-screen overflow-auto p-4 border-r flex flex-col shadow-lg rounded-r-lg">

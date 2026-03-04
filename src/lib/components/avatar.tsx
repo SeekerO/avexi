@@ -49,7 +49,7 @@ const UserAvatar: React.FC<UserAvatarProps> = React.memo(({
                 />
             ) : (
                 // Fallback avatar when no profile picture is available
-                <div className="w-16 h-16 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center text-xl text-gray-500 dark:text-gray-300">
+                <div className="w-16 h-16 p-3 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center text-xl text-gray-500 dark:text-gray-300">
                     <UserCheck size={32} />
                 </div>
             )}

@@ -320,3 +320,72 @@ h1 {
     bottom: .1%
   }
 }
+
+
+/* @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap'); */
+
+.font-syne {
+  font-family: 'Syne', sans-serif !important;
+}
+
+.font-dm-mono {
+  font-family: 'DM Mono', monospace !important;
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-up {
+  animation: fadeUp 0.35s ease forwards;
+}
+
+.bg-grid {
+  background-image: linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+input[type="file"]::-webkit-file-upload-button {
+  background: rgba(99, 102, 241, 0.18);
+  border: 1px solid rgba(99, 102, 241, 0.35);
+  color: #a5b4fc;
+  padding: 5px 12px;
+  border-radius: 7px;
+  font-size: 12px;
+  cursor: pointer;
+  font-family: 'DM Mono', monospace;
+  margin-right: 10px;
+  transition: background 0.2s;
+}
+
+input[type="file"]::-webkit-file-upload-button:hover {
+  background: rgba(99, 102, 241, 0.32);
+}
+
+.dtr-input:focus {
+  border-color: rgba(99, 102, 241, 0.55) !important;
+  outline: none;
+}
+
+.dtr-row:hover td {
+  background: rgba(99, 102, 241, 0.05);
+}
+
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #374151;
+  border-radius: 2px;
+}

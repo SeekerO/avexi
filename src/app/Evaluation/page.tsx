@@ -224,7 +224,7 @@ export default function App() {
     if (user || (user as any)?.canChat === true)
 
         return (
-            <div className="min-h-screen w-screen flex gap-2 justify-center py-5 px-4 sm:px-6 lg:px-8 font-inter">
+            <div className="min-h-screen w-screen flex gap-2 justify-center py-5 px-4 sm:px-6 lg:px-8 font-inter bg-grid">
 
                 {/* SETTINGS    */}
                 <div className='bg-gray-300 dark:bg-gray-700 h-fit w-[400px] rounded-md p-2 flex flex-col '>

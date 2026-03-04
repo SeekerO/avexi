@@ -104,7 +104,7 @@ export default function AdminPanel() {
                 formatLastOnline={formatLastOnline}
             />
 
-            <div className="p-6 md:p-10 min-h-screen w-full dark:bg-gray-900 bg-gray-50 font-sans overflow-y-auto">
+            <div className="p-6 md:p-10 min-h-screen w-full  font-sans overflow-y-auto">
                 <header className="mb-8 border-b border-gray-200 dark:border-gray-700 pb-4 flex justify-between items-end">
                     <div>
                         <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white flex items-center">

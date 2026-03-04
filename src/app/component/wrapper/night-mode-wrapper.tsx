@@ -32,7 +32,7 @@ const ThemeWrapper: React.FC<WrapperProps> = ({ children }) => {
 
     return (
         <>
-            <main className='flex h-screen w-screen overflow-y-auto'>
+            <main className='flex h-screen w-screen overflow-y-auto font-syne bg-grid'>
                 {/* 4. Use the new showSidebar variable */}
                 {showSidebar && <>
                     <Sidebar />

@@ -27,14 +27,16 @@ const UserCard: React.FC<UserCardProps> = React.memo(({
     >
         {/* User Avatar and Info */}
         <div className="flex items-center space-x-4 mb-4">
-            <UserAvatar
+   
+
+             <UserAvatar
                 user={user}
                 isOnline={isOnline}
                 lastOnlineTimestamp={lastOnlineTimestamp}
                 formatLastOnline={formatLastOnline}
             />
 
-            <div className="flex-grow min-w-0">
+             <div className="flex-grow min-w-0">
                 <motion.h3
                     layout="position" // Ensures text doesn't jitter during card resize
                     className="font-bold text-lg text-gray-900 dark:text-white truncate"

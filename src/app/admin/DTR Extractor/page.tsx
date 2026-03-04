@@ -117,7 +117,7 @@ Rules:
 - "lunchOut" = middle break time (Morning Out or Afternoon In — same value, just pick one)
 - "afternoonOut" = last column (departure time)
 - Include ALL 31 DAYS; use "" for empty fields
-- day must be a number (1–31)`
+- day must be a number (1 to 31)`
                             }
                         ]
                     }]

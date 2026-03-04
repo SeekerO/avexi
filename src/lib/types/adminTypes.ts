@@ -223,8 +223,8 @@ export const navItems: NavItem[] = [
         sublinks: [],
       },
       {
-        name: "Test Ground",
-        href: "/admin/test",
+        name: "DTR Extractor",
+        href: "/admin/dtrextractor",
         icon: RiAdminFill,
         active: true,
         requiredRole: "admin",

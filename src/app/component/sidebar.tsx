@@ -144,6 +144,12 @@ const Sidebar: React.FC = () => {
         <>
             <div className={`${sidebarWidthClass} ${sidebarRootClasses} ${!isCollapsed ? "overflow-y-auto" : "overflow-hidden"} justify-between flex flex-col h-full`}>
 
+                <div className="fixed pointer-events-none z-0 rounded-full w-[500px] h-[500px]"
+                    style={{ top: '-200px', right: '-120px', background: 'radial-gradient(circle, rgba(99,102,241,0.13) 0%, transparent 70%)' }} />
+                <div className="fixed pointer-events-none z-0 rounded-full w-[400px] h-[400px]"
+                    style={{ bottom: '-150px', left: '-80px', background: 'radial-gradient(circle, rgba(20,184,166,0.09) 0%, transparent 70%)' }} />
+
+
                 {/* Logo Section */}
                 <div className={`w-full flex items-center py-6 relative ${logoBorderClasses} ${isCollapsed ? 'justify-center' : 'justify-start px-5'}`}>
 
