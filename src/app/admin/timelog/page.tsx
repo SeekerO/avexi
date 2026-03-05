@@ -101,19 +101,19 @@ const ConfirmModal: React.FC<{
 }> = ({ field, time, onTimeChange, onConfirm, onCancel }) => {
     const icons: Record<PunchField, string> = { morningIn: '🌅', lunch: '🍽️', afternoonOut: '🌇' };
     return (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onCancel}>
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 w-full" onClick={onCancel}>
             <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
-            <div className="relative bg-white dark:bg-[#111118] rounded-t-2xl mx-5 sm:rounded-2xl border border-slate-200 dark:border-white/[0.1] shadow-2xl w-full sm:max-w-sm p-6 pb-10 flex flex-col gap-5"
+            <div className="relative bg-white dark:bg-[#111118] rounded-t-2xl mx-5 sm:rounded-2xl border border-slate-200 dark:border-white/[0.1] shadow-2xl w-full sm:max-w-sm py-4 px-4 pb-10 flex flex-col gap-5"
                 onClick={e => e.stopPropagation()}>
                 <div className="text-center">
                     <div className="text-3xl mb-2">{icons[field]}</div>
                     <h2 className="font-syne text-lg font-bold text-slate-800 dark:text-slate-100">Confirm {FIELD_LABELS[field]}</h2>
                     <p className="font-dm-mono text-xs text-slate-400 dark:text-slate-500 mt-1">Adjust time if needed, then confirm</p>
                 </div>
-                <div>
+                <div className='w-full'>
                     <label className="font-dm-mono block text-[10px] uppercase tracking-widest mb-1.5 text-slate-400 dark:text-slate-500">Time (24h)</label>
                     <input type="time" value={time} onChange={e => onTimeChange(e.target.value)}
-                        className="font-dm-mono w-full border rounded-xl px-4 py-3 text-center text-2xl tabular-nums transition-colors bg-slate-50 border-slate-200 text-slate-800 focus:border-indigo-400 focus:outline-none dark:bg-white/[0.04] dark:border-white/[0.08] dark:text-slate-100 dark:focus:border-indigo-500/50" />
+                        className="font-dm-mono w-full border rounded-xl px-4 py-3 text-center text-2xl tabular-nums transition-colors bg-slate-50 border-slate-200 text-slate-800 focus:border-indigo-400 focus:outline-none dark:bg-white/[0.04] dark:border-white/[0.08] dark:text-slate-100 dark:focus:border-indigo-500/50 " />
                 </div>
                 <div className="flex gap-3">
                     <button onClick={onCancel}
