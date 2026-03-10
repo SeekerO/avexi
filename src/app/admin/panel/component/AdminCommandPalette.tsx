@@ -119,31 +119,38 @@ export default function AdminCommandPalette({
 const touchStartY = useRef<number | null>(null);
 
 useEffect(() => {
-    const handleTouchStart = (e: TouchEvent) => {
-        touchStartY.current = e.touches[0].clientY;
-    };
+        const handleTouchStart = (e: TouchEvent) => {
+            touchStartY.current = e.touches[0].clientY;
+        };
 
-    const handleTouchEnd = (e: TouchEvent) => {
-        if (touchStartY.current === null) return;
-        const deltaY = touchStartY.current - e.changedTouches[0].clientY;
-// Swipe down ≥ 60px from the top 80px of the screen
-const fromTop = touchStartY.current < 80;
-if (fromTop && deltaY <= -60 && !isOpen) {
-    setIsOpen(true);
-    setMode('search');
-    setSelectedUser(null);
-    setSearch("");
-}
-touchStartY.current = null;
-    };
+        const handleTouchEnd = (e: TouchEvent) => {
+            if (touchStartY.current === null) return;
+            const deltaY = touchStartY.current - e.changedTouches[0].clientY;
 
-    window.addEventListener('touchstart', handleTouchStart, { passive: true });
-    window.addEventListener('touchend', handleTouchEnd, { passive: true });
-    return () => {
-        window.removeEventListener('touchstart', handleTouchStart);
-        window.removeEventListener('touchend', handleTouchEnd);
-    };
-}, [isOpen]);
+            // Swipe down from top to OPEN
+            const fromTop = touchStartY.current < 80;
+            if (fromTop && deltaY <= -60 && !isOpen) {
+                setIsOpen(true);
+                setMode('search');
+                setSelectedUser(null);
+                setSearch("");
+            }
+
+            // Swipe up anywhere to CLOSE
+            if (isOpen && deltaY >= 60) {
+                setIsOpen(false);
+            }
+
+            touchStartY.current = null;
+        };
+
+        window.addEventListener('touchstart', handleTouchStart, { passive: true });
+        window.addEventListener('touchend', handleTouchEnd, { passive: true });
+        return () => {
+            window.removeEventListener('touchstart', handleTouchStart);
+            window.removeEventListener('touchend', handleTouchEnd);
+        };
+    }, [isOpen]);
 
     return (
         <AnimatePresence>
@@ -160,6 +167,19 @@ touchStartY.current = null;
         <p className="text-[10px] text-gray-400 dark:text-gray-500 tracking-wide select-none">
             swipe up to search
         </p>
+    </motion.div>
+)}{!isOpen && (
+    <motion.div
+        className="fixed top-0 left-0 right-0 z-[999] flex flex-col items-center pt-3 pb-2 md:hidden"
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5 }}
+        aria-label="Swipe down to open command palette"
+    >
+        <p className="text-[10px] text-gray-400 dark:text-gray-500 tracking-wide select-none mb-1">
+            swipe down to search
+        </p>
+        <div className="w-10 h-1.5 rounded-full bg-gray-400/50 dark:bg-gray-500/50" />
     </motion.div>
 )}
             {isOpen && (
