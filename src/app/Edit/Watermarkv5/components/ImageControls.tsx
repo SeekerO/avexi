@@ -1,10 +1,9 @@
-// app/components/ImageControls.tsx
 "use client";
 
 import React, { useState } from "react";
 import { useImageEditor } from "./ImageEditorContext";
 import { FaImage, FaImages } from "react-icons/fa";
-import { Trash2, AlertTriangle, GripVertical } from "lucide-react";
+import { Trash2, AlertTriangle, GripVertical, Copy, CheckCheck } from "lucide-react";
 
 interface WatermarkSettings {
     position: "top-left" | "top-center" | "top-right" | "bottom-left" | "bottom-center" | "bottom-right";
@@ -16,12 +15,7 @@ interface WatermarkSettings {
     rotation?: number;
 }
 
-// Calculate distance from edges
-const calculateEdgeDistance = (
-    position: string,
-    paddingX: number,
-    paddingY: number
-) => {
+const calculateEdgeDistance = (position: string, paddingX: number, paddingY: number) => {
     let minDistance = Infinity;
     const edges: string[] = [];
 
@@ -66,6 +60,7 @@ export default function ImageControls() {
         globalLogoSettings,
         globalFooterSettings,
         toggleUseGlobalSettings,
+        copyGlobalToIndividual,
         globalLogos,
         selectedLogoId,
         setSelectedLogoId,
@@ -91,511 +86,463 @@ export default function ImageControls() {
     const [draggedLogoIndex, setDraggedLogoIndex] = useState<number | null>(null);
     const [draggedFooterIndex, setDraggedFooterIndex] = useState<number | null>(null);
     const [isAdjusting, setIsAdjusting] = useState(false);
+    const [copySuccess, setCopySuccess] = useState(false);
     const adjustmentTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
 
     const isImageSelected = selectedImageIndex !== null && selectedImageIndex < images.length;
-    const selectedImage = isImageSelected && selectedImageIndex !== null ? images[selectedImageIndex] : null;
+    const selectedImage = isImageSelected && selectedImageIndex !== null
+        ? images[selectedImageIndex]
+        : null;
     const useGlobal = selectedImage?.useGlobalSettings ?? true;
 
-    // Get logos to display
-    const logosToDisplay = useGlobal ? globalLogos : (selectedImage?.individualLogos || []);
-    const selectedLogo = logosToDisplay.find(l => l.id === selectedLogoId);
+    const logosToDisplay = useGlobal
+        ? globalLogos
+        : (selectedImage?.individualLogos || []);
 
-    // Get footers to display
-    const footersToDisplay = useGlobal ? globalFooters : (selectedImage?.individualFooters || []);
+    const footersToDisplay = useGlobal
+        ? globalFooters
+        : (selectedImage?.individualFooters || []);
+
+    const selectedLogo = logosToDisplay.find(l => l.id === selectedLogoId);
     const selectedFooter = footersToDisplay.find(f => f.id === selectedFooterId);
 
     const currentLogoSettings = selectedLogo?.settings || globalLogoSettings;
     const currentFooterSettings = selectedFooter?.settings ||
         (useGlobal ? globalFooterSettings : selectedImage?.individualFooterSettings);
 
-    // Calculate edge proximity
-    const edgeInfo = currentLogoSettings ? calculateEdgeDistance(
-        currentLogoSettings.position,
-        currentLogoSettings.paddingX,
-        currentLogoSettings.paddingY
-    ) : null;
+    const edgeInfo = currentLogoSettings
+        ? calculateEdgeDistance(
+            currentLogoSettings.position,
+            currentLogoSettings.paddingX,
+            currentLogoSettings.paddingY
+        )
+        : null;
+
+    // Check if individual settings differ from global
+    const hasDivergence = !useGlobal && selectedImage && (
+        (selectedImage.individualLogos?.length ?? 0) !== globalLogos.length ||
+        (selectedImage.individualFooters?.length ?? 0) !== globalFooters.length
+    );
+
+    const handleCopyFromGlobal = () => {
+        copyGlobalToIndividual();
+        setCopySuccess(true);
+        setTimeout(() => setCopySuccess(false), 2000);
+    };
+
+    const scheduleAdjusting = () => {
+        setIsAdjusting(true);
+        if (adjustmentTimeoutRef.current) clearTimeout(adjustmentTimeoutRef.current);
+        adjustmentTimeoutRef.current = setTimeout(() => setIsAdjusting(false), 500);
+    };
 
     const updateLogoSettings = (settings: Partial<typeof globalLogoSettings>) => {
         if (!selectedLogoId) return;
-
-        // Trigger loading state
-        setIsAdjusting(true);
-
-        // Clear any existing timeout
-        if (adjustmentTimeoutRef.current) {
-            clearTimeout(adjustmentTimeoutRef.current);
-        }
-
+        scheduleAdjusting();
         if (useGlobal) {
             updateGlobalLogoSettings(selectedLogoId, settings);
         } else if (selectedImageIndex !== null) {
             updateIndividualImageLogoSettings(selectedImageIndex, selectedLogoId, settings);
         }
-
-        // Set timeout to hide loading after adjustment completes
-        adjustmentTimeoutRef.current = setTimeout(() => {
-            setIsAdjusting(false);
-        }, 500);
     };
 
     const updateFooterSettings = (settings: Partial<typeof globalFooterSettings>) => {
         if (!selectedFooterId) return;
-
-        // Trigger loading state
-        setIsAdjusting(true);
-
-        // Clear any existing timeout
-        if (adjustmentTimeoutRef.current) {
-            clearTimeout(adjustmentTimeoutRef.current);
-        }
-
+        scheduleAdjusting();
         if (useGlobal) {
             updateGlobalFooterSettings(selectedFooterId, settings);
         } else if (selectedImageIndex !== null) {
             updateIndividualImageFooterSettings(selectedImageIndex, selectedFooterId, settings);
         }
-
-        // Set timeout to hide loading after adjustment completes
-        adjustmentTimeoutRef.current = setTimeout(() => {
-            setIsAdjusting(false);
-        }, 500);
     };
 
     const handleRemoveLogo = (logoId: string) => {
-        if (useGlobal) {
-            removeGlobalLogo(logoId);
-        } else if (selectedImageIndex !== null) {
-            removeIndividualLogo(selectedImageIndex, logoId);
-        }
+        if (useGlobal) removeGlobalLogo(logoId);
+        else if (selectedImageIndex !== null) removeIndividualLogo(selectedImageIndex, logoId);
     };
 
     const handleRemoveFooter = (footerId: string) => {
-        if (useGlobal) {
-            removeGlobalFooter(footerId);
-        } else if (selectedImageIndex !== null) {
-            removeIndividualFooter(selectedImageIndex, footerId);
-        }
+        if (useGlobal) removeGlobalFooter(footerId);
+        else if (selectedImageIndex !== null) removeIndividualFooter(selectedImageIndex, footerId);
     };
 
-    // Logo drag and drop handlers
+    // Drag handlers — logos
     const handleLogoDragStart = (e: React.DragEvent, index: number) => {
         setDraggedLogoIndex(index);
-        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.effectAllowed = "move";
     };
-
     const handleLogoDragOver = (e: React.DragEvent, index: number) => {
         e.preventDefault();
         if (draggedLogoIndex === null || draggedLogoIndex === index) return;
-
         const newLogos = [...logosToDisplay];
-        const draggedLogo = newLogos[draggedLogoIndex];
-        newLogos.splice(draggedLogoIndex, 1);
-        newLogos.splice(index, 0, draggedLogo);
-
-        if (useGlobal) {
-            reorderGlobalLogos(newLogos);
-        } else if (selectedImageIndex !== null) {
-            reorderIndividualLogos(selectedImageIndex, newLogos);
-        }
-
+        const [dragged] = newLogos.splice(draggedLogoIndex, 1);
+        newLogos.splice(index, 0, dragged);
+        if (useGlobal) reorderGlobalLogos(newLogos);
+        else if (selectedImageIndex !== null) reorderIndividualLogos(selectedImageIndex, newLogos);
         setDraggedLogoIndex(index);
     };
+    const handleLogoDragEnd = () => setDraggedLogoIndex(null);
 
-    const handleLogoDragEnd = () => {
-        setDraggedLogoIndex(null);
-    };
-
-    // Footer drag and drop handlers
+    // Drag handlers — footers
     const handleFooterDragStart = (e: React.DragEvent, index: number) => {
         setDraggedFooterIndex(index);
-        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.effectAllowed = "move";
     };
-
     const handleFooterDragOver = (e: React.DragEvent, index: number) => {
         e.preventDefault();
         if (draggedFooterIndex === null || draggedFooterIndex === index) return;
-
         const newFooters = [...footersToDisplay];
-        const draggedFooter = newFooters[draggedFooterIndex];
-        newFooters.splice(draggedFooterIndex, 1);
-        newFooters.splice(index, 0, draggedFooter);
-
-        if (useGlobal) {
-            reorderGlobalFooters(newFooters);
-        } else if (selectedImageIndex !== null) {
-            reorderIndividualFooters(selectedImageIndex, newFooters);
-        }
-
+        const [dragged] = newFooters.splice(draggedFooterIndex, 1);
+        newFooters.splice(index, 0, dragged);
+        if (useGlobal) reorderGlobalFooters(newFooters);
+        else if (selectedImageIndex !== null) reorderIndividualFooters(selectedImageIndex, newFooters);
         setDraggedFooterIndex(index);
     };
+    const handleFooterDragEnd = () => setDraggedFooterIndex(null);
 
-    const handleFooterDragEnd = () => {
-        setDraggedFooterIndex(null);
-    };
-
-    // Cleanup timeout on unmount
     React.useEffect(() => {
         return () => {
-            if (adjustmentTimeoutRef.current) {
-                clearTimeout(adjustmentTimeoutRef.current);
-            }
+            if (adjustmentTimeoutRef.current) clearTimeout(adjustmentTimeoutRef.current);
         };
     }, []);
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-4">
 
-
+            {/* ── Global / Individual toggle ── */}
             {isImageSelected && (
-                <div className="w-full flex justify-center">
-                    <div className="h-[1px] w-[80%] dark:bg-slate-600 bg-slate-300" />
-                </div>
-            )}
-
-            {isImageSelected && (
-                <div className="flex items-center justify-between p-3 bg-gray-100 dark:bg-gray-700 rounded-lg shadow-inner">
-                    <span className="text-sm font-medium text-gray-700 dark:text-gray-200">Apply Settings:</span>
-                    <div
-                        className={`z-0 relative w-28 h-8 flex items-center rounded-full cursor-pointer transition-colors duration-300 ${useGlobal ? 'bg-blue-600' : 'bg-purple-600'}`}
-                        onClick={toggleUseGlobalSettings}
-                    >
-                        <div className={`z-50 flex items-center justify-center absolute w-1/2 h-full bg-white rounded-full shadow-md transform transition-transform duration-300 ${useGlobal ? 'translate-x-0' : 'translate-x-full'}`}>
-                            {useGlobal ? <FaImages /> : <FaImage />}
-                        </div>
-                        <span className={`absolute left-0 w-1/2 text-center text-xs font-semibold transition-colors duration-300 ${useGlobal ? 'text-white' : 'text-gray-200'}`}>Global</span>
-                        <span className={`absolute right-0 w-1/2 text-center text-xs font-semibold transition-colors duration-300 ${useGlobal ? 'text-gray-200' : 'text-white'}`}>Individual</span>
-                    </div>
-                </div>
-            )}
-
-            {/* LOGOS SECTION */}
-            {logosToDisplay.length > 0 && (
-                <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md space-y-4">
-                    <div className="flex items-center justify-between border-b pb-2 mb-3 border-gray-200 dark:border-gray-700">
-                        <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
-                            {useGlobal ? 'Global Logos' : 'Individual Logos'} ({logosToDisplay.length})
-                        </h2>
+                <div className="rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+                    {/* Toggle row */}
+                    <div className="flex items-center justify-between px-4 py-3 bg-gray-50 dark:bg-gray-800/60">
+                        <span className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide">
+                            Settings Scope
+                        </span>
                         <button
-                            onClick={() => setExpandedLogoSection(!expandedLogoSection)}
-                            className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
+                            onClick={toggleUseGlobalSettings}
+                            className={`relative flex items-center w-32 h-8 rounded-full transition-colors duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500
+                                ${useGlobal
+                                    ? "bg-indigo-600"
+                                    : "bg-purple-600"
+                                }`}
                         >
-                            {expandedLogoSection ? 'Collapse' : 'Expand'}
+                            {/* Sliding pill */}
+                            <div className={`absolute flex items-center justify-center w-[60px] h-7 bg-white rounded-full shadow-md transform transition-transform duration-300
+                                ${useGlobal ? "translate-x-0.5" : "translate-x-[62px]"}`}
+                            >
+                                {useGlobal
+                                    ? <FaImages className="w-3.5 h-3.5 text-indigo-600" />
+                                    : <FaImage className="w-3.5 h-3.5 text-purple-600" />
+                                }
+                            </div>
+                            <span className={`absolute left-2 text-[11px] font-bold text-white transition-opacity duration-200
+                                ${useGlobal ? "opacity-0" : "opacity-100"}`}>
+                                Global
+                            </span>
+                            <span className={`absolute right-2 text-[11px] font-bold text-white transition-opacity duration-200
+                                ${useGlobal ? "opacity-100" : "opacity-0"}`}>
+                                Indiv.
+                            </span>
                         </button>
                     </div>
 
-                    {expandedLogoSection && (
-                        <>
-                            {/* Logo Selection Grid with Drag and Drop */}
-                            <div className="space-y-1 mb-4">
-                                <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
-                                    💡 Drag to reorder logos
-                                </p>
-                                <div className="grid grid-cols-3 gap-2">
-                                    {logosToDisplay.map((logo, index) => (
-                                        <div
-                                            key={logo.id}
-                                            draggable
-                                            onDragStart={(e) => handleLogoDragStart(e, index)}
-                                            onDragOver={(e) => handleLogoDragOver(e, index)}
-                                            onDragEnd={handleLogoDragEnd}
-                                            className={`relative group cursor-move rounded-lg overflow-hidden border-2 transition-all ${selectedLogoId === logo.id
-                                                ? 'border-blue-500 shadow-lg'
-                                                : 'border-gray-300 dark:border-gray-600 hover:border-blue-400'
-                                                } ${draggedLogoIndex === index ? 'opacity-50' : ''}`}
-                                            onClick={() => setSelectedLogoId(logo.id)}
-                                        >
-                                            <div className="absolute top-1 left-1 p-1 bg-gray-800 bg-opacity-70 text-white rounded z-10 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <GripVertical className="w-3 h-3" />
-                                            </div>
-                                            <img
-                                                src={logo.url}
-                                                alt="Logo"
-                                                className="w-full h-20 object-contain bg-gray-100 dark:bg-gray-700 p-2 pointer-events-none"
-                                            />
-                                            <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    handleRemoveLogo(logo.id);
-                                                }}
-                                                className="absolute top-1 right-1 p-1 bg-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
-                                            >
-                                                <Trash2 className="w-3 h-3" />
-                                            </button>
-                                            {selectedLogoId === logo.id && (
-                                                <div className="absolute inset-0 bg-blue-500 bg-opacity-20 flex items-center justify-center z-0">
-                                                    <span className="text-white text-xs font-bold bg-blue-600 px-2 py-1 rounded">EDITING</span>
-                                                </div>
-                                            )}
-                                        </div>
-                                    ))}
+                    {/* Copy from Global banner — only shown in individual mode */}
+                    {!useGlobal && (
+                        <div className="px-4 py-3 border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900">
+                            <div className="flex items-start justify-between gap-3">
+                                <div className="flex-1">
+                                    <p className="text-xs font-semibold text-purple-700 dark:text-purple-300">
+                                        Individual Mode
+                                    </p>
+                                    <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5 leading-snug">
+                                        {hasDivergence
+                                            ? "Settings differ from global — editing independently."
+                                            : "Using independent settings for this image."
+                                        }
+                                    </p>
                                 </div>
+
+                                {/* Copy from global button */}
+                                {globalLogos.length > 0 || globalFooters.length > 0 ? (
+                                    <button
+                                        onClick={handleCopyFromGlobal}
+                                        title="Copy all global logos, footers and settings into this image"
+                                        className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200
+                                            ${copySuccess
+                                                ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400"
+                                                : "bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 hover:bg-purple-200 dark:hover:bg-purple-900/50"
+                                            }`}
+                                    >
+                                        {copySuccess
+                                            ? <><CheckCheck className="w-3.5 h-3.5" /> Copied!</>
+                                            : <><Copy className="w-3.5 h-3.5" /> Copy from Global</>
+                                        }
+                                    </button>
+                                ) : null}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {/* ── LOGOS SECTION ── */}
+            {logosToDisplay.length > 0 && (
+                <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+                    {/* Section header */}
+                    <button
+                        onClick={() => setExpandedLogoSection(v => !v)}
+                        className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 dark:bg-gray-800/60 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                    >
+                        <span className="text-sm font-semibold text-gray-800 dark:text-gray-100 flex items-center gap-2">
+                            {useGlobal ? "Global Logos" : "Individual Logos"}
+                            <span className="text-xs font-bold px-1.5 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300">
+                                {logosToDisplay.length}
+                            </span>
+                        </span>
+                        <span className="text-xs text-indigo-600 dark:text-indigo-400 font-medium">
+                            {expandedLogoSection ? "Collapse" : "Expand"}
+                        </span>
+                    </button>
+
+                    {expandedLogoSection && (
+                        <div className="px-4 pb-4 pt-3 space-y-4">
+                            {/* Drag hint */}
+                            <p className="text-[11px] text-gray-400 dark:text-gray-500">
+                                💡 Drag thumbnails to reorder rendering order
+                            </p>
+
+                            {/* Logo grid */}
+                            <div className="grid grid-cols-3 gap-2">
+                                {logosToDisplay.map((logo, idx) => (
+                                    <div
+                                        key={logo.id}
+                                        draggable
+                                        onDragStart={(e) => handleLogoDragStart(e, idx)}
+                                        onDragOver={(e) => handleLogoDragOver(e, idx)}
+                                        onDragEnd={handleLogoDragEnd}
+                                        onClick={() => setSelectedLogoId(logo.id)}
+                                        className={`relative group cursor-move rounded-lg overflow-hidden border-2 transition-all
+                                            ${selectedLogoId === logo.id
+                                                ? "border-indigo-500 shadow-md"
+                                                : "border-gray-200 dark:border-gray-700 hover:border-indigo-300"
+                                            }
+                                            ${draggedLogoIndex === idx ? "opacity-40 scale-95" : ""}
+                                        `}
+                                    >
+                                        <div className="absolute top-1 left-1 p-1 bg-black/60 text-white rounded opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                                            <GripVertical className="w-3 h-3" />
+                                        </div>
+                                        <img
+                                            src={logo.url}
+                                            alt="Logo"
+                                            className="w-full h-16 object-contain bg-gray-100 dark:bg-gray-700/60 p-2 pointer-events-none"
+                                        />
+                                        <button
+                                            onClick={(e) => { e.stopPropagation(); handleRemoveLogo(logo.id); }}
+                                            className="absolute top-1 right-1 p-1 bg-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                                        >
+                                            <Trash2 className="w-3 h-3" />
+                                        </button>
+                                        {selectedLogoId === logo.id && (
+                                            <div className="absolute bottom-0 inset-x-0 h-0.5 bg-indigo-500" />
+                                        )}
+                                    </div>
+                                ))}
                             </div>
 
-                            {/* Logo Controls */}
+                            {/* Logo controls */}
                             {selectedLogoId && currentLogoSettings && (
-                                <>
-                                    {/* Edge Proximity Warning */}
+                                <div className="space-y-3 pt-2 border-t border-gray-100 dark:border-gray-800">
+
+                                    {/* Edge warning */}
                                     {edgeInfo?.isNearEdge && (
-                                        <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-300 dark:border-yellow-700 rounded-lg p-3 flex items-start gap-2">
-                                            <AlertTriangle className="w-5 h-5 text-yellow-600 dark:text-yellow-400 flex-shrink-0 mt-0.5" />
-                                            <div className="text-sm text-yellow-800 dark:text-yellow-200">
-                                                <strong>Edge Warning:</strong> Logo is {edgeInfo.minDistance}px from {edgeInfo.edges.join(' & ')} edge{edgeInfo.edges.length > 1 ? 's' : ''}
-                                            </div>
+                                        <div className="flex items-start gap-2 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+                                            <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+                                            <p className="text-xs text-amber-800 dark:text-amber-200">
+                                                Logo is <strong>{edgeInfo.minDistance}px</strong> from {edgeInfo.edges.join(" & ")} edge
+                                            </p>
                                         </div>
                                     )}
 
-                                    <div className="space-y-2">
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                            Position:
-                                            <select
-                                                value={currentLogoSettings.position}
-                                                onChange={(e) => updateLogoSettings({ position: e.target.value as WatermarkSettings["position"] })}
-                                                className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white transition duration-150 ease-in-out"
-                                            >
-                                                <option value="top-left">Top-Left</option>
-                                                <option value="top-center">Top-Center</option>
-                                                <option value="top-right">Top-Right</option>
-                                                <option value="bottom-left">Bottom-Left</option>
-                                                <option value="bottom-center">Bottom-Center</option>
-                                                <option value="bottom-right">Bottom-Right</option>
-                                            </select>
-                                        </label>
-                                    </div>
+                                    {/* Position */}
+                                    <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide">
+                                        Position
+                                        <select
+                                            value={currentLogoSettings.position}
+                                            onChange={(e) => updateLogoSettings({ position: e.target.value as WatermarkSettings["position"] })}
+                                            className="mt-1 block w-full px-3 py-2 text-sm bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                        >
+                                            <option value="top-left">Top Left</option>
+                                            <option value="top-center">Top Center</option>
+                                            <option value="top-right">Top Right</option>
+                                            <option value="bottom-left">Bottom Left</option>
+                                            <option value="bottom-center">Bottom Center</option>
+                                            <option value="bottom-right">Bottom Right</option>
+                                        </select>
+                                    </label>
 
-                                    <div className="space-y-2">
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                            Width: {currentLogoSettings.width}px
+                                    {/* Sliders */}
+                                    {[
+                                        { label: "Width",     key: "width",    min: 10,   max: 1000, val: currentLogoSettings.width,              unit: "px" },
+                                        { label: "Height",    key: "height",   min: 10,   max: 1000, val: currentLogoSettings.height,             unit: "px" },
+                                        { label: "Padding X", key: "paddingX", min: 0,    max: 100,  val: currentLogoSettings.paddingX,           unit: "px", warn: edgeInfo?.edges.includes("left") || edgeInfo?.edges.includes("right") },
+                                        { label: "Padding Y", key: "paddingY", min: 0,    max: 100,  val: currentLogoSettings.paddingY,           unit: "px", warn: edgeInfo?.edges.includes("top") || edgeInfo?.edges.includes("bottom") },
+                                        { label: "Opacity",   key: "opacity",  min: 0,    max: 1,    val: currentLogoSettings.opacity ?? 1,       unit: "%",  display: Math.round((currentLogoSettings.opacity ?? 1) * 100), step: 0.01 },
+                                        { label: "Rotation",  key: "rotation", min: -180, max: 180,  val: currentLogoSettings.rotation ?? 0,      unit: "°" },
+                                    ].map(({ label, key, min, max, val, unit, warn, display, step }) => (
+                                        <div key={key} className="space-y-1">
+                                            <div className="flex items-center justify-between">
+                                                <span className={`text-xs font-medium ${warn ? "text-amber-600 dark:text-amber-400 font-bold" : "text-gray-600 dark:text-gray-400"}`}>
+                                                    {label}
+                                                </span>
+                                                <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400 tabular-nums">
+                                                    {display ?? val}{unit}
+                                                </span>
+                                            </div>
                                             <input
                                                 type="range"
-                                                min="10"
-                                                max="1000"
-                                                value={currentLogoSettings.width}
-                                                onChange={(e) => updateLogoSettings({ width: parseInt(e.target.value) })}
-                                                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
+                                                min={min}
+                                                max={max}
+                                                step={step ?? 1}
+                                                value={val}
+                                                onChange={(e) => updateLogoSettings({
+                                                    [key]: step ? parseFloat(e.target.value) : parseInt(e.target.value)
+                                                })}
+                                                className="w-full h-1.5 rounded-full appearance-none cursor-pointer bg-gray-200 dark:bg-gray-700"
+                                                style={{
+                                                    background: `linear-gradient(to right,
+                                                        rgb(99,102,241) 0%,
+                                                        rgb(99,102,241) ${((val - min) / (max - min)) * 100}%,
+                                                        rgb(229,231,235) ${((val - min) / (max - min)) * 100}%,
+                                                        rgb(229,231,235) 100%)`
+                                                }}
                                             />
-                                        </label>
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                            Height: {currentLogoSettings.height}px
-                                            <input
-                                                type="range"
-                                                min="10"
-                                                max="1000"
-                                                value={currentLogoSettings.height}
-                                                onChange={(e) => updateLogoSettings({ height: parseInt(e.target.value) })}
-                                                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
-                                            />
-                                        </label>
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                            <span className={edgeInfo?.edges.includes('left') || edgeInfo?.edges.includes('right') ? 'text-yellow-600 dark:text-yellow-400 font-bold' : ''}>
-                                                Padding X: {currentLogoSettings.paddingX}px
-                                            </span>
-                                            <input
-                                                type="range"
-                                                min="0"
-                                                max="100"
-                                                value={currentLogoSettings.paddingX}
-                                                onChange={(e) => updateLogoSettings({ paddingX: parseInt(e.target.value) })}
-                                                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
-                                            />
-                                        </label>
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                            <span className={edgeInfo?.edges.includes('top') || edgeInfo?.edges.includes('bottom') ? 'text-yellow-600 dark:text-yellow-400 font-bold' : ''}>
-                                                Padding Y: {currentLogoSettings.paddingY}px
-                                            </span>
-                                            <input
-                                                type="range"
-                                                min="0"
-                                                max="100"
-                                                value={currentLogoSettings.paddingY}
-                                                onChange={(e) => updateLogoSettings({ paddingY: parseInt(e.target.value) })}
-                                                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
-                                            />
-                                        </label>
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                            Opacity: {((currentLogoSettings.opacity || 1) * 100).toFixed(0)}%
-                                            <input
-                                                type="range"
-                                                min="0"
-                                                max="1"
-                                                step="0.01"
-                                                value={currentLogoSettings.opacity || 1}
-                                                onChange={(e) => updateLogoSettings({ opacity: parseFloat(e.target.value) })}
-                                                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
-                                            />
-                                        </label>
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                            Rotation: {(currentLogoSettings.rotation || 0)}°
-                                            <input
-                                                type="range"
-                                                min="-180"
-                                                max="180"
-                                                value={currentLogoSettings.rotation || 0}
-                                                onChange={(e) => updateLogoSettings({ rotation: parseInt(e.target.value) })}
-                                                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
-                                            />
-                                        </label>
-                                    </div>
-                                </>
+                                        </div>
+                                    ))}
+                                </div>
                             )}
-                        </>
+                        </div>
                     )}
                 </div>
             )}
 
-            {/* FOOTER SECTION */}
+            {/* ── FOOTERS SECTION ── */}
             {footersToDisplay.length > 0 && (
-                <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md space-y-4">
-                    <div className="flex items-center justify-between border-b pb-2 mb-3 border-gray-200 dark:border-gray-700">
-                        <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
-                            {useGlobal ? 'Global Footers' : 'Individual Footers'} ({footersToDisplay.length})
-                        </h2>
-                        <button
-                            onClick={() => setExpandedFooterSection(!expandedFooterSection)}
-                            className="text-sm text-green-600 dark:text-green-400 hover:underline"
-                        >
-                            {expandedFooterSection ? 'Collapse' : 'Expand'}
-                        </button>
-                    </div>
+                <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+                    <button
+                        onClick={() => setExpandedFooterSection(v => !v)}
+                        className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 dark:bg-gray-800/60 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                    >
+                        <span className="text-sm font-semibold text-gray-800 dark:text-gray-100 flex items-center gap-2">
+                            {useGlobal ? "Global Footers" : "Individual Footers"}
+                            <span className="text-xs font-bold px-1.5 py-0.5 rounded-full bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300">
+                                {footersToDisplay.length}
+                            </span>
+                        </span>
+                        <span className="text-xs text-green-600 dark:text-green-400 font-medium">
+                            {expandedFooterSection ? "Collapse" : "Expand"}
+                        </span>
+                    </button>
 
                     {expandedFooterSection && (
-                        <>
-                            {/* Footer Selection Grid with Drag and Drop */}
-                            <div className="space-y-1 mb-4">
-                                <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
-                                    💡 Drag to reorder footers
-                                </p>
-                                <div className="grid grid-cols-3 gap-2">
-                                    {footersToDisplay.map((footer, index) => (
-                                        <div
-                                            key={footer.id}
-                                            draggable
-                                            onDragStart={(e) => handleFooterDragStart(e, index)}
-                                            onDragOver={(e) => handleFooterDragOver(e, index)}
-                                            onDragEnd={handleFooterDragEnd}
-                                            className={`relative group cursor-move rounded-lg overflow-hidden border-2 transition-all ${selectedFooterId === footer.id
-                                                ? 'border-green-500 shadow-lg'
-                                                : 'border-gray-300 dark:border-gray-600 hover:border-green-400'
-                                                } ${draggedFooterIndex === index ? 'opacity-50' : ''}`}
-                                            onClick={() => setSelectedFooterId(footer.id)}
+                        <div className="px-4 pb-4 pt-3 space-y-4">
+                            <p className="text-[11px] text-gray-400 dark:text-gray-500">
+                                💡 Drag thumbnails to reorder rendering order
+                            </p>
+
+                            {/* Footer grid */}
+                            <div className="grid grid-cols-3 gap-2">
+                                {footersToDisplay.map((footer, idx) => (
+                                    <div
+                                        key={footer.id}
+                                        draggable
+                                        onDragStart={(e) => handleFooterDragStart(e, idx)}
+                                        onDragOver={(e) => handleFooterDragOver(e, idx)}
+                                        onDragEnd={handleFooterDragEnd}
+                                        onClick={() => setSelectedFooterId(footer.id)}
+                                        className={`relative group cursor-move rounded-lg overflow-hidden border-2 transition-all
+                                            ${selectedFooterId === footer.id
+                                                ? "border-green-500 shadow-md"
+                                                : "border-gray-200 dark:border-gray-700 hover:border-green-300"
+                                            }
+                                            ${draggedFooterIndex === idx ? "opacity-40 scale-95" : ""}
+                                        `}
+                                    >
+                                        <div className="absolute top-1 left-1 p-1 bg-black/60 text-white rounded opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                                            <GripVertical className="w-3 h-3" />
+                                        </div>
+                                        <img
+                                            src={footer.url}
+                                            alt="Footer"
+                                            className="w-full h-16 object-contain bg-gray-100 dark:bg-gray-700/60 p-2 pointer-events-none"
+                                        />
+                                        <button
+                                            onClick={(e) => { e.stopPropagation(); handleRemoveFooter(footer.id); }}
+                                            className="absolute top-1 right-1 p-1 bg-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
                                         >
-                                            <div className="absolute top-1 left-1 p-1 bg-gray-800 bg-opacity-70 text-white rounded z-10 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <GripVertical className="w-3 h-3" />
+                                            <Trash2 className="w-3 h-3" />
+                                        </button>
+                                        {selectedFooterId === footer.id && (
+                                            <div className="absolute bottom-0 inset-x-0 h-0.5 bg-green-500" />
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+
+                            {/* Footer controls */}
+                            {selectedFooterId && currentFooterSettings && (
+                                <div className="space-y-3 pt-2 border-t border-gray-100 dark:border-gray-800">
+                                    {[
+                                        { label: "Opacity",  key: "opacity",  min: 0,     max: 1,    val: currentFooterSettings.opacity ?? 1,  unit: "%", display: Math.round((currentFooterSettings.opacity ?? 1) * 100), step: 0.01 },
+                                        { label: "Scale",    key: "scale",    min: 0.1,   max: 5,    val: currentFooterSettings.scale ?? 1,    unit: "×", display: ((currentFooterSettings.scale ?? 1)).toFixed(2), step: 0.01 },
+                                        { label: "Offset X", key: "offsetX",  min: -1500, max: 1500, val: currentFooterSettings.offsetX ?? 0,  unit: "px" },
+                                        { label: "Offset Y", key: "offsetY",  min: -1500, max: 1500, val: currentFooterSettings.offsetY ?? 0,  unit: "px" },
+                                        { label: "Rotation", key: "rotation", min: -180,  max: 180,  val: currentFooterSettings.rotation ?? 0, unit: "°" },
+                                    ].map(({ label, key, min, max, val, unit, display, step }) => (
+                                        <div key={key} className="space-y-1">
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
+                                                    {label}
+                                                </span>
+                                                <span className="text-xs font-bold text-green-600 dark:text-green-400 tabular-nums">
+                                                    {display ?? val}{unit}
+                                                </span>
                                             </div>
-                                            <img
-                                                src={footer.url}
-                                                alt="Footer"
-                                                className="w-full h-20 object-contain bg-gray-100 dark:bg-gray-700 p-2 pointer-events-none"
-                                            />
-                                            <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    handleRemoveFooter(footer.id);
+                                            <input
+                                                type="range"
+                                                min={min}
+                                                max={max}
+                                                step={step ?? 1}
+                                                value={val}
+                                                onChange={(e) => updateFooterSettings({
+                                                    [key]: step ? parseFloat(e.target.value) : parseInt(e.target.value)
+                                                })}
+                                                className="w-full h-1.5 rounded-full appearance-none cursor-pointer"
+                                                style={{
+                                                    background: `linear-gradient(to right,
+                                                        rgb(34,197,94) 0%,
+                                                        rgb(34,197,94) ${((val - min) / (max - min)) * 100}%,
+                                                        rgb(229,231,235) ${((val - min) / (max - min)) * 100}%,
+                                                        rgb(229,231,235) 100%)`
                                                 }}
-                                                className="absolute top-1 right-1 p-1 bg-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
-                                            >
-                                                <Trash2 className="w-3 h-3" />
-                                            </button>
-                                            {selectedFooterId === footer.id && (
-                                                <div className="absolute inset-0 bg-green-500 bg-opacity-20 flex items-center justify-center z-0">
-                                                    <span className="text-white text-xs font-bold bg-green-600 px-2 py-1 rounded">EDITING</span>
-                                                </div>
-                                            )}
+                                            />
                                         </div>
                                     ))}
                                 </div>
-                            </div>
-
-                            {/* Footer Controls - OPTIMIZED */}
-                            {selectedFooterId && currentFooterSettings && (
-                                <>
-                                    <div className="space-y-2">
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                            Opacity: {((currentFooterSettings.opacity || 1) * 100).toFixed(0)}%
-                                            <input
-                                                type="range"
-                                                min="0"
-                                                max="1"
-                                                step="0.01"
-                                                value={currentFooterSettings.opacity || 1}
-                                                onChange={(e) => updateFooterSettings({ opacity: parseFloat(e.target.value) })}
-                                                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
-                                            />
-                                        </label>
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                            Scale: {((currentFooterSettings.scale || 1) * 100).toFixed(0)}%
-                                            <input
-                                                type="range"
-                                                min="0.1"
-                                                max="5"
-                                                step="0.01"
-                                                value={currentFooterSettings.scale || 1}
-                                                onChange={(e) => updateFooterSettings({ scale: parseFloat(e.target.value) })}
-                                                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
-                                            />
-                                        </label>
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                            Offset X: {currentFooterSettings.offsetX || 0}px
-                                            <input
-                                                type="range"
-                                                min="-1500"
-                                                max="1500"
-                                                value={currentFooterSettings.offsetX || 0}
-                                                onChange={(e) => updateFooterSettings({ offsetX: parseInt(e.target.value) })}
-                                                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
-                                            />
-                                        </label>
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                            Offset Y: {currentFooterSettings.offsetY || 0}px
-                                            <input
-                                                type="range"
-                                                min="-1500"
-                                                max="1500"
-                                                value={currentFooterSettings.offsetY || 0}
-                                                onChange={(e) => updateFooterSettings({ offsetY: parseInt(e.target.value) })}
-                                                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
-                                            />
-                                        </label>
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                            Rotation: {(currentFooterSettings.rotation || 0)}°
-                                            <input
-                                                type="range"
-                                                min="-180"
-                                                max="180"
-                                                value={currentFooterSettings.rotation || 0}
-                                                onChange={(e) => updateFooterSettings({ rotation: parseInt(e.target.value) })}
-                                                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
-                                            />
-                                        </label>
-                                    </div>
-                                </>
                             )}
-                        </>
+                        </div>
                     )}
+                </div>
+            )}
+
+            {/* Empty state when no logos or footers */}
+            {logosToDisplay.length === 0 && footersToDisplay.length === 0 && (
+                <div className="flex flex-col items-center justify-center py-10 text-center rounded-xl border-2 border-dashed border-gray-200 dark:border-gray-700">
+                    <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                        No logos or footers added yet
+                    </p>
+                    <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                        Use the Upload tab to add assets
+                    </p>
                 </div>
             )}
         </div>

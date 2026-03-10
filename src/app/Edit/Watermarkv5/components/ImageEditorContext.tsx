@@ -2,6 +2,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, ReactNode } from "react";
+import { useHistory } from "./hooks/useHistory";
 
 // NEW: Logo item interface for multiple logos
 interface LogoItem {
@@ -155,9 +156,17 @@ interface ImageEditorContextType {
     setGlobalPhotoAdjustments: React.Dispatch<React.SetStateAction<PhotoAdjustments>>;
     updateIndividualPhotoAdjustments: (settings: Partial<PhotoAdjustments>) => void;
     resetPhotoAdjustments: () => void;
+
+    undo: () => void;
+    redo: () => void;
+    canUndo: boolean;
+    canRedo: boolean;
+
+    copyGlobalToIndividual: () => void;
+    reorderImages: (fromIndex: number, toIndex: number) => void;
 }
 
-const defaultPhotoAdjustments: PhotoAdjustments = {
+export const defaultPhotoAdjustments: PhotoAdjustments = {
     exposure: 0,
     brilliance: 0,
     highlights: 0,
@@ -204,7 +213,14 @@ const defaultShadowSettings: ShadowSettings = {
 const ImageEditorContext = createContext<ImageEditorContextType | undefined>(undefined);
 
 export const ImageEditorProvider = ({ children }: { children: ReactNode }) => {
-    const [images, setImages] = useState<ImageData[]>([]);
+    const {
+        current: images,
+        set: setImages,
+        undo,
+        redo,
+        canUndo,
+        canRedo,
+    } = useHistory<ImageData[]>([]);
     const [logo, setLogoUrl] = useState<string | null>(null);
     const [footer, setFooterUrl] = useState<string | null>(null);
     const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
@@ -319,6 +335,51 @@ export const ImageEditorProvider = ({ children }: { children: ReactNode }) => {
         }
     };
 
+    const copyGlobalToIndividual = () => {
+    if (selectedImageIndex === null) return;
+
+    setImages(prevImages => {
+        const newImages = [...prevImages];
+        const current = newImages[selectedImageIndex];
+        if (!current) return prevImages;
+
+        // Deep-copy every global logo into individual logos
+        const copiedLogos: LogoItem[] = globalLogos.map(logo => ({
+            ...logo,
+            id: `logo-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            settings: { ...logo.settings },
+        }));
+
+        // Deep-copy every global footer into individual footers
+        const copiedFooters: FooterItem[] = globalFooters.map(footer => ({
+            ...footer,
+            id: `footer-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            settings: { ...footer.settings },
+        }));
+
+        newImages[selectedImageIndex] = {
+            ...current,
+            useGlobalSettings: false,
+            individualLogos: copiedLogos,
+            individualFooters: copiedFooters,
+            individualLogoSettings: { ...globalLogoSettings },
+            individualFooterSettings: { ...globalFooterSettings },
+            individualShadowSettings: { ...globalShadowSettings },
+            photoAdjustments: { ...globalPhotoAdjustments },
+        };
+
+        return newImages;
+    });
+
+    // Select first copied logo/footer so controls are immediately active
+    if (globalLogos.length > 0) {
+        setSelectedLogoId(globalLogos[0].id);
+    }
+    if (globalFooters.length > 0) {
+        setSelectedFooterId(globalFooters[0].id);
+    }
+};
+
     const updateIndividualLogoSettings = (settings: Partial<WatermarkSettings>) => {
         if (selectedImageIndex !== null) {
             setImages(prevImages => {
@@ -412,7 +473,6 @@ export const ImageEditorProvider = ({ children }: { children: ReactNode }) => {
         return selectedImages.includes(index);
     };
 
-    // NEW: Multiple logos methods
     const addGlobalLogo = (url: string): string => {
         const logoId = `logo-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
         const newLogo: LogoItem = {
@@ -429,11 +489,12 @@ export const ImageEditorProvider = ({ children }: { children: ReactNode }) => {
         setGlobalLogos(prev => {
             const logo = prev.find(l => l.id === logoId);
             if (logo) URL.revokeObjectURL(logo.url);
-            return prev.filter(l => l.id !== logoId);
+            const remaining = prev.filter(l => l.id !== logoId);
+            if (logoId === selectedLogoId) {
+                setSelectedLogoId(remaining[0]?.id ?? null);
+            }
+            return remaining;
         });
-        if (selectedLogoId === logoId) {
-            setSelectedLogoId(globalLogos.length > 1 ? globalLogos[0]?.id || null : null);
-        }
     };
 
     const updateGlobalLogoSettings = (logoId: string, settings: Partial<WatermarkSettings>) => {
@@ -518,11 +579,13 @@ export const ImageEditorProvider = ({ children }: { children: ReactNode }) => {
         setGlobalFooters(prev => {
             const footer = prev.find(f => f.id === footerId);
             if (footer) URL.revokeObjectURL(footer.url);
-            return prev.filter(f => f.id !== footerId);
+            const remaining = prev.filter(f => f.id !== footerId);
+            // Fix: same stale closure fix as logos
+            if (footerId === selectedFooterId) {
+                setSelectedFooterId(remaining[0]?.id ?? null);
+            }
+            return remaining;
         });
-        if (selectedFooterId === footerId) {
-            setSelectedFooterId(globalFooters.length > 1 ? globalFooters[0]?.id || null : null);
-        }
     };
 
     const updateGlobalFooterSettingsById = (footerId: string, settings: Partial<FooterSettings>) => {
@@ -585,6 +648,27 @@ export const ImageEditorProvider = ({ children }: { children: ReactNode }) => {
             return newImages;
         });
     };
+
+    const reorderImages = (fromIndex: number, toIndex: number) => {
+    if (fromIndex === toIndex) return;
+    setImages(prev => {
+        const next = [...prev];
+        const [moved] = next.splice(fromIndex, 1);
+        next.splice(toIndex, 0, moved);
+        return next;
+    });
+    // Keep selectedImageIndex tracking the same image after reorder
+    setSelectedImageIndex(prev => {
+        if (prev === null) return null;
+        if (prev === fromIndex) return toIndex;
+        if (fromIndex < toIndex) {
+            if (prev > fromIndex && prev <= toIndex) return prev - 1;
+        } else {
+            if (prev >= toIndex && prev < fromIndex) return prev + 1;
+        }
+        return prev;
+    });
+};
 
 
     // NEW: Reorder methods for logos
@@ -681,6 +765,12 @@ export const ImageEditorProvider = ({ children }: { children: ReactNode }) => {
                 setGlobalPhotoAdjustments,
                 updateIndividualPhotoAdjustments,
                 resetPhotoAdjustments,
+                undo,
+                redo,
+                canUndo,
+                canRedo,
+                copyGlobalToIndividual,
+                reorderImages
             }}
         >
             {children}
