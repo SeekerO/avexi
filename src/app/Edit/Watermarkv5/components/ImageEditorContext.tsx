@@ -336,49 +336,49 @@ export const ImageEditorProvider = ({ children }: { children: ReactNode }) => {
     };
 
     const copyGlobalToIndividual = () => {
-    if (selectedImageIndex === null) return;
+        if (selectedImageIndex === null) return;
 
-    setImages(prevImages => {
-        const newImages = [...prevImages];
-        const current = newImages[selectedImageIndex];
-        if (!current) return prevImages;
+        setImages(prevImages => {
+            const newImages = [...prevImages];
+            const current = newImages[selectedImageIndex];
+            if (!current) return prevImages;
 
-        // Deep-copy every global logo into individual logos
-        const copiedLogos: LogoItem[] = globalLogos.map(logo => ({
-            ...logo,
-            id: `logo-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-            settings: { ...logo.settings },
-        }));
+            // Deep-copy every global logo into individual logos
+            const copiedLogos: LogoItem[] = globalLogos.map(logo => ({
+                ...logo,
+                id: `logo-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                settings: { ...logo.settings },
+            }));
 
-        // Deep-copy every global footer into individual footers
-        const copiedFooters: FooterItem[] = globalFooters.map(footer => ({
-            ...footer,
-            id: `footer-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-            settings: { ...footer.settings },
-        }));
+            // Deep-copy every global footer into individual footers
+            const copiedFooters: FooterItem[] = globalFooters.map(footer => ({
+                ...footer,
+                id: `footer-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                settings: { ...footer.settings },
+            }));
 
-        newImages[selectedImageIndex] = {
-            ...current,
-            useGlobalSettings: false,
-            individualLogos: copiedLogos,
-            individualFooters: copiedFooters,
-            individualLogoSettings: { ...globalLogoSettings },
-            individualFooterSettings: { ...globalFooterSettings },
-            individualShadowSettings: { ...globalShadowSettings },
-            photoAdjustments: { ...globalPhotoAdjustments },
-        };
+            newImages[selectedImageIndex] = {
+                ...current,
+                useGlobalSettings: false,
+                individualLogos: copiedLogos,
+                individualFooters: copiedFooters,
+                individualLogoSettings: { ...globalLogoSettings },
+                individualFooterSettings: { ...globalFooterSettings },
+                individualShadowSettings: { ...globalShadowSettings },
+                photoAdjustments: { ...globalPhotoAdjustments },
+            };
 
-        return newImages;
-    });
+            return newImages;
+        });
 
-    // Select first copied logo/footer so controls are immediately active
-    if (globalLogos.length > 0) {
-        setSelectedLogoId(globalLogos[0].id);
-    }
-    if (globalFooters.length > 0) {
-        setSelectedFooterId(globalFooters[0].id);
-    }
-};
+        // Select first copied logo/footer so controls are immediately active
+        if (globalLogos.length > 0) {
+            setSelectedLogoId(globalLogos[0].id);
+        }
+        if (globalFooters.length > 0) {
+            setSelectedFooterId(globalFooters[0].id);
+        }
+    };
 
     const updateIndividualLogoSettings = (settings: Partial<WatermarkSettings>) => {
         if (selectedImageIndex !== null) {
@@ -650,25 +650,25 @@ export const ImageEditorProvider = ({ children }: { children: ReactNode }) => {
     };
 
     const reorderImages = (fromIndex: number, toIndex: number) => {
-    if (fromIndex === toIndex) return;
-    setImages(prev => {
-        const next = [...prev];
-        const [moved] = next.splice(fromIndex, 1);
-        next.splice(toIndex, 0, moved);
-        return next;
-    });
-    // Keep selectedImageIndex tracking the same image after reorder
-    setSelectedImageIndex(prev => {
-        if (prev === null) return null;
-        if (prev === fromIndex) return toIndex;
-        if (fromIndex < toIndex) {
-            if (prev > fromIndex && prev <= toIndex) return prev - 1;
-        } else {
-            if (prev >= toIndex && prev < fromIndex) return prev + 1;
-        }
-        return prev;
-    });
-};
+        if (fromIndex === toIndex) return;
+        setImages(prev => {
+            const next = [...prev];
+            const [moved] = next.splice(fromIndex, 1);
+            next.splice(toIndex, 0, moved);
+            return next;
+        });
+        // Keep selectedImageIndex tracking the same image after reorder
+        setSelectedImageIndex(prev => {
+            if (prev === null) return null;
+            if (prev === fromIndex) return toIndex;
+            if (fromIndex < toIndex) {
+                if (prev > fromIndex && prev <= toIndex) return prev - 1;
+            } else {
+                if (prev >= toIndex && prev < fromIndex) return prev + 1;
+            }
+            return prev;
+        });
+    };
 
 
     // NEW: Reorder methods for logos
@@ -706,6 +706,7 @@ export const ImageEditorProvider = ({ children }: { children: ReactNode }) => {
             return newImages;
         });
     };
+
 
     return (
         <ImageEditorContext.Provider

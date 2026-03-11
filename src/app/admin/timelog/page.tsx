@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+
 interface DtrRow {
     day: number;
     morningIn: string;
@@ -23,7 +23,7 @@ interface TimeLogEntry {
 
 type PunchField = 'morningIn' | 'lunch' | 'afternoonOut';
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
+
 const uid = () => Math.random().toString(36).slice(2, 9);
 
 const nowTime = () => {
@@ -54,7 +54,7 @@ const FIELD_LABELS: Record<PunchField, string> = {
     afternoonOut: 'Clock Out',
 };
 
-// ─── StatusBadge ─────────────────────────────────────────────────────────────
+
 const StatusBadge = ({ msg }: { msg: string }) => {
     const type = msg.startsWith('✓') || msg.startsWith('✅') ? 'success'
         : msg.startsWith('⚠') ? 'warn'
@@ -69,7 +69,7 @@ const StatusBadge = ({ msg }: { msg: string }) => {
     return <div className={`font-dm-mono rounded-xl px-4 py-2.5 text-xs border ${cls}`}>{msg}</div>;
 };
 
-// ─── Live Clock ───────────────────────────────────────────────────────────────
+
 const LiveClock: React.FC = () => {
     const [time, setTime] = useState('');
     const [date, setDate] = useState('');
@@ -91,7 +91,7 @@ const LiveClock: React.FC = () => {
     );
 };
 
-// ─── Confirm Modal ────────────────────────────────────────────────────────────
+
 const ConfirmModal: React.FC<{
     field: PunchField;
     time: string;
@@ -132,7 +132,7 @@ const ConfirmModal: React.FC<{
     );
 };
 
-// ─── Storage keys & helpers ───────────────────────────────────────────────────
+
 const LS_PROFILE = 'dtr-profile';
 const lsSession = () => `dtr-session-${todayKey()}`;
 
@@ -149,7 +149,7 @@ const saveSession = (data: object) => {
     localStorage.setItem(lsSession(), JSON.stringify({ ...loadSession(), ...data }));
 };
 
-// ─── Time Logger Panel ────────────────────────────────────────────────────────
+
 const TimeLoggerPanel: React.FC = () => {
     const [employeeName, setEmployeeName] = useState('');
     const [punches, setPunches] = useState<Partial<Record<PunchField, string>>>({});
@@ -542,7 +542,7 @@ const TimeLoggerPanel: React.FC = () => {
     );
 };
 
-// ─── How To Use Guide ─────────────────────────────────────────────────────────
+
 const HowToUseGuide: React.FC = () => {
     const [open, setOpen] = useState(false);
 
@@ -636,7 +636,7 @@ const HowToUseGuide: React.FC = () => {
     );
 };
 
-// ─── Time Log Viewer Panel ────────────────────────────────────────────────────
+
 const TimeLogPanel: React.FC = () => {
     const [sources, setSources] = useState<TimeLogSource[]>(() => {
         try { const s = localStorage.getItem('dtr-timelog-sources'); return s ? JSON.parse(s) : []; } catch { return []; }
@@ -879,7 +879,7 @@ const TimeLogPanel: React.FC = () => {
     );
 };
 
-// ─── Root ─────────────────────────────────────────────────────────────────────
+
 const DTRPage: React.FC = () => {
     const [tab, setTab] = useState<'logger' | 'timelog'>('logger');
     return (

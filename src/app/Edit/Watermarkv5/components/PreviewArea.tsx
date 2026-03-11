@@ -21,6 +21,7 @@ export default function PreviewArea() {
         selectedImageIndex,
         setSelectedImageIndex,
         reorderImages,
+        selectedImages
     } = useImageEditor();
 
     const [processing, setProcessing] = useState(false);
@@ -34,7 +35,7 @@ export default function PreviewArea() {
     const dragFromIndex = useRef<number | null>(null);
     const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
-      useImageKeyNav(images.length, selectedImageIndex, setSelectedImageIndex, gridSize);
+    useImageKeyNav(images.length, selectedImageIndex, setSelectedImageIndex, gridSize);
 
     const abortControllerRef = useRef<AbortController | null>(null);
     const imageBlobGetters = useRef<Map<number, () => Promise<Blob | null>>>(new Map());
@@ -42,7 +43,7 @@ export default function PreviewArea() {
     const cardRefs = useRef<Map<number, HTMLDivElement>>(new Map())
 
     const { saveTemplate } = useTemplateActions();
-;
+    ;
     useEffect(() => {
         if (selectedImageIndex === null) return;
         const card = cardRefs.current.get(selectedImageIndex);
@@ -124,6 +125,83 @@ export default function PreviewArea() {
         }
     };
 
+    const downloadSelected = async () => {
+        if (selectedImages.length === 0) return;
+
+        // If only one image selected — download as single file, no ZIP
+        if (selectedImages.length === 1) {
+            const index = selectedImages[0];
+            const canvas = imageCanvases.current.get(index);
+            const image = images[index];
+            if (!canvas || !image) return;
+
+            const mimeType = `image/${exportOptions.format}`;
+            const quality = exportOptions.format === 'png' ? 1 : exportOptions.quality / 100;
+
+            // Apply scale if needed
+            let exportCanvas = canvas;
+            if (exportOptions.scale !== 1) {
+                exportCanvas = document.createElement('canvas');
+                exportCanvas.width = Math.round(canvas.width * exportOptions.scale);
+                exportCanvas.height = Math.round(canvas.height * exportOptions.scale);
+                const ctx = exportCanvas.getContext('2d');
+                if (ctx) {
+                    ctx.imageSmoothingEnabled = true;
+                    ctx.imageSmoothingQuality = 'high';
+                    ctx.drawImage(canvas, 0, 0, exportCanvas.width, exportCanvas.height);
+                }
+            }
+
+            exportCanvas.toBlob((blob) => {
+                if (!blob) return;
+                const baseName = image.file.name.replace(/\.[^/.]+$/, '');
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = `${baseName}_watermarked.${exportOptions.format}`;
+                link.click();
+                URL.revokeObjectURL(link.href);
+            }, mimeType, quality);
+
+            return;
+        }
+
+        // Multiple selected — export as ZIP using only selected indices
+        setProcessing(true);
+        setDownloadProgress(0);
+        abortControllerRef.current = new AbortController();
+
+        try {
+            // Build a filtered Map with only selected indices
+            const selectedBlobGetters = new Map<number, () => Promise<Blob | null>>();
+            const selectedCanvases = new Map<number, HTMLCanvasElement>();
+
+            selectedImages.forEach(index => {
+                const getter = imageBlobGetters.current.get(index);
+                const canvas = imageCanvases.current.get(index);
+                if (getter) selectedBlobGetters.set(index, getter);
+                if (canvas) selectedCanvases.set(index, canvas);
+            });
+
+            const selectedFilenames = images.map(img => img.file.name);
+
+            await exportAsZip(
+                selectedBlobGetters,
+                selectedFilenames,
+                `${fileName || 'watermarked_images'}_selected`,
+                exportOptions,
+                selectedCanvases,
+                (current) => setDownloadProgress(current),
+                abortControllerRef.current.signal,
+            );
+        } catch (err) {
+            console.error('Selected export error:', err);
+        } finally {
+            setProcessing(false);
+            setDownloadProgress(0);
+            abortControllerRef.current = null;
+        }
+    };
+
     const cancelDownload = () => {
         abortControllerRef.current?.abort();
         setProcessing(false);
@@ -181,15 +259,15 @@ export default function PreviewArea() {
             <div className="flex items-center justify-between">
                 <h2 className="text-2xl font-extrabold text-gray-900 dark:text-white flex items-center gap-3">
                     Image Previews
-                {images.length > 0 && (
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-sm font-semibold bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-                        <IoImage size={16} />
-                        {selectedImageIndex !== null
-                            ? <>{selectedImageIndex + 1} <span className="opacity-50">/</span> {images.length}</>
-                            : images.length
-                        }
-                    </span>
-                )}
+                    {images.length > 0 && (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-sm font-semibold bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                            <IoImage size={16} />
+                            {selectedImageIndex !== null
+                                ? <>{selectedImageIndex + 1} <span className="opacity-50">/</span> {images.length}</>
+                                : images.length
+                            }
+                        </span>
+                    )}
                 </h2>
 
                 {/* Grid size toggle */}
@@ -202,11 +280,10 @@ export default function PreviewArea() {
                                     key={size}
                                     onClick={() => setGridSize(size)}
                                     title={`${size} column${size !== 1 ? 's' : ''}`}
-                                    className={`p-1.5 rounded-md transition-colors ${
-                                        gridSize === size
-                                            ? "bg-white dark:bg-gray-700 text-indigo-600 dark:text-indigo-400 shadow-sm"
-                                            : "text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                                    }`}
+                                    className={`p-1.5 rounded-md transition-colors ${gridSize === size
+                                        ? "bg-white dark:bg-gray-700 text-indigo-600 dark:text-indigo-400 shadow-sm"
+                                        : "text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                                        }`}
                                 >
                                     <Icon className="w-4 h-4" />
                                 </button>
@@ -277,7 +354,7 @@ export default function PreviewArea() {
             )}
 
             {/* Batch actions */}
-            <BatchActions />
+            <BatchActions onDownloadSelected={downloadSelected} />
 
             {/* ── Image grid ── */}
             {images.length === 0 ? (

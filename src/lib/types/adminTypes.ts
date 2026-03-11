@@ -237,6 +237,14 @@ export const navItems: NavItem[] = [
         active: true,
         requiredRole: "admin",
         sublinks: [],
+      },
+      {
+        name: "Image Directory",
+        href: "/admin/directory",
+        icon: RiAdminFill,
+        active: true,
+        requiredRole: "admin",
+        sublinks: [],
       }
     ],
   },

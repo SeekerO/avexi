@@ -64,3 +64,21 @@ export interface ExportOptions {
   includeMetadata: boolean;
   compression: 'none' | 'low' | 'medium' | 'high';
 }
+
+export interface TextConfig {
+  content: string;
+  fontFamily: string;
+  fontSize: number;
+  color: string;
+  bold: boolean;
+  italic: boolean;
+  strokeColor?: string;
+  strokeWidth?: number;
+}
+
+export interface LogoItem {
+  id: string;
+  url: string | null;          // null for text watermarks
+  textConfig?: TextConfig;     // present only for text watermarks
+  settings: WatermarkSettings;
+}
