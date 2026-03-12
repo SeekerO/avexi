@@ -19,7 +19,7 @@ const activeClasses = "bg-sky-900 text-white font-semibold shadow-md hover:bg-sk
 const inactiveMainClasses = "text-gray-700 font-medium hover:bg-gray-200 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white";
 const inactiveSublinkClasses = "text-gray-500 font-light hover:bg-gray-200 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white";
 const disabledClasses = "opacity-50 cursor-not-allowed pointer-events-none";
-const sidebarRootClasses = "h-screen shrink-0 shadow-2xl transition-all duration-300 ease-in-out mr-1" +
+const sidebarRootClasses = " shrink-0 shadow-2xl transition-all duration-300 ease-in-out mr-1" +
     "bg-white text-gray-900 dark:bg-gray-900 dark:text-white";
 const logoBorderClasses = "border-b border-gray-200/50 dark:border-gray-700/50";
 const footerBorderClasses = "border-t border-gray-200/50 dark:border-gray-700/50";
@@ -137,7 +137,7 @@ const Sidebar: React.FC = () => {
 
     return (
         <>
-            <div className={`${sidebarWidthClass} ${sidebarRootClasses} ${!isCollapsed ? "overflow-y-auto" : "overflow-hidden"} lg:mr-1 justify-between flex flex-col h-full sticky`}>
+            <div className={`${sidebarWidthClass} ${sidebarRootClasses} ${!isCollapsed ? "overflow-y-auto" : "overflow-hidden"} sticky lg:mr-1 justify-between flex flex-col `}>
 
                 <div className="fixed pointer-events-none z-0 rounded-full w-[500px] h-[500px]"
                     style={{ top: '-200px', right: '-120px', background: 'radial-gradient(circle, rgba(99,102,241,0.13) 0%, transparent 70%)' }} />
