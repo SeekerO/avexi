@@ -34,7 +34,7 @@ interface BottomSheetProps {
     snapPoints?: number[]; // percentages of viewport height e.g. [40, 85]
 }
 
-function BottomSheet({ open, onClose, children, snapPoints = [45, 88] }: BottomSheetProps) {
+function BottomSheet({ open, onClose, children, snapPoints = [45, 100] }: BottomSheetProps) {
     const sheetRef = useRef<HTMLDivElement>(null);
     const [snapIndex, setSnapIndex] = useState(0);
     const [dragging, setDragging] = useState(false);
@@ -132,7 +132,7 @@ function BottomSheet({ open, onClose, children, snapPoints = [45, 88] }: BottomS
                             }}
                             className="p-1.5 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-500"
                         >
-                            <ChevronDown className={`w-4 h-4 transition-transform ${snapIndex === snapPoints.length - 1 ? 'rotate-180' : ''}`} />
+                            <ChevronDown className={`w-4 h-4 transition-transform ${snapIndex === snapPoints.length - 1 ? '' : 'rotate-180'}`} />
                         </button>
                         <button onClick={onClose} className="p-1.5 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-500">
                             <X className="w-4 h-4" />
@@ -160,7 +160,7 @@ interface MobileTabBarProps {
 
 function MobileTabBar({ tabs, activeTab, onTabChange, onOpen, panelOpen }: MobileTabBarProps) {
     return (
-        <div className="fixed bottom-0 left-0 right-0 z-30 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-t border-gray-200 dark:border-gray-700 safe-area-bottom">
+        <div className="fixed  bottom-0 left-20 right-0 z-0 bg-white/95 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 safe-area-bottom">
             <div className="flex items-center h-16">
                 {tabs.map(({ id, label, icon: Icon, count, countColor }) => {
                     const isActive = activeTab === id && panelOpen;
@@ -317,7 +317,7 @@ function WatermarkPageContent() {
 
     if (user && (user as any)?.canChat === true)
         return (
-            <div className="min-h-screen font-sans w-full bg-gray-50 dark:bg-gray-950">
+            <div className="min-h-screen overflow-y-auto font-sans w-full bg-gray-50 dark:bg-gray-950">
 
                 {/* ── DESKTOP: Side-by-side layout (lg+) ───────────────────────────── */}
                 <div className="hidden lg:flex h-screen overflow-hidden w-full">
@@ -406,17 +406,16 @@ function WatermarkPageContent() {
                     </div>
 
                     {/* Right Panel */}
-                    <div className="flex-1 overflow-auto h-screen">
+                    <div className="flex-1 overflow-auto h-screen w-full">
                         <PreviewArea />
                     </div>
                 </div>
 
                 {/* ── MOBILE: Full-width preview + bottom sheet (< lg) ─────────────── */}
                 <div className="lg:hidden flex flex-col min-h-screen">
-
                     {/* Mobile top bar */}
-                    <div className="sticky top-0 z-20 flex items-center justify-between px-4 py-3
-                        bg-white/95 dark:bg-gray-900/95 backdrop-blur-md
+                    <div className="sticky top-0 z-30 flex items-center justify-between px-4 py-3
+                        bg-white/95 dark:bg-gray-900 backdrop-blur-md
                         border-b border-gray-200 dark:border-gray-700 shadow-sm">
                         <div className="flex items-center gap-2 min-w-0">
                             <div className="min-w-0">
@@ -456,14 +455,7 @@ function WatermarkPageContent() {
                                 </>
                             )}
 
-                            {/* Open panel button */}
-                            <button
-                                onClick={() => { setSheetOpen(true); }}
-                                className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-indigo-600 text-white text-xs font-bold"
-                            >
-                                <PanelLeftOpen className="w-4 h-4" />
-                                Tools
-                            </button>
+
                         </div>
                     </div>
 
@@ -510,13 +502,15 @@ function WatermarkPageContent() {
                     </BottomSheet>
 
                     {/* Fixed Mobile Tab Bar */}
-                    <MobileTabBar
-                        tabs={TABS}
-                        activeTab={activeTab}
-                        onTabChange={setActiveTab}
-                        onOpen={() => setSheetOpen(true)}
-                        panelOpen={sheetOpen}
-                    />
+                    <div className="relative w-full">
+                        <MobileTabBar
+                            tabs={TABS}
+                            activeTab={activeTab}
+                            onTabChange={setActiveTab}
+                            onOpen={() => setSheetOpen(true)}
+                            panelOpen={sheetOpen}
+                        />
+                    </div>
                 </div>
             </div>
         );

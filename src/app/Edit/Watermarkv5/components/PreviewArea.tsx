@@ -440,7 +440,7 @@ export default function PreviewArea() {
                 </h2>
 
                 {images.length > 0 && (
-                    <div className="flex items-center gap-1 p-1 bg-gray-100 dark:bg-gray-800 rounded-lg">
+                    <div className="hidden lg:flex items-center gap-1 p-1 bg-gray-100 dark:bg-gray-800 rounded-lg">
                         {([1, 2, 3] as GridSize[]).map(size => {
                             const Icon = size === 1 ? Rows3 : size === 2 ? Grid2x2 : LayoutGrid;
                             return (
@@ -462,7 +462,7 @@ export default function PreviewArea() {
             </div>
 
             {images.length > 0 && (
-                <div className="sticky top-0 z-50 bg-white/90 dark:bg-gray-900/90 backdrop-blur border border-gray-200 dark:border-gray-700 rounded-xl shadow-md py-3 px-3 sm:py-4 sm:px-4 space-y-3">
+                <div className="sticky top-[70px] z-30 bg-white/90 dark:bg-gray-900/90 backdrop-blur border border-gray-200 dark:border-gray-700 rounded-xl shadow-md py-3 px-3 sm:py-4 sm:px-4 space-y-3">
                     <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                         <div className="relative flex-1 min-w-[110px] sm:min-w-[160px]">
                             <input
@@ -520,7 +520,6 @@ export default function PreviewArea() {
                     )}
                 </div>
             )}
-
             {/* Batch actions */}
             <BatchActions onDownloadSelected={downloadSelected} />
 

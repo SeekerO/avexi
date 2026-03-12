@@ -36,9 +36,9 @@ const ThemeWrapper: React.FC<WrapperProps> = ({ children }) => {
                 {/* 4. Use the new showSidebar variable */}
                 {showSidebar && <>
                     <Sidebar />
-                    <div className='absolute bottom-5 right-5 z-50'>
+                    {/* <div className='absolute bottom-5 right-5 z-50'>
                         <PopupChat />
-                    </div>
+                    </div> */}
                 </>}
                 {children}
             </main>

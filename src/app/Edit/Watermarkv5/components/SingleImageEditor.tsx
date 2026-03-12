@@ -361,7 +361,7 @@ export default function SingleImageEditor({
             )}
 
             {/* ── Action buttons — fade in on hover ── */}
-            <div className={`absolute bottom-2 right-2 flex gap-1.5 z-20 transition-all duration-200
+            <div className={`absolute bottom-2 right-2 flex gap-1.5 z-10 transition-all duration-200
                 ${isSelected ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
             >
                 <button
