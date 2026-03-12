@@ -18,33 +18,7 @@ import DarkModeToggle from '@/lib/components/dark-button';
 export default function Home() {
   const { user, loginWithGoogle, logout } = useAuth(); // Get user, login, and logout functions from AuthContext
   const [loading, setLoading] = useState<boolean>(false)
-  const containerVariants = {
-    hidden: { opacity: 0, y: -50 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        type: 'spring',
-        stiffness: 100,
-        damping: 10,
-        when: 'beforeChildren',
-        staggerChildren: 0.2,
-      },
-    },
-  };
 
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        type: 'spring',
-        stiffness: 100,
-        damping: 10,
-      },
-    },
-  };
 
   // Handles Google login click
   const handleLoginClick = async () => {
@@ -116,7 +90,7 @@ export default function Home() {
 
                 <motion.div onClick={handleLoading}
                 //  variant={itemVariants}
-                 >
+                >
                   <Link
                     href="/dashboard"
                     className="flex items-center justify-center px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold rounded-full shadow-lg hover:shadow-xl transition-all duration-300 ease-in-out transform hover:-translate-y-1 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offsvaet-gray-800 uppercase tracking-wide"

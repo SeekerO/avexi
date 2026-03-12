@@ -299,7 +299,7 @@ const ModalPreview = ({
                 bg-gradient-to-b from-white/80 dark:from-black/70 to-transparent
                 pointer-events-none z-10 backdrop-blur-[2px] dark:backdrop-blur-none"
             >
-                <button onClick={() => onClose}><X /></button>
+
                 {/* Left: zoom controls */}
                 <div className="flex items-center gap-1.5 pointer-events-auto">
                     <ToolButton onClick={() => handleZoom("out")} title="Zoom out (-)">
@@ -506,7 +506,7 @@ const ModalPreview = ({
                 )}
             </AnimatePresence>
 
-        </motion.div>
+        </motion.div >
     );
 };
 

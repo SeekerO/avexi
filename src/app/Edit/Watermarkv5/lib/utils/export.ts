@@ -30,7 +30,7 @@ export const exportAsZip = async (
   zipName: string,
   options: ExportOptions,
   canvases: Map<number, HTMLCanvasElement>,
-  onProgress?: (current: number, total: number) => void,
+  onProgress?: (percent: number) => void,
   signal?: AbortSignal
 ): Promise<void> => {
   const compressionLevels: Record<ExportOptions['compression'], number> = {
@@ -75,11 +75,14 @@ export const exportAsZip = async (
           compressionOptions: { level: compressionLevels[options.compression] }
         }
       );
-      current++;
-      onProgress?.(current, total);
     }
+
+    // Always increment and report progress, even if blob was null
+    current++;
+    onProgress?.(Math.round((current / total) * 100));
   }
 
+  if (signal?.aborted) return;
   const content = await zip.generateAsync({ type: "blob" });
   saveAs(content, `${zipName}.zip`);
 };

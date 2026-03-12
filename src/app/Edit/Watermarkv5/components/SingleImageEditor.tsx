@@ -26,13 +26,13 @@ const calculatePosition = (
     paddingY: number
 ): [number, number] => {
     switch (position) {
-        case "top-left":     return [paddingX, paddingY];
-        case "top-center":   return [(imgWidth - logoWidth) / 2, paddingY];
-        case "top-right":    return [imgWidth - logoWidth - paddingX, paddingY];
-        case "bottom-left":  return [paddingX, imgHeight - logoHeight - paddingY];
-        case "bottom-center":return [(imgWidth - logoWidth) / 2, imgHeight - logoHeight - paddingY];
+        case "top-left": return [paddingX, paddingY];
+        case "top-center": return [(imgWidth - logoWidth) / 2, paddingY];
+        case "top-right": return [imgWidth - logoWidth - paddingX, paddingY];
+        case "bottom-left": return [paddingX, imgHeight - logoHeight - paddingY];
+        case "bottom-center": return [(imgWidth - logoWidth) / 2, imgHeight - logoHeight - paddingY];
         case "bottom-right": return [imgWidth - logoWidth - paddingX, imgHeight - logoHeight - paddingY];
-        default:             return [paddingX, paddingY];
+        default: return [paddingX, paddingY];
     }
 };
 
@@ -298,29 +298,32 @@ export default function SingleImageEditor({
                 </div>
             )}
 
-                   {isSelected && (
-                    <div className="absolute bottom-2 left-2 z-20 pointer-events-none">
-                        <div className="flex items-center gap-1">
-                            <kbd className="flex items-center justify-center w-5 h-5 rounded bg-black/50 backdrop-blur-sm border border-white/20 text-white text-[9px] font-bold">
-                                ←
-                            </kbd>
-                            <kbd className="flex items-center justify-center w-5 h-5 rounded bg-black/50 backdrop-blur-sm border border-white/20 text-white text-[9px] font-bold">
-                                →
-                            </kbd>
-                            <span className="text-[9px] text-white/60 ml-0.5 font-medium">
-                                navigate
-                            </span>
-                        </div>
+            {isSelected && (
+                <div className="absolute bottom-2 left-2 z-20 pointer-events-none">
+                    <div className="flex items-center gap-1">
+                        <kbd className="flex items-center justify-center w-5 h-5 rounded bg-black/50 backdrop-blur-sm border border-white/20 text-white text-[9px] font-bold">
+                            ←
+                        </kbd>
+                        <kbd className="flex items-center justify-center w-5 h-5 rounded bg-black/50 backdrop-blur-sm border border-white/20 text-white text-[9px] font-bold">
+                            →
+                        </kbd>
+                        <span className="text-[9px] text-white/60 ml-0.5 font-medium">
+                            navigate
+                        </span>
                     </div>
-                )}
+                </div>
+            )}
 
             {/* ── Top-left status badges ── */}
             <div className="absolute top-2 left-2 flex flex-col gap-1 z-20 pointer-events-none">
                 {/* Selected indicator */}
+
+
+
                 {isSelected && (
                     <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-600 text-white shadow-md">
                         <CheckCircle2 className="w-3 h-3" />
-                        Selected
+                        Selected   {index + 1}
                     </span>
                 )}
 
@@ -382,7 +385,7 @@ export default function SingleImageEditor({
                 >
                     <FiMaximize2 className="w-3.5 h-3.5" />
                 </button>
-    
+
             </div>
 
             {/* ── Selected footer strip ── */}

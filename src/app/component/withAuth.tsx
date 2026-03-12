@@ -1,5 +1,3 @@
-// components/AuthGuard.tsx
-
 'use client'
 
 import { useEffect, ReactNode, useState } from 'react';
@@ -14,6 +12,9 @@ interface AuthGuardProps {
 
 type UserRole = 'admin' | 'standard';
 
+// Pages that bypass all checks
+const ALWAYS_ACCESSIBLE = ['/login', '/dashboard', '/', '/not-found'];
+
 const AuthGuard = ({ children, redirectTo = '/login' }: AuthGuardProps) => {
   const [isMounted, setIsMounted] = useState(false);
   const [accessChecked, setAccessChecked] = useState(false);
@@ -21,186 +22,116 @@ const AuthGuard = ({ children, redirectTo = '/login' }: AuthGuardProps) => {
   const router = useRouter();
   const pathname = usePathname();
 
-  // Component Did Mount
+  // Mount
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
-  // Helper function to get all accessible hrefs for a user
+  // Reset access check ONLY when path or user changes — but never on /not-found
+  useEffect(() => {
+    if (pathname === '/not-found') return;
+    setAccessChecked(false);
+  }, [pathname, user?.uid]);
+
   const getAccessibleHrefs = (allowedPages: PageId[] | null): string[] => {
     if (allowedPages === null) {
-      // Admin: return all hrefs
       const allHrefs: string[] = [];
-
       const extractHrefs = (items: NavItem[]) => {
         items.forEach(item => {
-          if (item.href && item.href !== '') {
-            allHrefs.push(item.href);
-          }
-          if (item.sublinks && item.sublinks.length > 0) {
-            extractHrefs(item.sublinks);
-          }
+          if (item.href && item.href !== '') allHrefs.push(item.href);
+          if (item.sublinks?.length) extractHrefs(item.sublinks);
         });
       };
-
       extractHrefs(navItems);
       return allHrefs;
     }
-
-    if (!allowedPages || allowedPages.length === 0) {
-      // No pages allowed
-      return [];
-    }
-
-    // Standard user: return only allowed hrefs
+    if (!allowedPages?.length) return [];
     const allowedHrefs: string[] = [];
-
     const extractAllowedHrefs = (items: NavItem[]) => {
       items.forEach(item => {
         if (item.pagePermissionId && allowedPages.includes(item.pagePermissionId as PageId)) {
-          if (item.href && item.href !== '') {
-            allowedHrefs.push(item.href);
-          }
+          if (item.href && item.href !== '') allowedHrefs.push(item.href);
         }
-        if (item.sublinks && item.sublinks.length > 0) {
-          extractAllowedHrefs(item.sublinks);
-        }
+        if (item.sublinks?.length) extractAllowedHrefs(item.sublinks);
       });
     };
-
     extractAllowedHrefs(navItems);
     return allowedHrefs;
   };
 
-  // Helper function to check if user has access to a specific path
   const hasAccessToPath = (currentPath: string, allowedHrefs: string[]): boolean => {
-    // Special pages that are always accessible
-    if (currentPath === '/login' || currentPath === '/dashboard' || currentPath === '/') {
-      return true;
-    }
-
-    // Check if current path matches any allowed href
-    return allowedHrefs.some(href => {
-      // Exact match
-      if (currentPath === href) return true;
-
-      // Check if current path starts with href (for nested routes)
-      if (currentPath.startsWith(href + '/')) return true;
-
-      return false;
-    });
+    if (ALWAYS_ACCESSIBLE.includes(currentPath)) return true;
+    return allowedHrefs.some(href =>
+      currentPath === href || currentPath.startsWith(href + '/')
+    );
   };
 
-  // Auth/Redirection Logic - runs ONCE per pathname/user change
+  // ── Main access check ──────────────────────────────────────────────────────
   useEffect(() => {
-    if (!isMounted) {
+    if (!isMounted || accessChecked) return;
+
+    // Step 1 — bypass checks for special pages
+    if (ALWAYS_ACCESSIBLE.includes(pathname) && pathname !== '/login') {
+      setAccessChecked(true);
       return;
     }
 
-    // Prevent multiple checks
-    if (accessChecked) {
-      return;
-    }
-
-    const isLoginPage = pathname === '/login';
-    const isUnauthorizedPage = pathname === '/';
-    const isDashboardPage = pathname === '/dashboard';
-
-    // User is NOT authenticated
+    // Step 2 — check authentication
     if (!user) {
-      if (!isLoginPage) {
-        sessionStorage.setItem('redirectAfterLogin', pathname);
-        setAccessChecked(true);
-        router.replace('/login');
-      } else {
-        setAccessChecked(true);
-      }
+      sessionStorage.setItem('redirectAfterLogin', pathname);
+      setAccessChecked(true);
+      router.replace('/login');
       return;
     }
 
-    // User IS authenticated - Check canChat first
+    // Step 3 — check canChat permission
     if (!user.canChat) {
-      // User doesn't have chat/access permission at all
-      if (!isUnauthorizedPage) {
-        setAccessChecked(true);
-        router.replace('/');
-      } else {
-        setAccessChecked(true);
-      }
+      setAccessChecked(true);
+      router.replace('/');
       return;
     }
 
-    // User has canChat - Now check page permissions
-    const userRole: UserRole = user?.isAdmin ? 'admin' : 'standard';
-
-    let allowedPages: PageId[] | null;
-
-    if (userRole === 'admin') {
-      // Admin gets access to ALL pages
-      allowedPages = null;
-    } else {
-      // Standard User Logic
-      if (user?.allowedPages === undefined || user?.allowedPages === null) {
-        // No pages configured - no access
-        allowedPages = [];
-      } else {
-        // Use the explicit list from the user object
-        allowedPages = user.allowedPages as PageId[];
-      }
-    }
+    // Step 4 — resolve allowed pages
+    const userRole: UserRole = user.isAdmin ? 'admin' : 'standard';
+    const allowedPages: PageId[] | null = userRole === 'admin'
+      ? null
+      : (user.allowedPages as PageId[] ?? []);
 
     const accessibleHrefs = getAccessibleHrefs(allowedPages);
 
-    // Handle login page redirect
-    if (isLoginPage) {
+    // Step 5 — handle login page redirect
+    if (pathname === '/login') {
       const savedPath = sessionStorage.getItem('redirectAfterLogin');
-
-      if (savedPath && savedPath !== '/login') {
-        if (hasAccessToPath(savedPath, accessibleHrefs)) {
-          sessionStorage.removeItem('redirectAfterLogin');
-          setAccessChecked(true);
-          router.replace(savedPath);
-        } else {
-          sessionStorage.removeItem('redirectAfterLogin');
-          const firstAllowedPage = accessibleHrefs.length > 0 ? accessibleHrefs[0] : '/';
-          setAccessChecked(true);
-          router.replace(firstAllowedPage);
-        }
-      } else {
-        sessionStorage.removeItem('redirectAfterLogin');
-        const firstAllowedPage = accessibleHrefs.length > 0 ? accessibleHrefs[0] : '/dashboard';
-        setAccessChecked(true);
-        router.replace(firstAllowedPage);
-      }
-      return;
-    }
-
-    // Check access to current page
-    if (!isDashboardPage && !isUnauthorizedPage && !hasAccessToPath(pathname, accessibleHrefs)) {
-      const firstAllowedPage = accessibleHrefs.length > 0 ? accessibleHrefs[0] : '/';
+      sessionStorage.removeItem('redirectAfterLogin');
+      const destination = savedPath && savedPath !== '/login' && hasAccessToPath(savedPath, accessibleHrefs)
+        ? savedPath
+        : accessibleHrefs[0] ?? '/dashboard';
       setAccessChecked(true);
-      router.replace(firstAllowedPage);
+      router.replace(destination);
       return;
     }
 
-    // User has access to current page
+    // Step 6 — check if page exists/is accessible
+    if (!hasAccessToPath(pathname, accessibleHrefs)) {
+      setAccessChecked(true);
+      router.replace('/not-found');
+      return;
+    }
+
+    // All checks passed
     setAccessChecked(true);
 
   }, [user, isMounted, pathname, router, accessChecked]);
 
-  // Reset access check when pathname or user ID changes
-  useEffect(() => {
-    setAccessChecked(false);
-  }, [pathname, user?.uid]);
+  // ── Render Control ─────────────────────────────────────────────────────────
 
-  // --- Render Control ---
+  // Always render login and not-found immediately
+  if (pathname === '/login' || pathname === '/not-found') {
+    return <>{children}</>;
+  }
 
+  // Show loading while checking
   if (!isMounted || !accessChecked) {
-    // Render login page immediately
-    if (pathname === '/login') {
-      return <>{children}</>;
-    }
-
     return (
       <div className='p-[50px] text-center'>
         <h1>Verifying Access...</h1>
@@ -209,11 +140,8 @@ const AuthGuard = ({ children, redirectTo = '/login' }: AuthGuardProps) => {
     );
   }
 
-  // User not authenticated
+  // Not authenticated
   if (!user) {
-    if (pathname === '/login') {
-      return <>{children}</>;
-    }
     return (
       <div className='p-[50px] text-center'>
         <h1>Redirecting to login...</h1>
@@ -221,11 +149,9 @@ const AuthGuard = ({ children, redirectTo = '/login' }: AuthGuardProps) => {
     );
   }
 
-  // User doesn't have canChat permission
+  // No canChat
   if (!user.canChat) {
-    if (pathname === '/') {
-      return <>{children}</>;
-    }
+    if (pathname === '/') return <>{children}</>;
     return (
       <div className='p-[50px] text-center'>
         <h1>Access Denied</h1>
@@ -234,37 +160,6 @@ const AuthGuard = ({ children, redirectTo = '/login' }: AuthGuardProps) => {
     );
   }
 
-  // Check if user has access to current page
-  const userRole: UserRole = user?.isAdmin ? 'admin' : 'standard';
-  let allowedPages: PageId[] | null;
-
-  if (userRole === 'admin') {
-    allowedPages = null;
-  } else {
-    if (user?.allowedPages === undefined || user?.allowedPages === null) {
-      allowedPages = [];
-    } else {
-      allowedPages = user.allowedPages as PageId[];
-    }
-  }
-
-  const accessibleHrefs = getAccessibleHrefs(allowedPages);
-  const isDashboardPage = pathname === '/dashboard';
-  const isUnauthorizedPage = pathname === '/';
-  const isLoginPage = pathname === '/login';
-
-  // Block rendering if user doesn't have access to current page
-  if (!isDashboardPage && !isUnauthorizedPage && !isLoginPage && !hasAccessToPath(pathname, accessibleHrefs)) {
-    return (
-      <div className='p-[50px] text-center'>
-        <h1>Access Denied</h1>
-        <p>You do not have permission to access this page.</p>
-        <p className='mt-4 text-sm text-gray-600'>Redirecting...</p>
-      </div>
-    );
-  }
-
-  // Render children after access check is complete
   return <>{children}</>;
 };
 

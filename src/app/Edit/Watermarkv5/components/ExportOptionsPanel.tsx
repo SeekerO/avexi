@@ -70,21 +70,21 @@ export default function ExportOptionsPanel({ options, onChange }: ExportOptionsP
                         Format
                     </label>
                     <div className="grid grid-cols-3 gap-2">
-                        {(Object.entries(FORMAT_INFO) as [ExportOptions['format'], typeof FORMAT_INFO['png']][]).map(([fmt, info]) => (
+                        {(Object.entries(FORMAT_INFO) as [ExportOptions['format'], (typeof FORMAT_INFO)[ExportOptions['format']]][]).map(([fmt, info]) => (
                             <button
                                 key={fmt}
                                 onClick={() => {
-                                    update('format', fmt);
-                                    // PNG doesn't use quality — reset to sensible default when switching
-                                    if (fmt === 'png') update('quality', 100);
-                                    if (fmt === 'jpg') update('quality', 85);
-                                    if (fmt === 'webp') update('quality', 90);
+                                    const qualityMap: Record<ExportOptions['format'], number> = {
+                                        png: 100,
+                                        jpg: 85,
+                                        webp: 90,
+                                    };
+                                    onChange({ ...options, format: fmt, quality: qualityMap[fmt] });
                                 }}
-                                className={`flex flex-col items-center py-2.5 px-1 rounded-lg border-2 transition-all text-center ${
-                                    options.format === fmt
-                                        ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20'
-                                        : 'border-gray-200 dark:border-gray-600 hover:border-indigo-300 dark:hover:border-indigo-700'
-                                }`}
+                                className={`flex flex-col items-center py-2.5 px-1 rounded-lg border-2 transition-all text-center ${options.format === fmt
+                                    ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20'
+                                    : 'border-gray-200 dark:border-gray-600 hover:border-indigo-300 dark:hover:border-indigo-700'
+                                    }`}
                             >
                                 <span className="text-sm font-bold text-gray-800 dark:text-gray-100">
                                     {info.label}
@@ -107,13 +107,12 @@ export default function ExportOptionsPanel({ options, onChange }: ExportOptionsP
                             <label className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
                                 Quality
                             </label>
-                            <span className={`text-sm font-bold ${
-                                options.quality >= 80
-                                    ? 'text-green-600 dark:text-green-400'
-                                    : options.quality >= 60
+                            <span className={`text-sm font-bold ${options.quality >= 80
+                                ? 'text-green-600 dark:text-green-400'
+                                : options.quality >= 60
                                     ? 'text-yellow-600 dark:text-yellow-400'
                                     : 'text-red-500 dark:text-red-400'
-                            }`}>
+                                }`}>
                                 {options.quality}%
                             </span>
                         </div>
@@ -150,11 +149,10 @@ export default function ExportOptionsPanel({ options, onChange }: ExportOptionsP
                             <button
                                 key={scale}
                                 onClick={() => update('scale', scale)}
-                                className={`py-2 text-xs font-bold rounded-lg border-2 transition-all ${
-                                    options.scale === scale
-                                        ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300'
-                                        : 'border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:border-indigo-300'
-                                }`}
+                                className={`py-2 text-xs font-bold rounded-lg border-2 transition-all ${options.scale === scale
+                                    ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300'
+                                    : 'border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:border-indigo-300'
+                                    }`}
                             >
                                 {scale}×
                             </button>
@@ -199,17 +197,16 @@ export default function ExportOptionsPanel({ options, onChange }: ExportOptionsP
                     </div>
                     <button
                         onClick={() => update('includeMetadata', !options.includeMetadata)}
-                        className={`relative w-11 h-6 rounded-full transition-colors duration-200 focus:outline-none ${
-                            options.includeMetadata
-                                ? 'bg-indigo-600'
-                                : 'bg-gray-300 dark:bg-gray-600'
-                        }`}
+                        className={`relative w-11 h-6 rounded-full transition-colors duration-200 focus:outline-none ${options.includeMetadata
+                            ? 'bg-indigo-600'
+                            : 'bg-gray-300 dark:bg-gray-600'
+                            }`}
                     >
-                        <div className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${
-                            options.includeMetadata ? 'translate-x-5' : 'translate-x-0'
-                        }`} />
+                        <div className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${options.includeMetadata ? 'translate-x-5' : 'translate-x-0'
+                            }`} />
                     </button>
                 </div>
+
             </div>
         </div>
     );

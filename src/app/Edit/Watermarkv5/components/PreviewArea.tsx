@@ -16,7 +16,7 @@ import { useInView } from "../lib/hooks/useInView";
 
 type GridSize = 1 | 2 | 3;
 
-// ── LazyImageCard — outside component + memoized to prevent remounts ──────────
+// ── LazyImageCard ─────────────────────────────────────────────────────────────
 interface LazyImageCardProps {
     image: any;
     index: number;
@@ -31,15 +31,17 @@ interface LazyImageCardProps {
     onDragEnd: () => void;
     onClick: () => void;
     cardRefs: React.MutableRefObject<Map<number, HTMLDivElement>>;
+    forceLoad?: boolean;
 }
 
 const LazyImageCard = React.memo(({
     image, index, onCanvasReady, exportOptions,
     isSelected, isDragOver, dragFromIndex,
     onDragStart, onDragOver, onDrop, onDragEnd, onClick,
-    cardRefs
+    cardRefs, forceLoad = false,
 }: LazyImageCardProps) => {
     const { ref, inView } = useInView('300px');
+    const shouldRender = inView || forceLoad;
 
     return (
         <div
@@ -62,12 +64,11 @@ const LazyImageCard = React.memo(({
                 ${isDragOver ? "ring-2 ring-dashed ring-indigo-400 scale-[1.02] bg-indigo-50 dark:bg-indigo-900/20" : ""}
             `}
         >
-            {/* Drag indicator top */}
             {isDragOver && dragFromIndex.current !== null && dragFromIndex.current > index && (
                 <div className="absolute top-0 inset-x-0 h-1 bg-indigo-500 rounded-t-xl z-30" />
             )}
 
-            {inView ? (
+            {shouldRender ? (
                 <SingleImageEditor
                     image={image}
                     index={index}
@@ -80,12 +81,10 @@ const LazyImageCard = React.memo(({
                 </div>
             )}
 
-            {/* Drag indicator bottom */}
             {isDragOver && dragFromIndex.current !== null && dragFromIndex.current < index && (
                 <div className="absolute bottom-0 inset-x-0 h-1 bg-indigo-500 rounded-b-xl z-30" />
             )}
 
-            {/* Drag handle badge */}
             <div className="absolute top-2 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity z-20 pointer-events-none">
                 <div className="flex items-center gap-1 px-2 py-0.5 bg-black/50 backdrop-blur-sm rounded-full">
                     <span className="text-white text-[10px] font-medium">⠿ drag to reorder</span>
@@ -120,6 +119,8 @@ export default function PreviewArea() {
     const [exportOptions, setExportOptions] = useState<ExportOptions>(defaultExportOptions);
     const [showExportPanel, setShowExportPanel] = useState(false);
     const [gridSize, setGridSize] = useState<GridSize>(3);
+    const [forceLoadAll, setForceLoadAll] = useState(false);
+    const [estimatedSize, setEstimatedSize] = useState<string | null>(null);
 
     const dragFromIndex = useRef<number | null>(null);
     const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
@@ -132,6 +133,43 @@ export default function PreviewArea() {
     const cardRefs = useRef<Map<number, HTMLDivElement>>(new Map());
 
     const { saveTemplate } = useTemplateActions();
+
+    // ── Estimated ZIP size ────────────────────────────────────────────────────
+    const formatBytes = (bytes: number): string => {
+        if (bytes < 1024) return `${bytes} B`;
+        if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+        return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+    };
+
+    useEffect(() => {
+        if (images.length === 0) { setEstimatedSize(null); return; }
+        const timer = setTimeout(() => {
+            const canvases = imageCanvases.current;
+            if (canvases.size === 0) {
+                // No canvases mounted yet — estimate from image file sizes
+                const totalBytes = images.reduce((sum, img) => sum + (img.file.size ?? 0), 0);
+                setEstimatedSize(`${formatBytes(totalBytes)}`);
+                return;
+            }
+            // Estimate from canvas pixel count × per-format bytes-per-pixel factor
+            const qualityFactor = exportOptions.format === 'png' ? 3.5
+                : exportOptions.format === 'webp' ? (exportOptions.quality / 100) * 0.5
+                    : (exportOptions.quality / 100) * 1.2;
+            let totalEstimate = 0;
+            canvases.forEach((canvas) => {
+                const pixels = canvas.width * canvas.height * exportOptions.scale * exportOptions.scale;
+                totalEstimate += pixels * qualityFactor;
+            });
+            // For unloaded images, average from what we have
+            if (canvases.size < images.length) {
+                const avg = totalEstimate / canvases.size;
+                totalEstimate += avg * (images.length - canvases.size);
+            }
+            setEstimatedSize(`${formatBytes(totalEstimate)}`);
+        }, 300);
+        return () => clearTimeout(timer);
+    }, [images.length, exportOptions.format, exportOptions.quality, exportOptions.scale]);
+
 
     // ── Scroll to selected ────────────────────────────────────────────────────
     useEffect(() => {
@@ -237,33 +275,74 @@ export default function PreviewArea() {
         return cardHandlers.current.get(index)!;
     }, [handleDragStart, handleDragOver, handleDrop, handleSelectImage]);
 
-    // ── Download ──────────────────────────────────────────────────────────────
+    // ── Wait for all canvases to register after forceLoadAll ──────────────────
+    const waitForAllCanvases = useCallback((
+        total: number,
+        signal: AbortSignal,
+        onTick: (ready: number) => void
+    ): Promise<void> => {
+        return new Promise((resolve, reject) => {
+            const check = () => {
+                if (signal.aborted) return reject(new Error('aborted'));
+                const ready = imageBlobGetters.current.size;
+                onTick(ready);
+                if (ready >= total) return resolve();
+                setTimeout(check, 100);
+            };
+            check();
+        });
+    }, []);
+
+    // ── Download all ──────────────────────────────────────────────────────────
     const downloadAll = async () => {
         saveTemplate();
         if (images.length === 0) return;
+
         setProcessing(true);
         setDownloadProgress(0);
         abortControllerRef.current = new AbortController();
+        const signal = abortControllerRef.current.signal;
+
         try {
-            await new Promise(resolve => setTimeout(resolve, 500));
+            // Phase 1: if any cards are still lazy (not in viewport), force-render them
+            // so SingleImageEditor mounts and calls onCanvasReady for every image.
+            if (imageBlobGetters.current.size < images.length) {
+                setForceLoadAll(true);
+                await Promise.race([
+                    waitForAllCanvases(
+                        images.length,
+                        signal,
+                        (ready) => setDownloadProgress(Math.round((ready / images.length) * 40))
+                    ),
+                    new Promise<never>((_, rej) =>
+                        setTimeout(() => rej(new Error('Timeout waiting for canvases')), 30_000)
+                    ),
+                ]);
+            }
+
+            if (signal.aborted) return;
+
+            // Phase 2: zip and save (progress mapped to 40–100%)
             await exportAsZip(
                 imageBlobGetters.current,
                 images.map(img => img.file.name),
                 fileName.replace(/\./g, ' ') || 'watermarked_images',
                 exportOptions,
                 imageCanvases.current,
-                (current) => setDownloadProgress(current),
-                abortControllerRef.current.signal
+                (percent) => setDownloadProgress(40 + Math.round(percent * 0.6)),
+                signal
             );
-        } catch (err) {
-            console.error("Export error:", err);
+        } catch (err: any) {
+            if (err?.message !== 'aborted') console.error("Export error:", err);
         } finally {
+            setForceLoadAll(false);
             setProcessing(false);
             setDownloadProgress(0);
             abortControllerRef.current = null;
         }
     };
 
+    // ── Download selected ─────────────────────────────────────────────────────
     const downloadSelected = async () => {
         if (selectedImages.length === 0) return;
 
@@ -304,6 +383,7 @@ export default function PreviewArea() {
         setProcessing(true);
         setDownloadProgress(0);
         abortControllerRef.current = new AbortController();
+        const signal = abortControllerRef.current.signal;
 
         try {
             const selectedBlobGetters = new Map<number, () => Promise<Blob | null>>();
@@ -321,8 +401,8 @@ export default function PreviewArea() {
                 `${fileName || 'watermarked_images'}_selected`,
                 exportOptions,
                 selectedCanvases,
-                (current) => setDownloadProgress(current),
-                abortControllerRef.current.signal,
+                (percent) => setDownloadProgress(percent),
+                signal,
             );
         } catch (err) {
             console.error('Selected export error:', err);
@@ -335,6 +415,7 @@ export default function PreviewArea() {
 
     const cancelDownload = () => {
         abortControllerRef.current?.abort();
+        setForceLoadAll(false);
         setProcessing(false);
         setDownloadProgress(0);
     };
@@ -382,7 +463,7 @@ export default function PreviewArea() {
 
             {/* Sticky download / export bar */}
             {images.length > 0 && (
-                <div className="sticky top-0 z-50 bg-white/90 dark:bg-gray-900/90 backdrop-blur border border-gray-200 dark:border-gray-700 rounded-xl shadow-md p-4 space-y-3">
+                <div className="sticky top-0 z-50 bg-white/90 dark:bg-gray-900/90 backdrop-blur border border-gray-200 dark:border-gray-700 rounded-xl shadow-md py-4 px-4 space-y-3">
                     <div className="flex flex-wrap items-center gap-3">
                         <div className="relative flex-1 min-w-[160px]">
                             <input
@@ -421,12 +502,25 @@ export default function PreviewArea() {
                         <button
                             onClick={downloadAll}
                             disabled={processing}
-                            className="flex items-center gap-2 px-5 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold rounded-lg shadow transition-all hover:scale-105 text-sm"
+                            className="flex flex-col items-center px-5 py-3 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold rounded-lg shadow transition-all hover:scale-105 text-sm relative"
                         >
-                            <HiOutlineFolderDownload className="text-lg" />
-                            Download ZIP
+                            <span className="flex items-center gap-2">
+                                <div className="flex flex-col items-center">
+                                    <HiOutlineFolderDownload className="text-lg" />
+                                    {estimatedSize && (
+                                        <span className="text-[8px] font-normal opacity-75 absolute left-[14px] -bottom-[1px]">
+                                            {estimatedSize}
+                                        </span>
+                                    )}
+                                </div>
+                                Download ZIP
+                            </span>
+
+
+
                         </button>
                     </div>
+
 
                     {showExportPanel && (
                         <div className="pt-3 border-t border-gray-100 dark:border-gray-700">
@@ -472,6 +566,7 @@ export default function PreviewArea() {
                                     onDragEnd={handleDragEnd}
                                     onClick={handlers.onClick}
                                     cardRefs={cardRefs}
+                                    forceLoad={forceLoadAll}
                                 />
                             );
                         })}
