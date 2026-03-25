@@ -100,6 +100,7 @@ const TOOL_META: Record<string, { description: string; accent: string }> = {
     "Admin Panel": { description: "Manage users, roles and permissions", accent: "bg-red-500/10" },
     "DTR Extractor": { description: "AI-powered time record extraction from photos", accent: "bg-red-500/10" },
     "Time Log": { description: "Log daily time in/out and sync to Sheets", accent: "bg-red-500/10" },
+    "User Log": { description: "A user Log ", accent: "bg-blue-500/10" },
 };
 
 /* ═══════════════════════════════════════
@@ -155,7 +156,7 @@ export default function DashboardPage() {
     const editTools = allTools.filter((t) => ["Watermark V5", "BG Remover", "Logo Maker", "Resolution Adjuster"].includes(t.name));
     const docTools = allTools.filter((t) => ["FAQ", "Remarks", "PDF"].includes(t.name));
     const mainTools = allTools.filter((t) => ["Matcher", "CSC Reveiwer", "Directory", "DTR Extractor"].includes(t.name));
-    const adminTools = allTools.filter((t) => ["Admin Panel", "Time Log"].includes(t.name));
+    const adminTools = allTools.filter((t) => ["Admin Panel", "Time Log", "User Log"].includes(t.name));
 
     const firstName = user?.displayName?.split(" ")[0] ?? "there";
 

@@ -45,13 +45,13 @@ const UserCard = React.memo(({
                                 <Shield className="w-2.5 h-2.5" /> Admin
                             </span>
                         )}
-                        {isSelf && (
+                        {/* {isSelf && (
                             <span className="px-1.5 py-0.5 rounded-full text-[10px] font-medium
                 bg-violet-100 dark:bg-violet-500/10 text-violet-600 dark:text-violet-400
                 border border-violet-200 dark:border-violet-500/20">
                                 You
                             </span>
-                        )}
+                        )} */}
                     </div>
                     <p className="text-[11px] text-gray-400 dark:text-white/30 truncate mt-0.5">{user.email}</p>
                 </div>
@@ -106,7 +106,8 @@ const UserCard = React.memo(({
                     {user.isAdmin ? <UserPlus className="w-3 h-3" /> : <Shield className="w-3 h-3" />}
                     {user.isAdmin ? "Demote" : "Promote"}
                 </button>
-                <button
+
+                {!user.isAdmin && <button
                     onClick={() => handleOpenPermissions(user)}
                     title="Edit page permissions"
                     className="w-8 h-8 flex items-center justify-center rounded-lg text-[11px]
@@ -117,7 +118,8 @@ const UserCard = React.memo(({
             transition-all"
                 >
                     <Key className="w-3.5 h-3.5" />
-                </button>
+                </button>}
+
             </div>
         </motion.div>
     );

@@ -7,6 +7,7 @@ import { useAuth } from "../../lib/auth/AuthContext";
 import { IoAnalytics } from "react-icons/io5";
 import { MdDelete } from 'react-icons/md';
 import { NoResults, LoadingState, DataSetPanel, ResultItem } from "./components/supporting";
+import { addLog } from "@/lib/firebase/firebase.actions.firestore/logsFirestore";
 
 const Matcher = () => {
     const { user } = useAuth();
@@ -31,6 +32,14 @@ const Matcher = () => {
                 Buffer.from(file2Buffer),
                 threshold
             );
+            if (!user) return;
+
+            await addLog({
+                userName: user.displayName ?? "Unknown",
+                userEmail: user.email ?? "unknown@email.com",
+                function: `process_comparison_analysis`,
+                urlPath: "/Documents/Pdf",
+            });
             setRes(result);
         } catch (err: any) {
             setError("An error occurred during matching. Please try again.");

@@ -59,7 +59,7 @@ import { GiCardExchange } from "react-icons/gi";
 import { IoWater } from "react-icons/io5";
 import { RiAdminFill } from "react-icons/ri";
 import { MdOutlineAdminPanelSettings, MdOpacity } from "react-icons/md";
-import { LayoutDashboard, FileCog, FolderClock, TestTube } from "lucide-react"
+import { LayoutDashboard, FileCog, FolderClock, TestTube, Logs } from "lucide-react"
 
 export type UserRole = "admin" | "standard";
 
@@ -222,6 +222,14 @@ export const navItems: NavItem[] = [
         name: "Time Log",
         href: "/admin/timelog",
         icon: FolderClock,
+        active: true,
+        requiredRole: "admin",
+        sublinks: [],
+      },
+      {
+        name: "User Log",
+        href: "/admin/log",
+        icon: Logs,
         active: true,
         requiredRole: "admin",
         sublinks: [],

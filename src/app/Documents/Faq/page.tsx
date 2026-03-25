@@ -1,13 +1,13 @@
 "use client";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useAuth } from "@/lib/auth/AuthContext";
 import Link from "next/link";
 import BreadCrumb from "@/app/component/not_using_breadcrumb";
 import TimerSettingsModal from "./component/TimeSetter";
 import { Search, Clock, Copy, Check, RotateCcw, ChevronDown, Plus, Trash2, Save, X, Timer } from "lucide-react";
-import { FaRegFileImage, FaFileAlt } from "react-icons/fa";
+import { FaFileAlt } from "react-icons/fa";
 import Logo from "@/../public/Avexi.png"
 import Image from "next/image";
 import {
@@ -18,6 +18,7 @@ import {
   deleteFaq,
   setFaqTimer,
 } from "@/lib/firebase/firebase.actions.firestore/faqFirestore";
+import { addLog } from "@/lib/firebase/firebase.actions.firestore/logsFirestore";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -273,12 +274,23 @@ function AddFaqModal({
 }) {
   const [topic, setTopic] = useState("");
   const [details, setDetails] = useState("");
+  const { user } = useAuth()
 
-  const handleAdd = () => {
+  const handleAdd = async () => {
     if (!topic.trim() || !details.trim()) return;
     onAdd({ topic, details });
     setTopic("");
     setDetails("");
+
+    if (!user) return;
+
+    await addLog({
+      userName: user.displayName ?? "Unknown",
+      userEmail: user.email ?? "unknown@email.com",
+      function: `addTopic_${topic}`,
+      urlPath: "/Documents/Faq",
+    });
+
   };
 
   if (!open) return null;

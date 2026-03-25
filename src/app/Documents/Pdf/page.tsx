@@ -11,6 +11,8 @@ import { wordToPDF, pdfToWord, excelToPDF, pdfToExcel, htmlToPDF, combinePDFs, i
 import Image from 'next/image';
 import Logo from "@/../public/Avexi.png";
 import ConversionItem from './item';
+import { useAuth } from '@/lib/auth/AuthContext';
+import { addLog } from '@/lib/firebase/firebase.actions.firestore/logsFirestore';
 
 export type ConversionMode =
     'pdf-to-word' | 'pdf-to-excel' | 'word-to-pdf' | 'excel-to-pdf' |
@@ -46,6 +48,7 @@ const PDFConverter: React.FC = () => {
     const [dragActive, setDragActive] = useState(false);
     const [isDarkMode, setIsDarkMode] = useState(true);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const { user } = useAuth()
 
     // Dark Mode Toggle Logic
     useEffect(() => {
@@ -182,6 +185,16 @@ const PDFConverter: React.FC = () => {
                         case 'html-to-pdf': blob = await htmlToPDF(updatedFiles[i]); break;
                         default: throw new Error('Invalid conversion mode');
                     }
+
+                    if (!user) return;
+
+                    await addLog({
+                        userName: user.displayName ?? "Unknown",
+                        userEmail: user.email ?? "unknown@email.com",
+                        function: `"download_by_${mode}`,
+                        urlPath: "/Documents/Pdf",
+                    });
+
                     const url = URL.createObjectURL(blob);
                     updatedFiles[i] = {
                         ...updatedFiles[i], status: 'complete',

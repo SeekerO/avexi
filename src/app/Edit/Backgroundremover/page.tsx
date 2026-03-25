@@ -3,6 +3,8 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Upload, Download, X, Loader2, Image as ImageIcon, RotateCcw, Sparkles } from 'lucide-react';
 import { IoLogoBuffer, IoIosColorWand, IoIosPin } from "react-icons/io";
+import { addLog } from '@/lib/firebase/firebase.actions.firestore/logsFirestore';
+import { useAuth } from '@/lib/auth/AuthContext';
 
 export default function BackgroundRemover() {
     const [originalImage, setOriginalImage] = useState<string | null>(null);
@@ -10,6 +12,7 @@ export default function BackgroundRemover() {
     const [loading, setLoading] = useState(false);
     const [dragActive, setDragActive] = useState(false);
     const [modelLoaded, setModelLoaded] = useState(false);
+    const { user } = useAuth()
 
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const segmentationRef = useRef<any>(null);
@@ -94,12 +97,21 @@ export default function BackgroundRemover() {
         await segmentationRef.current.send({ image: img });
     };
 
-    const downloadImage = () => {
+    const downloadImage = async () => {
         if (!processedImage) return;
         const a = document.createElement('a');
         a.href = processedImage;
         a.download = 'no-bg.png';
         a.click();
+
+        if (!user) return
+
+        await addLog({
+            userName: user.displayName ?? "Unknown",
+            userEmail: user.email ?? "unknown@email.com",
+            function: "downloadImageBackgroundRemoved",
+            urlPath: "/Edit/Backgroundremoverr",
+        });
     };
 
     const reset = () => {

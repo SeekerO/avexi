@@ -13,6 +13,8 @@ import { useTemplateActions } from "./hooks/useTemplateActions";
 import BatchActions from "./BatchActions";
 import { useImageKeyNav } from "./hooks/useImageKeyNav";
 import { useInView } from "../lib/hooks/useInView";
+import { useAuth } from "@/lib/auth/AuthContext";
+import { addLog } from "@/lib/firebase/firebase.actions.firestore/logsFirestore";
 
 type GridSize = 1 | 2 | 3;
 
@@ -124,6 +126,8 @@ export default function PreviewArea() {
     const cardRefs = useRef<Map<number, HTMLDivElement>>(new Map());
 
     const { saveTemplate } = useTemplateActions();
+
+    const { user } = useAuth()
 
     const formatBytes = (bytes: number): string => {
         if (bytes < 1024) return `${bytes} B`;
@@ -281,6 +285,15 @@ export default function PreviewArea() {
             }
             if (signal.aborted) return;
             await exportAsZip(imageBlobGetters.current, images.map(img => img.file.name), fileName.replace(/\./g, ' ') || 'watermarked_images', exportOptions, imageCanvases.current, (percent) => setDownloadProgress(40 + Math.round(percent * 0.6)), signal);
+            if (!user) return
+
+            await addLog({
+                userName: user.displayName ?? "Unknown",
+                userEmail: user.email ?? "unknown@email.com",
+                function: `downloadZIP_allImages_${images.length}`,
+                urlPath: "/Edit/Watermarkv5",
+            });
+
         } catch (err: any) {
             if (err?.message !== 'aborted') console.error("Export error:", err);
         } finally {
@@ -317,6 +330,16 @@ export default function PreviewArea() {
                 link.click();
                 URL.revokeObjectURL(link.href);
             }, mimeType, quality);
+
+            if (!user) return
+
+            await addLog({
+                userName: user.displayName ?? "Unknown",
+                userEmail: user.email ?? "unknown@email.com",
+                function: `downloadZIP_selectedImages_${selectedImages.length}`,
+                urlPath: "/Edit/Watermarkv5",
+            });
+
             return;
         }
         setProcessing(true);

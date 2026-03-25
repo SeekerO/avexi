@@ -3,6 +3,8 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { Upload, Download, RefreshCcw, ImageIcon, Maximize2 } from 'lucide-react';
 import { MdOutlineAdminPanelSettings, MdOpacity } from "react-icons/md";
+import { useAuth } from '@/lib/auth/AuthContext';
+import { addLog } from '@/lib/firebase/firebase.actions.firestore/logsFirestore';
 
 interface ImageMeta {
     name: string;
@@ -23,6 +25,7 @@ export default function ResolutionAdjuster() {
     const [quality, setQuality] = useState(0.5);
     const [meta, setMeta] = useState<ImageMeta | null>(null);
     const [isDragging, setIsDragging] = useState(false);
+    const { user } = useAuth()
 
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -48,6 +51,7 @@ export default function ResolutionAdjuster() {
             const head = result.indexOf(',') + 1;
             const newBytes = Math.round((result.length - head) * 0.75);
 
+
             setPreviews({ original: src, processed: result });
             setMeta({ name: fileName, originalSize: fmt(originalSize), newSize: fmt(newBytes), dimensions: { w, h } });
         };
@@ -55,10 +59,19 @@ export default function ResolutionAdjuster() {
     }, [quality]);
 
     /* ── File handler ── */
-    const handleFile = (file: File) => {
+    const handleFile = async (file: File) => {
         if (!file.type.startsWith('image/')) return;
         const reader = new FileReader();
         reader.onload = (e) => processImage(e.target?.result as string, file.name, file.size);
+        if (!user) return
+
+        await addLog({
+            userName: user.displayName ?? "Unknown",
+            userEmail: user.email ?? "unknown@email.com",
+            function: "downloadImageBackgroundRemoved",
+            urlPath: "/Edit/Backgroundremoverr",
+        });
+
         reader.readAsDataURL(file);
     };
 

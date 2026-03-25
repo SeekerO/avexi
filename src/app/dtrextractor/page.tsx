@@ -2,6 +2,8 @@
 
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { FileCog } from "lucide-react"
+import { useAuth } from '@/lib/auth/AuthContext';
+import { addLog } from '@/lib/firebase/firebase.actions.firestore/logsFirestore';
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface DtrRow { day: number; morningIn: string; lunchOut: string; afternoonOut: string; }
 interface Employee {
@@ -89,6 +91,7 @@ const TimeCardExtractor: React.FC = () => {
     });
     const [supervisorName, setSupervisorName] = useState('');
     const dropRef = useRef<HTMLDivElement>(null);
+    const { user } = useAuth()
 
     const active = employees.find(e => e.id === activeId) ?? null;
 
@@ -142,16 +145,16 @@ const TimeCardExtractor: React.FC = () => {
                             {
                                 type: 'text',
                                 text: `This is a Daily Time Record (DTR) form.
-Extract only 3 time values per row: Morning In, Lunch/Noon break, and Afternoon Out.
-Return ONLY a valid JSON array. No explanation, no markdown, no backticks.
-Convert all times to 24-hour format.
-Format: [{"day": 1, "morningIn": "08:00", "lunchOut": "12:00", "afternoonOut": "17:00"}, ...]
-Rules:
-- "morningIn" = first column (arrival time)
-- "lunchOut" = middle break time
-- "afternoonOut" = last column (departure time)
-- Include ALL 31 DAYS; use "" for empty fields
-- day must be a number (1–31)`,
+                                        Extract only 3 time values per row: Morning In, Lunch/Noon break, and Afternoon Out.
+                                        Return ONLY a valid JSON array. No explanation, no markdown, no backticks.
+                                        Convert all times to 24-hour format.
+                                        Format: [{"day": 1, "morningIn": "08:00", "lunchOut": "12:00", "afternoonOut": "17:00"}, ...]
+                                        Rules:
+                                        - "morningIn" = first column (arrival time)
+                                        - "lunchOut" = middle break time
+                                        - "afternoonOut" = last column (departure time)
+                                        - Include ALL 31 DAYS; use "" for empty fields
+                                        - day must be a number (1–31)`,
                             }
                         ]
                     }]
@@ -164,6 +167,15 @@ Rules:
             const parsed = parseRows(text);
             if (!parsed) { update({ status: 'error', statusMsg: '⚠ Could not parse JSON. See raw output.', rawText: text }); return; }
             update({ status: 'done', statusMsg: `✓ Extracted ${parsed.length} entries`, data: parsed, rawText: text });
+
+            if (!user) return;
+
+            await addLog({
+                userName: user.displayName ?? "Unknown",
+                userEmail: user.email ?? "unknown@email.com",
+                function: `process_dtr_${file.name}`,
+                urlPath: "/dtrextractor_",
+            });
         } catch (err: any) {
             update({ status: 'error', statusMsg: '❌ ' + err.message });
         }
@@ -288,7 +300,7 @@ Rules:
                             </div>
 
                             <div>
-                                <h1 className="font-syne text-2xl font-extrabold tracking-tight text-slate-800 dark:text-transparent dark:bg-clip-text">
+                                <h1 className="font-syne text-2xl font-extrabold tracking-tight text-white dark:text-slate-800 ">
                                     DTR Extractor
                                 </h1>
                                 <p className="font-dm-mono text-xs text-slate-400 dark:text-slate-500">

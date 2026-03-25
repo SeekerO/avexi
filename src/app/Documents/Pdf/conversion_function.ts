@@ -3,6 +3,21 @@ import { jsPDF } from "jspdf";
 import { PDFDocument } from "pdf-lib";
 import * as mammoth from "mammoth";
 import { FileItem } from "./page";
+import { useAuth } from '@/lib/auth/AuthContext';
+import { addLog } from '@/lib/firebase/firebase.actions.firestore/logsFirestore';
+
+
+const { user } = useAuth()
+const Logger = async () => {
+  if (!user) return;
+
+  await addLog({
+    userName: user.displayName ?? "Unknown",
+    userEmail: user.email ?? "unknown@email.com",
+    function: "downloadCanvasLogoMaker",
+    urlPath: "/Documents/Faq",
+  });
+}
 
 export const wordToPDF = async (item: FileItem) => {
   const arrayBuffer = await item.file.arrayBuffer();

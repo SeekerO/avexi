@@ -9,6 +9,9 @@ import {
 } from "lucide-react";
 import { IoLogoBuffer } from "react-icons/io";
 
+import { useAuth } from "@/lib/auth/AuthContext";
+import { addLog } from "@/lib/firebase/firebase.actions.firestore/logsFirestore";
+
 /* ════════════════════════════════════════════
    TYPES
    ════════════════════════════════════════════ */
@@ -141,6 +144,7 @@ export default function LogoMaker() {
     const [isResizing, setIsResizing] = useState(false);
     const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
     const [resizeStart, setResizeStart] = useState({ x: 0, y: 0, w: 0, h: 0 });
+    const { user } = useAuth();
 
     const containerRef = useRef<HTMLDivElement>(null);
     const canvasRef = useRef<HTMLDivElement>(null);
@@ -306,6 +310,17 @@ export default function LogoMaker() {
             ctx.fillStyle = canvasColor;
             ctx.fillRect(0, 0, canvasW, canvasH);
         }
+
+
+        if (!user) return;
+
+        await addLog({
+            userName: user.displayName ?? "Unknown",
+            userEmail: user.email ?? "unknown@email.com",
+            function: "downloadCanvasLogoMaker",
+            urlPath: "/Edit/LogoMaker",
+        });
+
         const sorted = [...elements].sort((a, b) => a.zIndex - b.zIndex);
         for (const el of sorted) {
             ctx.save();
