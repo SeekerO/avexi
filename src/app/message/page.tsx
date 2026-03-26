@@ -345,7 +345,10 @@ const ChatListPanel = ({
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-4 border-b border-white/[0.06]">
                 <div>
-                    <h2 className="text-sm font-semibold text-white/90">Messages</h2>
+                    <div className="font-semibold text-white/90 gap-[7px] flex h-fit relative">
+                        <h2 className="text-indigo-500/70 text-[11px] tracking-wider absolute top-0.5">BETA</h2>
+                        <h3 className="pl-7 text-2xl">Messages</h3>
+                    </div>
                     <p className="text-[10px] text-white/30 mt-0.5">{sorted.length} conversations</p>
                 </div>
                 <button
