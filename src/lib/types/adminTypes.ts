@@ -10,6 +10,7 @@ export const AVAILABLE_PAGES = [
   { id: "pdf", name: "PDF", category: "Document" },
   { id: "matcher", name: "Matcher", category: "Main" },
   { id: "comelecoffices", name: "COMELEC Offices", category: "Directory" },
+  { id: "message", name: "Messsage", category: "Main" },
   { id: "csc", name: "CSC Reveiwer", category: "Other Tool" },
   { id: "dtrexporter", name: "DTR Exporter", category: "Other Tool" },
 
@@ -83,7 +84,7 @@ import { GiCardExchange } from "react-icons/gi";
 import { IoWater } from "react-icons/io5";
 import { RiAdminFill } from "react-icons/ri";
 import { MdOutlineAdminPanelSettings, MdOpacity } from "react-icons/md";
-import { LayoutDashboard, FileCog, FolderClock, TestTube, Logs } from "lucide-react"
+import { LayoutDashboard, FileCog, FolderClock, TestTube, Logs, MessageCircle } from "lucide-react"
 
 export type UserRole = "admin" | "standard";
 
@@ -202,6 +203,14 @@ export const navItems: NavItem[] = [
         sublinks: [],
       }
     ],
+  },
+  {
+    name: "Message",
+    href: "/message",
+    icon: MessageCircle,
+    active: true,
+    pagePermissionId: "message",
+    sublinks: [],
   },
   {
     name: "Other Tools",

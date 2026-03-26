@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { ref, onValue, query, orderByChild } from 'firebase/database';
-import { db } from '../../../lib/firebase/firebase';
+import { db } from '@/lib/firebase/firebase';
 
 // Interface for a chat message
 interface ChatMessage {
@@ -69,4 +69,3 @@ export const useChatMessages = (chatId: string) => {
 
     return messages;
 };
-
