@@ -16,7 +16,7 @@ import { MdGroupAdd } from "react-icons/md";
 
 import { YourChatsListProps, CreateGroupChatProps, ChatWithUnread, ChatMessage, UserProfile, ChatListProps } from './types/interfaceChatList';
 
-export default function ChatList({ onSelectChat, currentUserId, canChat }: ChatListProps) {
+export default function ChatList({ onSelectChat, currentUserId, isPermitted }: ChatListProps) {
     const { user } = useAuth();
     const rawUserChats = useUserChats(currentUserId);
     const [allUsers, setAllUsers] = useState<UserProfile[]>([]);
@@ -45,7 +45,7 @@ export default function ChatList({ onSelectChat, currentUserId, canChat }: ChatL
                         name: usersData[uid].name || usersData[uid].email,
                         profilePic: usersData[uid].profilePic || null,
                         email: usersData[uid].email,
-                        canChat: usersData[uid].canChat ?? true,
+                        isPermitted: usersData[uid].isPermitted ?? true,
                     }));
                 setAllUsers(usersList);
             } else {
@@ -75,7 +75,7 @@ export default function ChatList({ onSelectChat, currentUserId, canChat }: ChatL
 
     // Effect to handle chat messages and unread counts for existing chats
     useEffect(() => {
-        if (!user || rawUserChats.length === 0 || !canChat || allUsers.length === 0) {
+        if (!user || rawUserChats.length === 0 || !isPermitted || allUsers.length === 0) {
             if (chatsWithUnread.length > 0) {
                 setChatsWithUnread([]);
             }
@@ -149,10 +149,10 @@ export default function ChatList({ onSelectChat, currentUserId, canChat }: ChatL
         return () => {
             unsubs.forEach(unsub => unsub());
         };
-    }, [user, rawUserChats, currentUserId, canChat, allUsers, chatsWithUnread.length]);
+    }, [user, rawUserChats, currentUserId, isPermitted, allUsers, chatsWithUnread.length]);
 
     const handleCreateChat = async () => {
-        if (!user || !canChat) return;
+        if (!user || !isPermitted) return;
         if (selectedUsers.length === 0 && newChatName.trim() === '') {
             alert('Please select at least one other user or provide a group chat name.');
             return;
@@ -179,7 +179,7 @@ export default function ChatList({ onSelectChat, currentUserId, canChat }: ChatL
     };
 
     const handleOneToOneChat = async (targetUserId: string) => {
-        if (!user || !canChat) return;
+        if (!user || !isPermitted) return;
         try {
             const chatId = await createChat(null, user.uid, [targetUserId]);
             onSelectChat(chatId);
@@ -258,7 +258,7 @@ export default function ChatList({ onSelectChat, currentUserId, canChat }: ChatL
         return <div className="p-4 text-center text-gray-600">Please log in to view chats.</div>;
     }
 
-    if (!canChat) {
+    if (!isPermitted) {
         return (
             <div className="p-4 text-center text-red-600 font-semibold bg-red-50 rounded-lg shadow-sm">
                 You do not have permission to view or create chats. Please contact an administrator.

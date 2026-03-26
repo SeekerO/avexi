@@ -23,7 +23,7 @@ import { MdCallEnd } from "react-icons/md";
 // Props for the ChatRoom component
 interface ChatRoomProps {
     chatId: string; // The ID of the current chat room
-    canChat: boolean; // Permission flag from AuthContext
+    isPermitted: boolean; // Permission flag from AuthContext
     toggleChat: () => void; // Function to toggle the chat popup
 }
 
@@ -45,7 +45,7 @@ interface ChatMessage {
     // reads?: Record<string, number>; // Granular read receipts (can be heavy, using lastReadMessageId instead)
 }
 
-export default function ChatRoom({ chatId, canChat, toggleChat }: ChatRoomProps) {
+export default function ChatRoom({ chatId, isPermitted, toggleChat }: ChatRoomProps) {
     const { user } = useAuth(); // Get current user from AuthContext
     const messages = useChatMessages(chatId); // Fetch and listen to messages using custom hook
     const [input, setInput] = useState(""); // State for message input
@@ -82,7 +82,7 @@ export default function ChatRoom({ chatId, canChat, toggleChat }: ChatRoomProps)
     useEffect(() => {
         scrollToBottom(); // Scroll on new messages
         // Mark messages as read when new messages arrive and the chat is open and user has permission
-        if (user && messages.length > 0 && canChat) {
+        if (user && messages.length > 0 && isPermitted) {
             const lastMessage = messages[messages.length - 1];
             if (lastMessage && lastMessage.id) {
                 const userLastReadRef = ref(db, `userChats/${user.uid}/${chatId}`);
@@ -99,7 +99,7 @@ export default function ChatRoom({ chatId, canChat, toggleChat }: ChatRoomProps)
                 }).catch(error => console.error("Error fetching current last read ID:", error));
             }
         }
-    }, [messages, user, chatId, canChat]); // Depend on messages, user, chatId, and canChat
+    }, [messages, user, chatId, isPermitted]); // Depend on messages, user, chatId, and isPermitted
 
     // Close menu when clicking outside
     useEffect(() => {
@@ -243,7 +243,7 @@ export default function ChatRoom({ chatId, canChat, toggleChat }: ChatRoomProps)
 
     // Handler for sending messages
     const handleSend = async () => {
-        if (!input.trim() || !user || !canChat) return; // Prevent sending if input is empty, no user, or no permission
+        if (!input.trim() || !user || !isPermitted) return; // Prevent sending if input is empty, no user, or no permission
         try {
             await sendMessage(chatId, user.uid, input);
             setInput(""); // Clear input field
@@ -257,7 +257,7 @@ export default function ChatRoom({ chatId, canChat, toggleChat }: ChatRoomProps)
     // Handler for typing input
     const handleTyping = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         setInput(e.target.value);
-        if (!user || !canChat) return; // Prevent if no user or no permission
+        if (!user || !isPermitted) return; // Prevent if no user or no permission
 
         // Set typing status based on input length
         setTyping(chatId, user.uid, e.target.value.length > 0);
@@ -265,11 +265,11 @@ export default function ChatRoom({ chatId, canChat, toggleChat }: ChatRoomProps)
         // Set a new timeout to turn off typing status after a short delay
         const timeout = setTimeout(() => setTyping(chatId, user.uid, false), 1500);
         setTypingTimeout(timeout);
-    }, [chatId, user, typingTimeout, canChat]); // Depend on chatId, user, typingTimeout, and canChat
+    }, [chatId, user, typingTimeout, isPermitted]); // Depend on chatId, user, typingTimeout, and isPermitted
 
     // Handler for file input change (uploading files)
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (!user || !canChat) { // Prevent if no user or no permission
+        if (!user || !isPermitted) { // Prevent if no user or no permission
             alert("You do not have permission to upload files.");
             return;
         }
@@ -289,7 +289,7 @@ export default function ChatRoom({ chatId, canChat, toggleChat }: ChatRoomProps)
 
     // --- Message Editing Handlers ---
     const handleEditClick = (message: ChatMessage) => {
-        if (!canChat) { // Prevent if no permission
+        if (!isPermitted) { // Prevent if no permission
             alert("You do not have permission to edit messages.");
             return;
         }
@@ -307,7 +307,7 @@ export default function ChatRoom({ chatId, canChat, toggleChat }: ChatRoomProps)
     };
 
     const handleSaveEdit = async () => {
-        if (!editingMessageId || !editingMessageContent.trim() || !user || !canChat) return; // Prevent if invalid state or no permission
+        if (!editingMessageId || !editingMessageContent.trim() || !user || !isPermitted) return; // Prevent if invalid state or no permission
         try {
             await editMessage(chatId, editingMessageId, editingMessageContent, user.uid);
             setEditingMessageId(null); // Clear editing state
@@ -324,7 +324,7 @@ export default function ChatRoom({ chatId, canChat, toggleChat }: ChatRoomProps)
 
     // --- Chat Deletion Handlers ---
     const handleDeleteChat = async () => {
-        if (!user || !canChat) {
+        if (!user || !isPermitted) {
             alert("You do not have permission to delete this chat.");
             setShowConfirmDelete(false);
             setShowMenu(false);
@@ -440,7 +440,7 @@ export default function ChatRoom({ chatId, canChat, toggleChat }: ChatRoomProps)
                                             setShowMenu(false); // Close the 3-dot menu immediately
                                         }}
                                         className="block px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-600 w-full text-left"
-                                        disabled={!canChat} // Disable if user can't chat
+                                        disabled={!isPermitted} // Disable if user can't chat
                                     >
                                         Delete Chat
                                     </button>
@@ -489,7 +489,7 @@ export default function ChatRoom({ chatId, canChat, toggleChat }: ChatRoomProps)
                             const isMyMessage = msg.senderId === user.uid;
                             const messageTimestamp = msg.timestamp;
                             // Check if message can be edited (by sender, within 2 mins, and user has chat permission)
-                            const canEdit = isMyMessage && (Date.now() - messageTimestamp) <= (2 * 60 * 1000) && canChat;
+                            const canEdit = isMyMessage && (Date.now() - messageTimestamp) <= (2 * 60 * 1000) && isPermitted;
 
                             // Determine if this is the last message in the chat
                             const isLastMessage = index === messages.length - 1;
@@ -532,11 +532,11 @@ export default function ChatRoom({ chatId, canChat, toggleChat }: ChatRoomProps)
                                                     onKeyPress={(e) => {
                                                         if (e.key === 'Enter') handleSaveEdit();
                                                     }}
-                                                    disabled={!canChat} // Disable editing input if canChat is false
+                                                    disabled={!isPermitted} // Disable editing input if isPermitted is false
                                                 />
                                                 <div className="flex justify-end space-x-2">
-                                                    <button onClick={handleSaveEdit} className="bg-green-600 text-white text-xs px-3 py-1.5 rounded-md hover:bg-green-700 transition-colors" disabled={!canChat}>Save</button>
-                                                    <button onClick={handleCancelEdit} className="bg-red-500 text-white text-xs px-3 py-1.5 rounded-md hover:bg-red-600 transition-colors" disabled={!canChat}>Cancel</button>
+                                                    <button onClick={handleSaveEdit} className="bg-green-600 text-white text-xs px-3 py-1.5 rounded-md hover:bg-green-700 transition-colors" disabled={!isPermitted}>Save</button>
+                                                    <button onClick={handleCancelEdit} className="bg-red-500 text-white text-xs px-3 py-1.5 rounded-md hover:bg-red-600 transition-colors" disabled={!isPermitted}>Cancel</button>
                                                 </div>
                                             </div>
                                         ) : (
@@ -635,25 +635,25 @@ export default function ChatRoom({ chatId, canChat, toggleChat }: ChatRoomProps)
                             onKeyPress={(e) => {
                                 if (e.key === 'Enter') handleSend();
                             }}
-                            placeholder={canChat ? "Type a message..." : "You do not have permission to send messages."}
+                            placeholder={isPermitted ? "Type a message..." : "You do not have permission to send messages."}
                             className="flex-grow border border-gray-300  rounded-l-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-base text-black"
-                            disabled={!canChat} // Disable input if canChat is false
+                            disabled={!isPermitted} // Disable input if isPermitted is false
                         />
                         <input
                             type="file"
                             onChange={handleFileChange}
                             className="hidden"
                             id="file-upload"
-                            disabled={!canChat} // Disable file upload if canChat is false
+                            disabled={!isPermitted} // Disable file upload if isPermitted is false
                         />
-                        <label htmlFor="file-upload" className={`cursor-pointer bg-gray-200 text-gray-700 px-4 py-2 rounded-none hover:bg-gray-300 flex items-center justify-center text-xl ${!canChat ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                        <label htmlFor="file-upload" className={`cursor-pointer bg-gray-200 text-gray-700 px-4 py-2 rounded-none hover:bg-gray-300 flex items-center justify-center text-xl ${!isPermitted ? 'opacity-50 cursor-not-allowed' : ''}`}>
                             📎
                         </label>
 
                         <button
                             onClick={handleSend}
                             className="bg-blue-600 text-white rounded-r-lg px-5 py-2 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-base font-semibold transition-colors shadow-md"
-                            disabled={!canChat || !input.trim()} // Disable send button if no permission or empty input
+                            disabled={!isPermitted || !input.trim()} // Disable send button if no permission or empty input
                         >
                             Send
                         </button>

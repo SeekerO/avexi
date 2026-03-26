@@ -1,7 +1,7 @@
 export interface ChatListProps {
   onSelectChat: (chatId: string) => void;
   currentUserId: string;
-  canChat: boolean;
+  isPermitted: boolean;
 }
 
 export interface UserProfile {
@@ -9,7 +9,7 @@ export interface UserProfile {
   name: string;
   profilePic: string | null;
   email: string;
-  canChat: boolean;
+  isPermitted: boolean;
 }
 
 export interface ChatMessage {

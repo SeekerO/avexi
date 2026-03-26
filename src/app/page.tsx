@@ -17,12 +17,12 @@ export default function RootPage() {
       return;
     }
     // Authenticated — send to dashboard or deny
-    if (user.canChat === false) return; // withAuth will handle the denial UI
+    if (user.isPermitted === false) return; // withAuth will handle the denial UI
     router.replace("/dashboard");
   }, [user, isLoading, router]);
 
   /* Show spinner while auth resolves */
-  if (isLoading || (user && user.canChat !== false)) {
+  if (isLoading || (user && user.isPermitted !== false)) {
     return (
       <div className="flex h-screen w-screen items-center justify-center bg-[var(--nexus-sidebar-bg)]">
         <div className="flex flex-col items-center gap-3">
@@ -55,7 +55,7 @@ export default function RootPage() {
   }
 
   /* No access */
-  if (user && user.canChat === false) {
+  if (user && user.isPermitted === false) {
     return (
       <div className="flex h-screen w-screen items-center justify-center bg-[var(--nexus-sidebar-bg)]">
         <div

@@ -13,7 +13,7 @@ const UserCard = React.memo(({
     handleToggleCanChat, handleToggleAdmin, handleOpenPermissions, formatLastOnline,
 }: {
     user: UserProfile; isOnline: boolean; lastOnlineTimestamp: number | null;
-    currentUserId: string; handleToggleCanChat: (uid: string, canChat: boolean) => void;
+    currentUserId: string; handleToggleCanChat: (uid: string, isPermitted: boolean) => void;
     handleToggleAdmin: (uid: string, isAdmin: boolean) => void;
     handleOpenPermissions: (user: UserProfile) => void;
     formatLastOnline: (ts: number) => string;
@@ -82,7 +82,7 @@ const UserCard = React.memo(({
                 <button
                     onClick={() => handleToggleCanChat(user.uid, user.isPermitted)}
                     disabled={isSelf}
-                    title={user.isPermitted ? "Revoke chat" : "Grant chat"}
+                    title={!user.isPermitted ? "Revoke Access" : "Grant Access"}
                     className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-[11px] font-medium
             border transition-all disabled:opacity-30 disabled:cursor-not-allowed
             ${user.isPermitted

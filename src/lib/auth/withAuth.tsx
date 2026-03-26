@@ -123,8 +123,8 @@ const AuthGuard = ({ children, redirectTo = '/login' }: AuthGuardProps) => {
       return;
     }
 
-    // ── User exists but no canChat — show access denied ──
-    if (!user.canChat) {
+    // ── User exists but no isPermitted — show access denied ──
+    if (!user.isPermitted) {
       setChecked(true);
       setGranted(false);
       return;
@@ -136,6 +136,7 @@ const AuthGuard = ({ children, redirectTo = '/login' }: AuthGuardProps) => {
       role === 'admin' ? null : (user.allowedPages as PageId[] ?? []);
 
     const accessibleHrefs = getAccessibleHrefs(allowedPages);
+
 
     // ── Handle post-login redirect ──
     if (pathname === '/login') {
@@ -169,8 +170,8 @@ const AuthGuard = ({ children, redirectTo = '/login' }: AuthGuardProps) => {
     return <FullScreenSpinner message="Verifying access…" />;
   }
 
-  // Authenticated but canChat denied
-  if (checked && !granted && user && !user.canChat) {
+  // Authenticated but isPermitted denied
+  if (checked && !granted && user && !user.isPermitted) {
     return (
       <div className="flex h-screen w-screen items-center justify-center bg-[var(--nexus-sidebar-bg)]">
         <div

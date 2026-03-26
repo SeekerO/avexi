@@ -89,9 +89,9 @@ export default function PopupChat() {
                     {user && <>
                         <div className="flex-grow overflow-hidden">
                             {currentChatId ?
-                                <ChatRoom chatId={currentChatId} canChat={user.canChat ?? false} toggleChat={handleToggleCloseChat} />
+                                <ChatRoom chatId={currentChatId} isPermitted={user.isPermitted ?? false} toggleChat={handleToggleCloseChat} />
                                 :
-                                <ChatList onSelectChat={handleSelectChat} currentUserId={user.uid} canChat={user.canChat ?? false} />
+                                <ChatList onSelectChat={handleSelectChat} currentUserId={user.uid} isPermitted={user.isPermitted ?? false} />
                             }
                         </div>
 

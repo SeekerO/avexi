@@ -13,7 +13,7 @@ const ThemeWrapper: React.FC<WrapperProps> = ({ children }) => {
     const { user } = useAuth();
 
     const isPublicRoute = pathname === "/" || pathname === "/login";
-    const isAuthenticated = user && user.canChat !== false;
+    const isAuthenticated = user && user.isPermitted !== false;
     const showSidebar = !isPublicRoute && isAuthenticated;
 
     /* Apply saved theme before first paint to avoid flash */

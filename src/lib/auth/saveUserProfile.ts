@@ -22,7 +22,7 @@ export const saveUserProfile = async (user: any) => {
     await update(userRef, {
       ...userData,
       isAdmin: existingData.isAdmin ?? false,
-      canChat: existingData.canChat ?? true,
+      isPermitted: existingData.isPermitted ?? false,
       allowedPages: existingData.allowedPages ?? [],
     });
   } else {
@@ -30,7 +30,7 @@ export const saveUserProfile = async (user: any) => {
     await set(userRef, {
       ...userData,
       isAdmin: false,
-      canChat: true,
+      isPermitted: false,
       allowedPages: [], // empty default for new users
     });
   }

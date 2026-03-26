@@ -15,7 +15,7 @@ import { saveUserProfile } from "./saveUserProfile";
 
 interface CustomUser extends User {
     isAdmin?: boolean;
-    canChat?: boolean;
+    isPermitted?: boolean;
     allowedPages?: string[];
 }
 
@@ -48,20 +48,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 const snapshot = await get(userProfileRef);
 
                 let isAdmin = false;
-                let canChat = false;
+                let isPermitted = false;
                 let allowedPages: string[] | undefined = undefined;
 
                 if (snapshot.exists()) {
                     const userData = snapshot.val();
                     isAdmin = userData.isAdmin || false;
-                    canChat = userData.canChat !== undefined ? userData.canChat : true;
+                    isPermitted = userData.isPermitted !== undefined ? userData.isPermitted : true;
                     allowedPages = userData.allowedPages;
                 }
-
+                console.log(allowedPages)
                 const userWithRoles: CustomUser = {
                     ...currentUser,
                     isAdmin,
-                    canChat,
+                    isPermitted,
                     allowedPages,
                 };
                 setUser(userWithRoles);
@@ -80,12 +80,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                             if (!prevUser) return null;
 
                             const newIsAdmin = userData.isAdmin || false;
-                            const newCanChat = userData.canChat !== undefined ? userData.canChat : true;
+                            const newisPermitted = userData.isPermitted !== undefined ? userData.isPermitted : true;
                             const newAllowedPages = userData.allowedPages;
 
                             const hasChanged =
                                 prevUser.isAdmin !== newIsAdmin ||
-                                prevUser.canChat !== newCanChat ||
+                                prevUser.isPermitted !== newisPermitted ||
                                 JSON.stringify(prevUser.allowedPages) !== JSON.stringify(newAllowedPages);
 
                             if (!hasChanged) return prevUser;
@@ -93,7 +93,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                             return {
                                 ...prevUser,
                                 isAdmin: newIsAdmin,
-                                canChat: newCanChat,
+                                isPermitted: newisPermitted,
                                 allowedPages: newAllowedPages,
                             };
                         });
@@ -131,6 +131,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
 
     const logout = () => signOut(auth);
+
+
 
     return (
         <AuthContext.Provider value={{ user, isLoading, loginWithGoogle, logout }}>

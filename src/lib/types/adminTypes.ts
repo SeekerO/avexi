@@ -1,15 +1,39 @@
 // --- Type Definitions ---\r\n
 export const AVAILABLE_PAGES = [
+  { id: "dashboard", name: "Dashboard", category: "Dashboard" },
   { id: "watermarkv5", name: "Watermark V5", category: "Edit" },
   { id: "bgremover", name: "BG Remover", category: "Edit" },
   { id: "logomaker", name: "Logo Maker", category: "Edit" },
+  { id: "resolutionadjuster", name: "Resolution Adjuster", category: "Edit" },
   { id: "faq", name: "FAQ", category: "Document" },
   { id: "remarks", name: "Remarks", category: "Document" },
   { id: "pdf", name: "PDF", category: "Document" },
   { id: "matcher", name: "Matcher", category: "Main" },
-  { id: "directory", name: "2D Planet", category: "Directory" },
+  { id: "comelecoffices", name: "COMELEC Offices", category: "Directory" },
   { id: "csc", name: "CSC Reveiwer", category: "Other Tool" },
+  { id: "dtrexporter", name: "DTR Exporter", category: "Other Tool" },
+
 ] as const;
+
+export const TOOL_META: Record<string, { description: string; accent: string }> = {
+  "Watermark V5": { description: "Batch watermark images with logos and footers", accent: "bg-indigo-500/10" },
+  "BG Remover": { description: "Remove image backgrounds in-browser", accent: "bg-violet-500/10" },
+  "Logo Maker": { description: "Build logos with shapes, text and images", accent: "bg-purple-500/10" },
+  "Resolution Adjuster": { description: "Downsample images for web or print", accent: "bg-blue-500/10" },
+  "FAQ": { description: "Manage voter registration FAQs", accent: "bg-emerald-500/10" },
+  "Remarks": { description: "Prepare and export document remarks", accent: "bg-teal-500/10" },
+  "PDF": { description: "Convert and process PDF documents", accent: "bg-cyan-500/10" },
+  "Matcher": { description: "Fuzzy-match voter names across Excel files", accent: "bg-amber-500/10" },
+  "CSC Reveiwer": { description: "Civil service exam reviewer", accent: "bg-rose-500/10" },
+  "Directory": { description: "Staff directory and 3D map", accent: "bg-pink-500/10" },
+  "Admin Panel": { description: "Manage users, roles and permissions", accent: "bg-red-500/10" },
+  "DTR Extractor": { description: "AI-powered time record extraction from photos", accent: "bg-red-500/10" },
+  "Time Log": { description: "Log daily time in/out and sync to Sheets", accent: "bg-red-500/10" },
+  "User Log": { description: "A user Log ", accent: "bg-blue-500/10" },
+  "COMELEC Offices": { description: "COMELEC field offices directory across the Philippines", accent: "bg-emerald-500/10" },
+  "Test Page": { description: "Testing page for new features.", accent: "bg-orange-500/10" },
+};
+
 
 // Export the types as well for external consumption
 export type PageId = (typeof AVAILABLE_PAGES)[number]["id"];
@@ -117,7 +141,7 @@ export const navItems: NavItem[] = [
         href: "/Edit/ResolutionAdjuster",
         icon: MdOpacity,
         active: true,
-        pagePermissionId: "logomaker",
+        pagePermissionId: "resolutionadjuster",
         sublinks: [],
       },
     ],
@@ -170,11 +194,11 @@ export const navItems: NavItem[] = [
     pagePermissionId: "directory",
     sublinks: [
       {
-        name: "2D World",
-        href: "/directory/2dplanet",
+        name: "COMELEC Offices",
+        href: "/directory/comelecoffices",
         icon: IoIosPin,
         active: true,
-        pagePermissionId: "directory",
+        pagePermissionId: "comelecoffices",
         sublinks: [],
       }
     ],

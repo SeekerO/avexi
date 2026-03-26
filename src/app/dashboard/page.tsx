@@ -8,6 +8,7 @@ import {
     Layers,
     ChevronRight,
 } from "lucide-react";
+import { TOOL_META } from "@/lib/types/adminTypes";
 
 /* ─── Greeting based on time of day ─── */
 function getGreeting() {
@@ -86,22 +87,6 @@ const SectionHeader = ({ title, sub }: { title: string; sub?: string }) => (
 /* ═══════════════════════════════════════
    TOOL DESCRIPTIONS — enriches navItems
    ═══════════════════════════════════════ */
-const TOOL_META: Record<string, { description: string; accent: string }> = {
-    "Watermark V5": { description: "Batch watermark images with logos and footers", accent: "bg-indigo-500/10" },
-    "BG Remover": { description: "Remove image backgrounds in-browser", accent: "bg-violet-500/10" },
-    "Logo Maker": { description: "Build logos with shapes, text and images", accent: "bg-purple-500/10" },
-    "Resolution Adjuster": { description: "Downsample images for web or print", accent: "bg-blue-500/10" },
-    "FAQ": { description: "Manage voter registration FAQs", accent: "bg-emerald-500/10" },
-    "Remarks": { description: "Prepare and export document remarks", accent: "bg-teal-500/10" },
-    "PDF": { description: "Convert and process PDF documents", accent: "bg-cyan-500/10" },
-    "Matcher": { description: "Fuzzy-match voter names across Excel files", accent: "bg-amber-500/10" },
-    "CSC Reveiwer": { description: "Civil service exam reviewer", accent: "bg-rose-500/10" },
-    "Directory": { description: "Staff directory and 3D map", accent: "bg-pink-500/10" },
-    "Admin Panel": { description: "Manage users, roles and permissions", accent: "bg-red-500/10" },
-    "DTR Extractor": { description: "AI-powered time record extraction from photos", accent: "bg-red-500/10" },
-    "Time Log": { description: "Log daily time in/out and sync to Sheets", accent: "bg-red-500/10" },
-    "User Log": { description: "A user Log ", accent: "bg-blue-500/10" },
-};
 
 /* ═══════════════════════════════════════
    DASHBOARD PAGE
@@ -155,8 +140,9 @@ export default function DashboardPage() {
     /* Group by category */
     const editTools = allTools.filter((t) => ["Watermark V5", "BG Remover", "Logo Maker", "Resolution Adjuster"].includes(t.name));
     const docTools = allTools.filter((t) => ["FAQ", "Remarks", "PDF"].includes(t.name));
-    const mainTools = allTools.filter((t) => ["Matcher", "CSC Reveiwer", "Directory", "DTR Extractor"].includes(t.name));
-    const adminTools = allTools.filter((t) => ["Admin Panel", "Time Log", "User Log"].includes(t.name));
+    const mainTools = allTools.filter((t) => ["Matcher", "CSC Reveiwer", "DTR Extractor"].includes(t.name));
+    const adminTools = allTools.filter((t) => ["Admin Panel", "Time Log", "User Log", "Test Page"].includes(t.name));
+    const directoryTools = allTools.filter((t) => ["COMELEC Offices"].includes(t.name));
 
     const firstName = user?.displayName?.split(" ")[0] ?? "there";
 
@@ -248,6 +234,17 @@ export default function DashboardPage() {
                         </div>
                     </section>
                 )}
+
+                {directoryTools.length > 0 && (
+                    <section>
+                        <SectionHeader title="Directory" />
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                            {directoryTools.map((t) => <ToolCard key={t.name} item={t} />)}
+                        </div>
+                    </section>
+                )}
+
+
 
                 {/* ── Admin tools ── */}
                 {adminTools.length > 0 && (
