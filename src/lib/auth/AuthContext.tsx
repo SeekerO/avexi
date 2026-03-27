@@ -44,6 +44,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             if (currentUser) {
                 await saveUserProfile(currentUser);
 
+                const token = await currentUser.getIdToken();
+                await fetch("/api/auth/session", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ token }),
+                }).catch(() => { }); // silent fail — don't block auth flow
+
                 const userProfileRef = ref(db, `users/${currentUser.uid}`);
                 const snapshot = await get(userProfileRef);
 
@@ -114,8 +121,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                     set(userStatusRef, serverTimestamp());
                 }
 
+                await fetch("/api/auth/session", { method: "DELETE" }).catch(() => { });
                 setUser(null);
-                setIsLoading(false); // ✅ Done loading — confirmed no user
+                setIsLoading(false);
             }
         });
 
@@ -127,10 +135,24 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     const loginWithGoogle = async () => {
         const provider = new GoogleAuthProvider();
-        await signInWithPopup(auth, provider);
+        const result = await signInWithPopup(auth, provider);
+
+        // Sync token to cookie for middleware
+        const token = await result.user.getIdToken();
+        await fetch("/api/auth/session", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ token }),
+        });
     };
 
-    const logout = () => signOut(auth);
+
+    const logout = async () => {
+        await signOut(auth);
+
+        // Clear session cookie
+        await fetch("/api/auth/session", { method: "DELETE" });
+    };
 
 
 
