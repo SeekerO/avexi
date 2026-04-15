@@ -119,7 +119,7 @@ function BottomSheet({ open, onClose, children, snapPoints = [45, 100] }: Bottom
                     <div className="flex items-center gap-2">
                         <div className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse" />
                         <span className="text-xs font-semibold text-gray-400 dark:text-white/60 uppercase tracking-wider">
-                            Editor Panel
+                            Editor Panel Mobile
                         </span>
                     </div>
                     <div className="flex items-center gap-2">
@@ -149,7 +149,7 @@ function BottomSheet({ open, onClose, children, snapPoints = [45, 100] }: Bottom
                 </div>
 
                 {/* Content */}
-                <div className="flex-1 overflow-y-auto px-4 pb-6 space-y-4">
+                <div className="flex-1 overflow-y-auto px-4 pb-24 space-y-4">
                     {children}
                 </div>
             </div>
@@ -316,7 +316,7 @@ function WatermarkPageContent() {
                             </button>
                         </div>
                     ) : watermarkCount === 0 && images.length > 0 ? (
-                        <div className="space-y-4">
+                        <div className="space-y-10 ">
                             <div className="p-3 bg-violet-50 dark:bg-violet-500/10 border border-violet-200 dark:border-violet-500/20 rounded-lg">
                                 <p className="text-xs text-violet-700 dark:text-violet-300">
                                     💡 Switch to <strong>Upload</strong> to add logos and footers, then control them here.
@@ -556,7 +556,7 @@ function WatermarkPageContent() {
                 <BottomSheet
                     open={sheetOpen}
                     onClose={() => setSheetOpen(false)}
-                    snapPoints={[48, 88]}
+                    snapPoints={[60, 88]}
                 >
                     {/* Tab switcher inside sheet */}
                     <div className="flex
