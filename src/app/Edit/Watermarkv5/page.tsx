@@ -486,7 +486,7 @@ function WatermarkPageContent() {
             </div>
 
             {/* ── MOBILE layout (< lg) ─────────────────────────────────────────── */}
-            <div className="lg:hidden flex flex-col min-h-screen bg-gray-50 dark:bg-[#0a0a12] w-full">
+            <div className="lg:hidden flex flex-col min-h-screen bg-gray-50 dark:bg-[#0a0a12] h-full w-full">
 
                 {/* Mobile top bar */}
                 <div className="sticky top-0 z-30 flex items-center justify-between px-4 py-3
