@@ -121,6 +121,10 @@ function labelToKey(label: string): string {
 }
 
 // ── BarcodeScanner modal ───────────────────────────────────────────────────────
+// Strategy: run a "burst collection" window (1.8s) after the first detection.
+// During the burst, keep scanning and collect unique barcode values.
+// After the window closes, if >1 code was found show a pick list; if only 1,
+// auto-confirm immediately. This mirrors the "2 codes detected" UX in the screenshot.
 
 interface BarcodeScannerProps {
   onScan: (value: string) => void;
@@ -128,29 +132,59 @@ interface BarcodeScannerProps {
   targetField: "serialNumber" | "propertyNumber";
 }
 
+// How long (ms) to keep scanning after the first hit to collect nearby barcodes
+const BURST_WINDOW_MS = 1800;
+
 function BarcodeScanner({ onScan, onClose, targetField }: BarcodeScannerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const readerRef = useRef<BrowserMultiFormatReader | null>(null);
+  const controlsRef = useRef<{ stop: () => void } | null>(null);
+  const burstTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const collectedRef = useRef<Map<string, string>>(new Map()); // value -> format
+
   const [cameras, setCameras] = useState<MediaDeviceInfo[]>([]);
   const [activeCameraId, setActiveCameraId] = useState<string>("");
-  const [scanStatus, setScanStatus] = useState<"scanning" | "found" | "error">("scanning");
+  // "scanning" | "burst" | "pick" | "error"
+  const [scanStatus, setScanStatus] = useState<"scanning" | "burst" | "pick" | "error">("scanning");
   const [errorMsg, setErrorMsg] = useState("");
-  const [scannedValue, setScannedValue] = useState("");
-  const controlsRef = useRef<{ stop: () => void } | null>(null);
+  const [candidates, setCandidates] = useState<{ value: string; format: string }[]>([]);
+  const [burstCount, setBurstCount] = useState(0); // live counter during burst
 
   const label = targetField === "serialNumber" ? "Serial Number" : "Property Number";
+
+  const stopStream = useCallback(() => {
+    if (burstTimerRef.current) { clearTimeout(burstTimerRef.current); burstTimerRef.current = null; }
+    controlsRef.current?.stop();
+    controlsRef.current = null;
+  }, []);
+
+  const finaliseBurst = useCallback(() => {
+    stopStream();
+    const found = Array.from(collectedRef.current.entries()).map(([value, format]) => ({ value, format }));
+    if (found.length === 0) {
+      // Nothing collected — restart scanning
+      setScanStatus("scanning");
+    } else if (found.length === 1) {
+      // Only one unique code found — auto-confirm, no picker needed
+      onScan(found[0].value);
+      onClose();
+    } else {
+      // Multiple codes — show picker
+      setCandidates(found);
+      setScanStatus("pick");
+    }
+  }, [stopStream, onScan, onClose]);
 
   const startScan = useCallback(async (cameraId: string) => {
     if (!videoRef.current) return;
     setScanStatus("scanning");
     setErrorMsg("");
-
-    // Stop any existing stream before starting a new one
-    controlsRef.current?.stop();
-    controlsRef.current = null;
+    setCandidates([]);
+    setBurstCount(0);
+    collectedRef.current = new Map();
+    stopStream();
 
     try {
-      // Hint the decoder to prioritise QR + common 1D formats, try harder at angles
       const hints = new Map();
       hints.set(DecodeHintType.POSSIBLE_FORMATS, [
         BarcodeFormat.QR_CODE,
@@ -165,23 +199,29 @@ function BarcodeScanner({ onScan, onClose, targetField }: BarcodeScannerProps) {
       const reader = new BrowserMultiFormatReader(hints);
       readerRef.current = reader;
 
-      // @zxing/browser@0.2.x: decodeFromVideoDevice(deviceId, videoEl, callback)
-      // Callback does NOT receive a ctrl arg - use controlsRef instead.
-      // Use a flag to guard against the callback firing after we already stopped.
-      let didCapture = false;
       const deviceId = cameraId || undefined;
+      let burstStarted = false;
 
       const controls = await reader.decodeFromVideoDevice(
         deviceId,
         videoRef.current,
         (result, err) => {
-          if (result && !didCapture) {
-            didCapture = true;
+          if (result) {
             const val = result.getText();
-            setScannedValue(val);
-            setScanStatus("found");
-            controlsRef.current?.stop();
-            controlsRef.current = null;
+            const fmt = result.getBarcodeFormat?.()?.toString() ?? "Code";
+            const isNew = !collectedRef.current.has(val);
+
+            if (isNew) {
+              collectedRef.current.set(val, fmt);
+              setBurstCount(collectedRef.current.size);
+            }
+
+            if (!burstStarted) {
+              // First detection — enter burst mode and start the collection window
+              burstStarted = true;
+              setScanStatus("burst");
+              burstTimerRef.current = setTimeout(finaliseBurst, BURST_WINDOW_MS);
+            }
           }
           if (err && !(err instanceof NotFoundException)) {
             console.warn("[BarcodeScanner]", err);
@@ -189,12 +229,7 @@ function BarcodeScanner({ onScan, onClose, targetField }: BarcodeScannerProps) {
         },
       );
 
-      // Only store controls if capture hasn't happened yet (fast scan edge case)
-      if (!didCapture) {
-        controlsRef.current = controls;
-      } else {
-        controls.stop();
-      }
+      controlsRef.current = controls;
     } catch (err: any) {
       setErrorMsg(
         err?.message?.includes("ermission")
@@ -203,7 +238,7 @@ function BarcodeScanner({ onScan, onClose, targetField }: BarcodeScannerProps) {
       );
       setScanStatus("error");
     }
-  }, []);
+  }, [stopStream, finaliseBurst]);
 
   useEffect(() => {
     let mounted = true;
@@ -226,29 +261,35 @@ function BarcodeScanner({ onScan, onClose, targetField }: BarcodeScannerProps) {
     })();
     return () => {
       mounted = false;
-      controlsRef.current?.stop();
+      stopStream();
     };
-  }, [startScan]);
+  }, [startScan, stopStream]);
 
   function handleCameraChange(id: string) {
     setActiveCameraId(id);
     startScan(id);
   }
 
-  function handleConfirm() {
-    onScan(scannedValue);
+  function handlePick(value: string) {
+    onScan(value);
     onClose();
   }
 
   function handleRescan() {
-    setScanStatus("scanning");
-    setScannedValue("");
     startScan(activeCameraId);
   }
 
+  // ── Burst progress bar width (counts down from 100% to 0 over BURST_WINDOW_MS)
+  // We use a CSS animation instead of JS interval for smoothness.
+  const burstBarStyle = scanStatus === "burst"
+    ? { animation: `shrink ${BURST_WINDOW_MS}ms linear forwards` }
+    : {};
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
+      <style>{`@keyframes shrink { from { width: 100% } to { width: 0% } }`}</style>
       <div className="relative w-full max-w-md bg-white rounded-2xl overflow-hidden shadow-2xl flex flex-col">
+        {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
           <div>
             <p className="text-xs text-gray-400 font-medium uppercase tracking-wide">Scanning for</p>
@@ -261,8 +302,11 @@ function BarcodeScanner({ onScan, onClose, targetField }: BarcodeScannerProps) {
           </button>
         </div>
 
+        {/* Video */}
         <div className="relative bg-black aspect-video w-full overflow-hidden">
           <video ref={videoRef} className="w-full h-full object-cover" muted playsInline />
+
+          {/* Scanning overlay */}
           {scanStatus === "scanning" && (
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
               <div className="relative w-52 h-36">
@@ -275,16 +319,25 @@ function BarcodeScanner({ onScan, onClose, targetField }: BarcodeScannerProps) {
               <p className="absolute bottom-3 left-0 right-0 text-center text-xs text-white/80">Point camera at barcode</p>
             </div>
           )}
-          {scanStatus === "found" && (
-            <div className="absolute inset-0 bg-emerald-900/70 flex flex-col items-center justify-center gap-2">
-              <div className="w-12 h-12 rounded-full bg-emerald-500 flex items-center justify-center">
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                </svg>
+
+          {/* Burst mode overlay — camera still live, collecting */}
+          {scanStatus === "burst" && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none gap-3">
+              <div className="bg-black/60 rounded-xl px-5 py-3 flex flex-col items-center gap-1.5">
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+                  <p className="text-white text-sm font-medium">{burstCount} code{burstCount !== 1 ? "s" : ""} detected</p>
+                </div>
+                <p className="text-white/60 text-xs">Hold still — collecting nearby barcodes…</p>
+                {/* Countdown bar */}
+                <div className="w-40 h-1 bg-white/20 rounded-full overflow-hidden mt-1">
+                  <div className="h-full bg-emerald-400 rounded-full" style={burstBarStyle} />
+                </div>
               </div>
-              <p className="text-white font-medium text-sm">Barcode detected!</p>
             </div>
           )}
+
+          {/* Error overlay */}
           {scanStatus === "error" && (
             <div className="absolute inset-0 bg-gray-900/80 flex flex-col items-center justify-center gap-2 p-4">
               <svg className="w-10 h-10 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -295,11 +348,13 @@ function BarcodeScanner({ onScan, onClose, targetField }: BarcodeScannerProps) {
           )}
         </div>
 
+        {/* Bottom panel */}
         <div className="px-4 py-4 flex flex-col gap-3">
-          {cameras.length > 1 && (
+          {cameras.length > 1 && scanStatus !== "pick" && (
             <div className="flex flex-col gap-1">
               <label className="text-xs text-gray-500 font-medium">Camera</label>
-              <select value={activeCameraId} onChange={(e) => handleCameraChange(e.target.value)} className="text-sm px-3 py-2 rounded-lg border border-gray-300 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+              <select value={activeCameraId} onChange={(e) => handleCameraChange(e.target.value)}
+                className="text-sm px-3 py-2 rounded-lg border border-gray-300 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-500">
                 {cameras.map((cam) => (
                   <option key={cam.deviceId} value={cam.deviceId}>
                     {cam.label || `Camera ${cam.deviceId.slice(0, 8)}`}
@@ -308,30 +363,54 @@ function BarcodeScanner({ onScan, onClose, targetField }: BarcodeScannerProps) {
               </select>
             </div>
           )}
-          {scanStatus === "found" && (
-            <div className="bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2">
-              <p className="text-xs text-emerald-600 font-medium mb-0.5">Scanned value</p>
-              <p className="text-sm font-mono text-emerald-800 break-all">{scannedValue}</p>
+
+          {/* Pick list — shown when multiple codes detected */}
+          {scanStatus === "pick" && (
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-semibold text-gray-800">{candidates.length} codes detected</p>
+                  <p className="text-xs text-gray-400 mt-0.5">Tap the value to use for <span className="font-medium text-gray-600">{label}</span></p>
+                </div>
+                <button onClick={handleRescan} className="text-xs text-emerald-600 hover:underline font-medium">Rescan</button>
+              </div>
+              <ul className="flex flex-col gap-2">
+                {candidates.map((c, i) => (
+                  <button
+                    key={i}
+                    onClick={() => handlePick(c.value)}
+                    className="flex items-center justify-between w-full text-left px-4 py-3 rounded-xl border-2 border-gray-200 bg-white hover:border-emerald-500 hover:bg-emerald-50 transition group"
+                  >
+                    <div className="flex flex-col gap-0.5 min-w-0">
+                      <span className="font-mono text-sm font-semibold text-gray-800 break-all">{c.value}</span>
+                      <span className="text-xs text-gray-400">{c.format}</span>
+                    </div>
+                    <svg className="w-5 h-5 text-gray-300 group-hover:text-emerald-500 flex-shrink-0 ml-3 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
+                ))}
+              </ul>
             </div>
           )}
-          <div className="flex gap-2">
-            {scanStatus === "found" ? (
-              <>
-                <button onClick={handleRescan} className="flex-1 px-4 py-2 text-sm font-medium rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 transition">Rescan</button>
-                <button onClick={handleConfirm} className="flex-1 px-4 py-2 text-sm font-medium rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 transition">Use this value</button>
-              </>
-            ) : scanStatus === "error" ? (
-              <button onClick={() => startScan(activeCameraId)} className="flex-1 px-4 py-2 text-sm font-medium rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 transition">Retry</button>
-            ) : (
-              <div className="flex-1 flex items-center justify-center gap-2 text-sm text-gray-400 py-1">
-                <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
-                </svg>
-                Scanning…
-              </div>
-            )}
-          </div>
+
+          {/* Scanning / burst state buttons */}
+          {(scanStatus === "scanning" || scanStatus === "burst") && (
+            <div className="flex-1 flex items-center justify-center gap-2 text-sm text-gray-400 py-1">
+              <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+              </svg>
+              {scanStatus === "burst" ? `Collecting… (${burstCount} found)` : "Scanning…"}
+            </div>
+          )}
+
+          {scanStatus === "error" && (
+            <button onClick={() => startScan(activeCameraId)}
+              className="w-full px-4 py-2 text-sm font-medium rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 transition">
+              Retry
+            </button>
+          )}
         </div>
       </div>
     </div>
@@ -811,7 +890,7 @@ export default function InventoryManager() {
 
   // ── Main render ────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen w-screen overflow-auto bg-gray-50">
+    <div className="min-h-screen bg-gray-50">
       {scannerOpen && (
         <BarcodeScanner key={scannerKey} targetField={scanTarget} onScan={handleScanResult} onClose={() => setScannerOpen(false)} />
       )}
