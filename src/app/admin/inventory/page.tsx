@@ -121,10 +121,11 @@ function labelToKey(label: string): string {
 }
 
 // ── BarcodeScanner modal ───────────────────────────────────────────────────────
-// Strategy: run a "burst collection" window (1.8s) after the first detection.
-// During the burst, keep scanning and collect unique barcode values.
-// After the window closes, if >1 code was found show a pick list; if only 1,
-// auto-confirm immediately. This mirrors the "2 codes detected" UX in the screenshot.
+// Flow:
+//   scanning → (first hit triggers burst window) → burst → pick (choose from list)
+//             → preview (confirm or go back to pick) → confirm → onScan()
+//
+// If only 1 code is found, skip directly to preview (still shows text before inserting).
 
 interface BarcodeScannerProps {
   onScan: (value: string) => void;
@@ -132,54 +133,60 @@ interface BarcodeScannerProps {
   targetField: "serialNumber" | "propertyNumber";
 }
 
-// How long (ms) to keep scanning after the first hit to collect nearby barcodes
-const BURST_WINDOW_MS = 1800;
+const BURST_WINDOW_MS = 1600;
+
+type ScanStatus = "scanning" | "burst" | "pick" | "preview" | "error";
 
 function BarcodeScanner({ onScan, onClose, targetField }: BarcodeScannerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const readerRef = useRef<BrowserMultiFormatReader | null>(null);
   const controlsRef = useRef<{ stop: () => void } | null>(null);
   const burstTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const collectedRef = useRef<Map<string, string>>(new Map()); // value -> format
+  const collectedRef = useRef<Map<string, string>>(new Map()); // value → format
 
   const [cameras, setCameras] = useState<MediaDeviceInfo[]>([]);
   const [activeCameraId, setActiveCameraId] = useState<string>("");
-  // "scanning" | "burst" | "pick" | "error"
-  const [scanStatus, setScanStatus] = useState<"scanning" | "burst" | "pick" | "error">("scanning");
+  const [scanStatus, setScanStatus] = useState<ScanStatus>("scanning");
   const [errorMsg, setErrorMsg] = useState("");
   const [candidates, setCandidates] = useState<{ value: string; format: string }[]>([]);
-  const [burstCount, setBurstCount] = useState(0); // live counter during burst
+  const [burstCount, setBurstCount] = useState(0);
+  const [preview, setPreview] = useState<{ value: string; format: string } | null>(null);
 
-  const label = targetField === "serialNumber" ? "Serial Number" : "Property Number";
+  const fieldLabel = targetField === "serialNumber" ? "Serial Number" : "Property Number";
 
+  // ── Stop stream + timers ───────────────────────────────────────────────────
   const stopStream = useCallback(() => {
     if (burstTimerRef.current) { clearTimeout(burstTimerRef.current); burstTimerRef.current = null; }
     controlsRef.current?.stop();
     controlsRef.current = null;
   }, []);
 
+  // ── Called when burst window closes ───────────────────────────────────────
   const finaliseBurst = useCallback(() => {
     stopStream();
     const found = Array.from(collectedRef.current.entries()).map(([value, format]) => ({ value, format }));
     if (found.length === 0) {
-      // Nothing collected — restart scanning
       setScanStatus("scanning");
-    } else if (found.length === 1) {
-      // Only one unique code found — auto-confirm, no picker needed
-      onScan(found[0].value);
-      onClose();
     } else {
-      // Multiple codes — show picker
+      // Always go to pick/preview — even 1 result shows a preview first
       setCandidates(found);
-      setScanStatus("pick");
+      if (found.length === 1) {
+        // Single result: skip pick list, go straight to preview
+        setPreview(found[0]);
+        setScanStatus("preview");
+      } else {
+        setScanStatus("pick");
+      }
     }
-  }, [stopStream, onScan, onClose]);
+  }, [stopStream]);
 
+  // ── Start / restart scanning ───────────────────────────────────────────────
   const startScan = useCallback(async (cameraId: string) => {
     if (!videoRef.current) return;
     setScanStatus("scanning");
     setErrorMsg("");
     setCandidates([]);
+    setPreview(null);
     setBurstCount(0);
     collectedRef.current = new Map();
     stopStream();
@@ -208,16 +215,13 @@ function BarcodeScanner({ onScan, onClose, targetField }: BarcodeScannerProps) {
         (result, err) => {
           if (result) {
             const val = result.getText();
-            const fmt = result.getBarcodeFormat?.()?.toString() ?? "Code";
+            const fmt = result.getBarcodeFormat?.()?.toString() ?? "Barcode";
             const isNew = !collectedRef.current.has(val);
-
             if (isNew) {
               collectedRef.current.set(val, fmt);
               setBurstCount(collectedRef.current.size);
             }
-
             if (!burstStarted) {
-              // First detection — enter burst mode and start the collection window
               burstStarted = true;
               setScanStatus("burst");
               burstTimerRef.current = setTimeout(finaliseBurst, BURST_WINDOW_MS);
@@ -228,7 +232,6 @@ function BarcodeScanner({ onScan, onClose, targetField }: BarcodeScannerProps) {
           }
         },
       );
-
       controlsRef.current = controls;
     } catch (err: any) {
       setErrorMsg(
@@ -240,6 +243,7 @@ function BarcodeScanner({ onScan, onClose, targetField }: BarcodeScannerProps) {
     }
   }, [stopStream, finaliseBurst]);
 
+  // ── Mount: request camera and start ───────────────────────────────────────
   useEffect(() => {
     let mounted = true;
     (async () => {
@@ -259,10 +263,7 @@ function BarcodeScanner({ onScan, onClose, targetField }: BarcodeScannerProps) {
         setScanStatus("error");
       }
     })();
-    return () => {
-      mounted = false;
-      stopStream();
-    };
+    return () => { mounted = false; stopStream(); };
   }, [startScan, stopStream]);
 
   function handleCameraChange(id: string) {
@@ -270,87 +271,116 @@ function BarcodeScanner({ onScan, onClose, targetField }: BarcodeScannerProps) {
     startScan(id);
   }
 
-  function handlePick(value: string) {
-    onScan(value);
-    onClose();
+  // User taps a code from the pick list → go to preview
+  function handlePickCandidate(c: { value: string; format: string }) {
+    setPreview(c);
+    setScanStatus("preview");
   }
 
-  function handleRescan() {
-    startScan(activeCameraId);
+  // User confirms the preview → insert value
+  function handleConfirm() {
+    if (preview) { onScan(preview.value); onClose(); }
   }
 
-  // ── Burst progress bar width (counts down from 100% to 0 over BURST_WINDOW_MS)
-  // We use a CSS animation instead of JS interval for smoothness.
-  const burstBarStyle = scanStatus === "burst"
+  // Back from preview → back to pick list (if multiple) or rescan (if single)
+  function handleBackFromPreview() {
+    if (candidates.length > 1) {
+      setScanStatus("pick");
+    } else {
+      startScan(activeCameraId);
+    }
+  }
+
+  const burstBarStyle: React.CSSProperties = scanStatus === "burst"
     ? { animation: `shrink ${BURST_WINDOW_MS}ms linear forwards` }
     : {};
+
+  // Whether the video panel should be shown (hidden in pick/preview — no need for camera)
+  const showVideo = scanStatus === "scanning" || scanStatus === "burst" || scanStatus === "error";
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
       <style>{`@keyframes shrink { from { width: 100% } to { width: 0% } }`}</style>
-      <div className="relative w-full max-w-md bg-white rounded-2xl overflow-hidden shadow-2xl flex flex-col">
-        {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
-          <div>
-            <p className="text-xs text-gray-400 font-medium uppercase tracking-wide">Scanning for</p>
-            <p className="text-sm font-semibold text-gray-800">{label}</p>
+
+      <div className="relative w-full max-w-md bg-white rounded-2xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+
+        {/* ── Header ── */}
+        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 flex-shrink-0">
+          <div className="flex items-center gap-2">
+            {(scanStatus === "preview" && candidates.length > 1) || scanStatus === "preview" ? (
+              <button
+                onClick={handleBackFromPreview}
+                className="p-1.5 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition mr-0.5"
+                aria-label="Back"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+            ) : null}
+            <div>
+              <p className="text-xs text-gray-400 font-medium uppercase tracking-wide">
+                {scanStatus === "pick" ? "Choose a code" : scanStatus === "preview" ? "Preview" : "Scanning for"}
+              </p>
+              <p className="text-sm font-semibold text-gray-800">{fieldLabel}</p>
+            </div>
           </div>
-          <button onClick={onClose} className="p-2 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition" aria-label="Close scanner">
+          <button onClick={onClose} className="p-2 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition" aria-label="Close">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         </div>
 
-        {/* Video */}
-        <div className="relative bg-black aspect-video w-full overflow-hidden">
-          <video ref={videoRef} className="w-full h-full object-cover" muted playsInline />
+        {/* ── Video panel ── */}
+        {showVideo && (
+          <div className="relative bg-black aspect-video w-full overflow-hidden flex-shrink-0">
+            <video ref={videoRef} className="w-full h-full object-cover" muted playsInline />
 
-          {/* Scanning overlay */}
-          {scanStatus === "scanning" && (
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div className="relative w-52 h-36">
-                <span className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-emerald-400 rounded-tl-sm" />
-                <span className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-emerald-400 rounded-tr-sm" />
-                <span className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-emerald-400 rounded-bl-sm" />
-                <span className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-emerald-400 rounded-br-sm" />
-                <span className="absolute left-2 right-2 top-1/2 h-0.5 bg-emerald-400/80 animate-pulse" />
-              </div>
-              <p className="absolute bottom-3 left-0 right-0 text-center text-xs text-white/80">Point camera at barcode</p>
-            </div>
-          )}
-
-          {/* Burst mode overlay — camera still live, collecting */}
-          {scanStatus === "burst" && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none gap-3">
-              <div className="bg-black/60 rounded-xl px-5 py-3 flex flex-col items-center gap-1.5">
-                <div className="flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
-                  <p className="text-white text-sm font-medium">{burstCount} code{burstCount !== 1 ? "s" : ""} detected</p>
+            {scanStatus === "scanning" && (
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div className="relative w-52 h-36">
+                  <span className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-emerald-400 rounded-tl-sm" />
+                  <span className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-emerald-400 rounded-tr-sm" />
+                  <span className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-emerald-400 rounded-bl-sm" />
+                  <span className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-emerald-400 rounded-br-sm" />
+                  <span className="absolute left-2 right-2 top-1/2 h-0.5 bg-emerald-400/80 animate-pulse" />
                 </div>
-                <p className="text-white/60 text-xs">Hold still — collecting nearby barcodes…</p>
-                {/* Countdown bar */}
-                <div className="w-40 h-1 bg-white/20 rounded-full overflow-hidden mt-1">
-                  <div className="h-full bg-emerald-400 rounded-full" style={burstBarStyle} />
+                <p className="absolute bottom-3 left-0 right-0 text-center text-xs text-white/80">Point camera at barcode</p>
+              </div>
+            )}
+
+            {scanStatus === "burst" && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none gap-3">
+                <div className="bg-black/65 rounded-xl px-5 py-3 flex flex-col items-center gap-1.5">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+                    <p className="text-white text-sm font-medium">{burstCount} code{burstCount !== 1 ? "s" : ""} detected</p>
+                  </div>
+                  <p className="text-white/60 text-xs">Hold still — collecting nearby barcodes…</p>
+                  <div className="w-40 h-1 bg-white/20 rounded-full overflow-hidden mt-1">
+                    <div className="h-full bg-emerald-400 rounded-full" style={burstBarStyle} />
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Error overlay */}
-          {scanStatus === "error" && (
-            <div className="absolute inset-0 bg-gray-900/80 flex flex-col items-center justify-center gap-2 p-4">
-              <svg className="w-10 h-10 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <p className="text-white text-sm text-center">{errorMsg}</p>
-            </div>
-          )}
-        </div>
+            {scanStatus === "error" && (
+              <div className="absolute inset-0 bg-gray-900/80 flex flex-col items-center justify-center gap-2 p-4">
+                <svg className="w-10 h-10 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <p className="text-white text-sm text-center">{errorMsg}</p>
+              </div>
+            )}
+          </div>
+        )}
 
-        {/* Bottom panel */}
-        <div className="px-4 py-4 flex flex-col gap-3">
-          {cameras.length > 1 && scanStatus !== "pick" && (
+        {/* ── Bottom panel ── */}
+        <div className="px-4 py-4 flex flex-col gap-3 overflow-y-auto">
+
+          {/* Camera selector */}
+          {cameras.length > 1 && (scanStatus === "scanning" || scanStatus === "burst") && (
             <div className="flex flex-col gap-1">
               <label className="text-xs text-gray-500 font-medium">Camera</label>
               <select value={activeCameraId} onChange={(e) => handleCameraChange(e.target.value)}
@@ -364,28 +394,25 @@ function BarcodeScanner({ onScan, onClose, targetField }: BarcodeScannerProps) {
             </div>
           )}
 
-          {/* Pick list — shown when multiple codes detected */}
+          {/* PICK LIST */}
           {scanStatus === "pick" && (
             <div className="flex flex-col gap-2">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-semibold text-gray-800">{candidates.length} codes detected</p>
-                  <p className="text-xs text-gray-400 mt-0.5">Tap the value to use for <span className="font-medium text-gray-600">{label}</span></p>
-                </div>
-                <button onClick={handleRescan} className="text-xs text-emerald-600 hover:underline font-medium">Rescan</button>
+              <div className="flex items-center justify-between mb-1">
+                <p className="text-xs text-gray-500">{candidates.length} codes found — tap one to preview it</p>
+                <button onClick={() => startScan(activeCameraId)}
+                  className="text-xs text-emerald-600 hover:underline font-medium">
+                  Rescan
+                </button>
               </div>
               <ul className="flex flex-col gap-2">
                 {candidates.map((c, i) => (
-                  <button
-                    key={i}
-                    onClick={() => handlePick(c.value)}
-                    className="flex items-center justify-between w-full text-left px-4 py-3 rounded-xl border-2 border-gray-200 bg-white hover:border-emerald-500 hover:bg-emerald-50 transition group"
-                  >
-                    <div className="flex flex-col gap-0.5 min-w-0">
-                      <span className="font-mono text-sm font-semibold text-gray-800 break-all">{c.value}</span>
-                      <span className="text-xs text-gray-400">{c.format}</span>
+                  <button key={i} onClick={() => handlePickCandidate(c)}
+                    className="flex items-center justify-between w-full text-left px-4 py-3 rounded-xl border-2 border-gray-200 bg-white hover:border-emerald-500 hover:bg-emerald-50 active:scale-[.98] transition group">
+                    <div className="flex flex-col gap-0.5 min-w-0 mr-3">
+                      <span className="font-mono text-sm font-semibold text-gray-800 break-all leading-snug">{c.value}</span>
+                      <span className="text-xs text-gray-400 uppercase tracking-wide">{c.format}</span>
                     </div>
-                    <svg className="w-5 h-5 text-gray-300 group-hover:text-emerald-500 flex-shrink-0 ml-3 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5 text-gray-300 group-hover:text-emerald-500 flex-shrink-0 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                     </svg>
                   </button>
@@ -394,9 +421,38 @@ function BarcodeScanner({ onScan, onClose, targetField }: BarcodeScannerProps) {
             </div>
           )}
 
-          {/* Scanning / burst state buttons */}
+          {/* PREVIEW */}
+          {scanStatus === "preview" && preview && (
+            <div className="flex flex-col gap-3">
+              <div className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-4 flex flex-col gap-2">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                  <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">{preview.format}</span>
+                </div>
+                <p className="font-mono text-xl font-bold text-gray-900 break-all leading-snug tracking-wide">
+                  {preview.value}
+                </p>
+                <p className="text-xs text-gray-400 mt-1">
+                  This value will be inserted into <span className="font-semibold text-gray-600">{fieldLabel}</span>
+                </p>
+              </div>
+
+              <div className="flex gap-2">
+                <button onClick={handleBackFromPreview}
+                  className="flex-1 px-4 py-2.5 text-sm font-medium rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 transition">
+                  {candidates.length > 1 ? "← Pick another" : "Rescan"}
+                </button>
+                <button onClick={handleConfirm}
+                  className="flex-1 px-4 py-2.5 text-sm font-medium rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 active:bg-emerald-800 transition">
+                  Use this value
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Scanning/burst status line */}
           {(scanStatus === "scanning" || scanStatus === "burst") && (
-            <div className="flex-1 flex items-center justify-center gap-2 text-sm text-gray-400 py-1">
+            <div className="flex items-center justify-center gap-2 text-sm text-gray-400 py-1">
               <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
@@ -405,9 +461,10 @@ function BarcodeScanner({ onScan, onClose, targetField }: BarcodeScannerProps) {
             </div>
           )}
 
+          {/* Error retry */}
           {scanStatus === "error" && (
             <button onClick={() => startScan(activeCameraId)}
-              className="w-full px-4 py-2 text-sm font-medium rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 transition">
+              className="w-full px-4 py-2.5 text-sm font-medium rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 transition">
               Retry
             </button>
           )}
