@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import MessageNotification from "../messageNotification";
 import IncomingCallToast from "../callNotificationOverlay";
 import AiAssistant from "../aiAssistant";
+import AdminFloatingToolbar from "../../admin/Adminfloatingtoolbar";
 
 interface WrapperProps {
   children: React.ReactNode;
@@ -23,30 +24,25 @@ const ThemeWrapper: React.FC<WrapperProps> = ({ children }) => {
   useLayoutEffect(() => {
     const root = window.document.documentElement;
     const saved = localStorage.getItem("theme-mode");
-    const prefersDark = window.matchMedia(
-      "(prefers-color-scheme: dark)",
-    ).matches;
+    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
     const isDark = saved === "dark" || (!saved && prefersDark);
     root.classList.toggle("dark", isDark);
   }, []);
 
   return (
     <main className="flex h-screen w-screen overflow-hidden font-sans bg-grid">
-      {showSidebar && (
-        <>
-          <Sidebar />
-          <AiAssistant />
-        </>
-      )}
+      {showSidebar && <Sidebar />}
+
+      <MessageNotification />
 
       {/*
-        Page content area:
-        - flex-1 + min-w-0  → fills remaining width, never overflows the flex row
-        - overflow-y-auto   → each page scrolls independently
-        - pb-16 lg:pb-0     → clear the 60px bottom tab bar on mobile/tablet;
-                              no padding needed on desktop (persistent sidebar)
+        Both AiAssistant and AdminFloatingToolbar manage their own
+        `fixed` positioning (AdminFloatingToolbar via a React portal).
+        Render them as direct children of <main> — never wrap them
+        together in another positioned div.
       */}
-      <MessageNotification />
+      <AiAssistant />
+      {user?.isAdmin && <AdminFloatingToolbar />}
 
       <div
         className={[
