@@ -378,10 +378,46 @@ export const combinePDFs = async (fileItems: FileItem[]): Promise<Blob> => {
 };
 
 // ─────────────────────────────────────────────
+// PDF → PPTX  (calls Next.js API route)
+// Sends the PDF to /api/pdf-to-pptx and returns
+// the .pptx blob for download
+// ─────────────────────────────────────────────
+export const pdfToPPTX = async (
+  item: FileItem,
+  mode: "image" | "text" | "hybrid" = "image",
+  dpi: number = 150,
+  pages?: string
+): Promise<Blob> => {
+  const formData = new FormData();
+  formData.append("file", item.file);
+  formData.append("mode", mode);
+  formData.append("dpi", String(dpi));
+  if (pages && pages.trim()) formData.append("pages", pages);
+
+  const res = await fetch("/api/pdf-to-pptx", {
+    method: "POST",
+    body: formData,
+  });
+
+  if (!res.ok) {
+    let errMsg = "PPTX conversion failed";
+    try {
+      const err = await res.json();
+      errMsg = err.error || errMsg;
+    } catch {
+      // ignore parse error
+    }
+    throw new Error(errMsg);
+  }
+
+  return res.blob();
+};
+
+// ─────────────────────────────────────────────
 // HELPER: Extract text preserving row/col layout
 // ─────────────────────────────────────────────
 export const extractTextFromPDF = async (
-  arrayBuffer: ArrayBuffer,
+  arrayBuffer: ArrayBuffer
 ): Promise<string> => {
   if (!(window as any).pdfjsLib) throw new Error("PDF.js library not loaded");
 

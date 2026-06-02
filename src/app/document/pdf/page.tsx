@@ -14,10 +14,7 @@ import {
   CheckCircle2,
   X,
   Trash2,
-  AlertCircle,
-  Shield,
-  Moon,
-  Sun,
+  Presentation,
 } from "lucide-react";
 import { GiCardExchange } from "react-icons/gi";
 import {
@@ -28,13 +25,17 @@ import {
   htmlToPDF,
   combinePDFs,
   imagesToPDF,
+  pdfToPPTX,
   Logger,
 } from "./conversion_function";
 import Image from "next/image";
 import Logo from "@/../public/Avexi.png";
 import ConversionItem from "./item";
 import { useAuth } from "@/lib/auth/AuthContext";
-import { CreditGate, CreditBadge } from "@/lib/components/creditComponent/CreditGate";
+import {
+  CreditGate,
+  CreditBadge,
+} from "@/lib/components/creditComponent/CreditGate";
 
 const TOOL_ID = "pdf";
 
@@ -45,7 +46,10 @@ export type ConversionMode =
   | "excel-to-pdf"
   | "combine-pdf"
   | "image-to-pdf"
-  | "html-to-pdf";
+  | "html-to-pdf"
+  | "pdf-to-pptx";
+
+export type PptxSlideMode = "image" | "text" | "hybrid";
 
 export interface FileItem {
   id: string;
@@ -69,8 +73,98 @@ export interface ModeConfig {
   color: string;
 }
 
+// ─────────────────────────────────────────────
+// PPTX Slide Mode Picker
+// Shown only when pdf-to-pptx is active
+// ─────────────────────────────────────────────
+interface PptxModePickerProps {
+  value: PptxSlideMode;
+  onChange: (mode: PptxSlideMode) => void;
+}
+
+const PPTX_MODES: {
+  id: PptxSlideMode;
+  label: string;
+  desc: string;
+  icon: string;
+}[] = [
+  {
+    id: "image",
+    label: "Image",
+    desc: "Full-page screenshot per slide. Works with any PDF.",
+    icon: "🖼️",
+  },
+  {
+    id: "text",
+    label: "Text",
+    desc: "Extracted text per slide. Best for text-heavy PDFs.",
+    icon: "📝",
+  },
+  {
+    id: "hybrid",
+    label: "Hybrid",
+    desc: "Page image on the left, extracted text on the right.",
+    icon: "⚡",
+  },
+];
+
+const PptxModePicker: React.FC<PptxModePickerProps> = ({ value, onChange }) => (
+  <div className="bg-white dark:bg-[#0d0d1a] border border-slate-200 dark:border-white/[0.06] rounded-3xl p-6 mb-6 shadow-sm dark:shadow-none">
+    <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-white/20 mb-1">
+      Slide Mode
+    </p>
+    <p className="text-xs text-slate-400 dark:text-white/20 mb-4">
+      Choose how each PDF page is presented in the PowerPoint.
+    </p>
+
+    <div className="grid grid-cols-3 gap-3">
+      {PPTX_MODES.map((m) => {
+        const isActive = value === m.id;
+        return (
+          <button
+            key={m.id}
+            onClick={() => onChange(m.id)}
+            className={`flex flex-col items-start gap-2 p-4 rounded-2xl border-2 transition-all text-left
+              ${
+                isActive
+                  ? "border-orange-500 bg-orange-50 dark:bg-orange-500/10 dark:border-orange-500/50 shadow-md dark:shadow-[0_0_20px_rgba(249,115,22,0.12)]"
+                  : "border-slate-100 dark:border-white/[0.04] bg-slate-50/50 dark:bg-white/[0.02] hover:border-slate-200 dark:hover:border-white/[0.1] hover:bg-slate-100 dark:hover:bg-white/[0.05]"
+              }`}
+          >
+            <span className="text-2xl">{m.icon}</span>
+            <div>
+              <p
+                className={`text-xs font-bold mb-0.5 ${
+                  isActive
+                    ? "text-orange-600 dark:text-orange-300"
+                    : "text-slate-600 dark:text-white/40"
+                }`}
+              >
+                {m.label}
+              </p>
+              <p
+                className={`text-[10px] leading-snug ${
+                  isActive
+                    ? "text-orange-500/70 dark:text-orange-400/60"
+                    : "text-slate-400 dark:text-white/20"
+                }`}
+              >
+                {m.desc}
+              </p>
+            </div>
+          </button>
+        );
+      })}
+    </div>
+  </div>
+);
+
+// ─────────────────────────────────────────────
+// Main PDFConverter Component
+// ─────────────────────────────────────────────
 const PDFConverter: React.FC = () => {
   const [mode, setMode] = useState<ConversionMode>("word-to-pdf");
+  const [pptxSlideMode, setPptxSlideMode] = useState<PptxSlideMode>("image");
   const [files, setFiles] = useState<FileItem[]>([]);
   const [converting, setConverting] = useState(false);
   const [pdfJsLoaded, setPdfJsLoaded] = useState(false);
@@ -173,8 +267,17 @@ const PDFConverter: React.FC = () => {
         description: "Merge multiple PDFs",
         color: "text-pink-500",
       },
+      {
+        id: "pdf-to-pptx",
+        label: "PDF → PPTX",
+        icon: Presentation,
+        accept: ".pdf",
+        outputExt: ".pptx",
+        description: "Convert PDF to PowerPoint",
+        color: "text-orange-500",
+      },
     ],
-    [],
+    []
   );
 
   const currentMode = allModes.find((m) => m.id === mode);
@@ -189,7 +292,7 @@ const PDFConverter: React.FC = () => {
 
   const generateOutputName = (
     inputName: string,
-    newExtension: string,
+    newExtension: string
   ): string => inputName.replace(/\.[^/.]+$/, "") + newExtension;
 
   const processFiles = (selectedFiles: File[]) => {
@@ -224,7 +327,8 @@ const PDFConverter: React.FC = () => {
     processFiles(Array.from(e.dataTransfer.files));
   };
 
-  const removeFile = (id: string) => setFiles(files.filter((f) => f.id !== id));
+  const removeFile = (id: string) =>
+    setFiles(files.filter((f) => f.id !== id));
 
   const clearAll = () => {
     files.forEach((f) => {
@@ -260,7 +364,6 @@ const PDFConverter: React.FC = () => {
         if (mode === "combine-pdf") blob = await combinePDFs(files);
         else blob = await imagesToPDF(files);
 
-        // ✅ Logger called with user from hook + mode string
         await Logger(user, mode);
 
         const url = URL.createObjectURL(blob);
@@ -282,8 +385,9 @@ const PDFConverter: React.FC = () => {
           files.map((f) => ({
             ...f,
             status: "error",
-            error: error instanceof Error ? error.message : "Conversion failed",
-          })),
+            error:
+              error instanceof Error ? error.message : "Conversion failed",
+          }))
         );
       }
     } else {
@@ -309,11 +413,13 @@ const PDFConverter: React.FC = () => {
             case "html-to-pdf":
               blob = await htmlToPDF(updatedFiles[i]);
               break;
+            case "pdf-to-pptx":
+              blob = await pdfToPPTX(updatedFiles[i], pptxSlideMode);
+              break;
             default:
               throw new Error("Invalid conversion mode");
           }
 
-          // ✅ Logger called with user from hook + mode string
           await Logger(user, mode);
 
           const url = URL.createObjectURL(blob);
@@ -323,7 +429,7 @@ const PDFConverter: React.FC = () => {
             downloadUrl: url,
             outputName: generateOutputName(
               updatedFiles[i].name,
-              currentMode.outputExt,
+              currentMode.outputExt
             ),
           };
         } catch (error: any) {
@@ -360,6 +466,16 @@ const PDFConverter: React.FC = () => {
               "radial-gradient(circle at 0% 100%, rgba(20,184,166,0.3) 0%, transparent 70%)",
           }}
         />
+        {/* Extra orange glow when pdf-to-pptx is active */}
+        {mode === "pdf-to-pptx" && (
+          <div
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full opacity-5 dark:opacity-8 blur-[120px] transition-opacity duration-700"
+            style={{
+              background:
+                "radial-gradient(circle, rgba(249,115,22,0.4) 0%, transparent 70%)",
+            }}
+          />
+        )}
       </div>
 
       <div className="relative z-10 max-w-4xl mx-auto px-6 py-12 pb-24">
@@ -384,11 +500,6 @@ const PDFConverter: React.FC = () => {
             <span className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-white/20">
               {pdfJsLoaded ? "Engines Ready" : "Initializing…"}
             </span>
-            <span className="text-slate-200 dark:text-white/10">|</span>
-            <Shield className="w-3.5 h-3.5 text-indigo-500 dark:text-indigo-400" />
-            <span className="text-xs font-bold text-indigo-600/70 dark:text-indigo-400/70 uppercase tracking-wider">
-              Secure & Local
-            </span>
           </div>
         </div>
 
@@ -398,7 +509,6 @@ const PDFConverter: React.FC = () => {
             <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-white/20">
               Select Mode
             </p>
-
             <CreditBadge toolId={TOOL_ID} />
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -411,19 +521,34 @@ const PDFConverter: React.FC = () => {
                   onClick={() => {
                     setMode(m.id);
                     clearAll();
+                    setPptxSlideMode("image"); // reset pptx sub-mode
                   }}
-                  className={`flex flex-col items-center gap-3 p-4 rounded-2xl border-2 transition-all 
-                                        ${
-                                          isActive
-                                            ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 dark:border-indigo-500/50 shadow-md dark:shadow-[0_0_20px_rgba(99,102,241,0.15)]"
-                                            : "border-slate-100 dark:border-white/[0.04] bg-slate-50/50 dark:bg-white/[0.02] hover:border-slate-200 dark:hover:border-white/[0.1] hover:bg-slate-100 dark:hover:bg-white/[0.05]"
-                                        }`}
+                  className={`flex flex-col items-center gap-3 p-4 rounded-2xl border-2 transition-all
+                    ${
+                      isActive
+                        ? m.id === "pdf-to-pptx"
+                          ? "border-orange-500 bg-orange-50 dark:bg-orange-500/10 dark:border-orange-500/50 shadow-md dark:shadow-[0_0_20px_rgba(249,115,22,0.15)]"
+                          : "border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 dark:border-indigo-500/50 shadow-md dark:shadow-[0_0_20px_rgba(99,102,241,0.15)]"
+                        : "border-slate-100 dark:border-white/[0.04] bg-slate-50/50 dark:bg-white/[0.02] hover:border-slate-200 dark:hover:border-white/[0.1] hover:bg-slate-100 dark:hover:bg-white/[0.05]"
+                    }`}
                 >
                   <Icon
-                    className={`w-6 h-6 ${isActive ? "text-indigo-600 dark:text-indigo-300" : m.color + " opacity-50 dark:opacity-40"}`}
+                    className={`w-6 h-6 ${
+                      isActive
+                        ? m.id === "pdf-to-pptx"
+                          ? "text-orange-500 dark:text-orange-300"
+                          : "text-indigo-600 dark:text-indigo-300"
+                        : m.color + " opacity-50 dark:opacity-40"
+                    }`}
                   />
                   <span
-                    className={`text-[11px] font-bold leading-tight ${isActive ? "text-indigo-700 dark:text-indigo-200" : "text-slate-500 dark:text-white/30"}`}
+                    className={`text-[11px] font-bold leading-tight text-center ${
+                      isActive
+                        ? m.id === "pdf-to-pptx"
+                          ? "text-orange-600 dark:text-orange-200"
+                          : "text-indigo-700 dark:text-indigo-200"
+                        : "text-slate-500 dark:text-white/30"
+                    }`}
                   >
                     {m.label}
                   </span>
@@ -433,15 +558,20 @@ const PDFConverter: React.FC = () => {
           </div>
         </div>
 
+        {/* PPTX slide mode picker — only shown for pdf-to-pptx */}
+        {mode === "pdf-to-pptx" && (
+          <PptxModePicker value={pptxSlideMode} onChange={setPptxSlideMode} />
+        )}
+
         {/* Drop zone */}
         <div className="bg-white dark:bg-[#0d0d1a] border border-slate-200 dark:border-white/[0.06] rounded-3xl p-6 mb-6 shadow-sm dark:shadow-none">
           <div
             className={`border-2 border-dashed rounded-2xl p-12 text-center transition-all duration-300
-                            ${
-                              dragActive
-                                ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-500/[0.06] scale-[1.01]"
-                                : "border-slate-200 dark:border-white/[0.08] hover:border-indigo-300 dark:hover:border-white/[0.15]"
-                            }`}
+              ${
+                dragActive
+                  ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-500/[0.06] scale-[1.01]"
+                  : "border-slate-200 dark:border-white/[0.08] hover:border-indigo-300 dark:hover:border-white/[0.15]"
+              }`}
             onDragEnter={handleDrag}
             onDragLeave={handleDrag}
             onDragOver={handleDrag}
@@ -462,14 +592,20 @@ const PDFConverter: React.FC = () => {
             >
               <div
                 className={`w-20 h-20 rounded-3xl flex items-center justify-center border transition-all
-                                ${
-                                  dragActive
-                                    ? "bg-indigo-100 border-indigo-400 dark:bg-indigo-500/20 dark:border-indigo-500/40"
-                                    : "bg-slate-50 border-slate-200 dark:bg-white/[0.04] dark:border-white/[0.08]"
-                                }`}
+                  ${
+                    dragActive
+                      ? "bg-indigo-100 border-indigo-400 dark:bg-indigo-500/20 dark:border-indigo-500/40"
+                      : "bg-slate-50 border-slate-200 dark:bg-white/[0.04] dark:border-white/[0.08]"
+                  }`}
               >
                 <CurrentIcon
-                  className={`w-10 h-10 ${dragActive ? "text-indigo-600 dark:text-indigo-300" : "text-slate-300 dark:text-white/10"}`}
+                  className={`w-10 h-10 ${
+                    dragActive
+                      ? "text-indigo-600 dark:text-indigo-300"
+                      : mode === "pdf-to-pptx"
+                        ? "text-orange-300 dark:text-orange-500/30"
+                        : "text-slate-300 dark:text-white/10"
+                  }`}
                 />
               </div>
               <div>
@@ -481,12 +617,17 @@ const PDFConverter: React.FC = () => {
                 <p className="text-xs font-medium text-slate-400 dark:text-white/20">
                   {currentMode?.description} · {currentMode?.accept}
                 </p>
+                {mode === "pdf-to-pptx" && (
+                  <p className="text-[10px] font-semibold text-orange-400/70 dark:text-orange-400/50 mt-1 uppercase tracking-wider">
+                    Mode: {pptxSlideMode}
+                  </p>
+                )}
               </div>
             </label>
           </div>
         </div>
 
-        {/* File list component */}
+        {/* File list */}
         {files.length > 0 && (
           <ConversionItem
             files={files}
@@ -499,24 +640,6 @@ const PDFConverter: React.FC = () => {
 
         {/* Convert button */}
         {files.length > 0 && files.every((f) => f.status === "ready") && (
-          // <div className="mb-6">
-          //     <button
-          //         onClick={handleConvert}
-          //         disabled={converting}
-          //         className={`w-full py-5 px-8 rounded-2xl font-bold text-white text-sm uppercase tracking-widest
-          //             flex items-center justify-center gap-3 transition-all
-          //             ${converting
-          //                 ? 'bg-slate-200 dark:bg-white/[0.06] text-slate-400 dark:text-white/20 cursor-not-allowed'
-          //                 : 'bg-indigo-600 hover:bg-indigo-500 shadow-xl shadow-indigo-500/20 hover:shadow-indigo-500/40 active:scale-[0.98]'
-          //             }`}
-          //     >
-          //         {converting ? (
-          //             <><Loader2 className="w-5 h-5 animate-spin" />Processing…</>
-          //         ) : (
-          //             <><CurrentIcon className="w-5 h-5" />Convert {files.length} {files.length === 1 ? 'File' : 'Files'}</>
-          //         )}
-          //     </button>
-          // </div>
           <CreditGate toolId={TOOL_ID}>
             {({ onAction, hasCredits, isUnlimited, loading }) => (
               <button
@@ -524,11 +647,14 @@ const PDFConverter: React.FC = () => {
                 disabled={
                   (converting && loading) || (!hasCredits && !isUnlimited)
                 }
-                className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl
-                        bg-indigo-500 hover:bg-indigo-600 active:bg-indigo-700
-                        text-white text-sm font-medium
-                        transition-colors mt-2
-                        disabled:opacity-50 disabled:cursor-not-allowed"
+                className={`flex items-center justify-center gap-2 w-full py-2.5 rounded-xl
+                  text-white text-sm font-medium transition-colors mt-2
+                  disabled:opacity-50 disabled:cursor-not-allowed
+                  ${
+                    mode === "pdf-to-pptx"
+                      ? "bg-orange-500 hover:bg-orange-600 active:bg-orange-700"
+                      : "bg-indigo-500 hover:bg-indigo-600 active:bg-indigo-700"
+                  }`}
               >
                 <Download className="w-4 h-4" />
                 {loading ? (
@@ -543,6 +669,11 @@ const PDFConverter: React.FC = () => {
                     <CurrentIcon className="w-5 h-5" />
                     Convert {files.length}{" "}
                     {files.length === 1 ? "File" : "Files"}
+                    {mode === "pdf-to-pptx" && (
+                      <span className="ml-1 text-[10px] uppercase tracking-widest opacity-70">
+                        ({pptxSlideMode})
+                      </span>
+                    )}
                   </>
                 )}
               </button>
@@ -552,15 +683,9 @@ const PDFConverter: React.FC = () => {
 
         {/* Success state */}
         {hasCompletedFiles && (
-          <div
-            className="bg-emerald-50 dark:bg-emerald-500/[0.08] border border-emerald-200 dark:border-emerald-500/20 rounded-3xl p-6
-                        flex flex-col sm:flex-row items-center justify-between gap-4"
-          >
+          <div className="bg-emerald-50 dark:bg-emerald-500/[0.08] border border-emerald-200 dark:border-emerald-500/20 rounded-3xl p-6 mt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-4 text-center sm:text-left">
-              <div
-                className="w-12 h-12 rounded-2xl bg-emerald-100 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20
-                                flex items-center justify-center"
-              >
+              <div className="w-12 h-12 rounded-2xl bg-emerald-100 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 flex items-center justify-center">
                 <CheckCircle2 className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
               </div>
               <div>
@@ -568,15 +693,15 @@ const PDFConverter: React.FC = () => {
                   Ready for Download
                 </p>
                 <p className="text-xs font-medium text-emerald-600/60 dark:text-emerald-400/60">
-                  Success! Your files are processed locally.
+                  {mode === "pdf-to-pptx"
+                    ? `Your PDF has been converted to PowerPoint (${pptxSlideMode} mode).`
+                    : "Success! Your files are processed locally."}
                 </p>
               </div>
             </div>
             <button
               onClick={downloadAllFiles}
-              className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl
-                                bg-emerald-600 border border-emerald-500 text-white
-                                text-sm font-bold hover:bg-emerald-500 transition-all shadow-lg shadow-emerald-500/20"
+              className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl bg-emerald-600 border border-emerald-500 text-white text-sm font-bold hover:bg-emerald-500 transition-all shadow-lg shadow-emerald-500/20"
             >
               <Download className="w-4 h-4" /> Download All
             </button>
@@ -597,7 +722,7 @@ const PDFConverter: React.FC = () => {
             </span>
           </div>
           <p className="text-[10px] text-slate-300 dark:text-white/10 font-medium">
-            Powered by pdf-lib · SheetJS · PDF.js · Web Workers
+            Powered by pdf-lib · SheetJS · PDF.js · pptxgenjs · Web Workers
           </p>
         </div>
       </div>

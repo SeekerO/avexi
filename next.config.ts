@@ -15,25 +15,23 @@ const nextConfig: NextConfig = {
         hostname: "lh3.googleusercontent.com",
       },
 
-
       {
-        protocol: 'https',
-        hostname: 'picsum.photos', // ⬅️ NEW MOCK HOST
-        port: '',
-        pathname: '/**',
+        protocol: "https",
+        hostname: "picsum.photos", // ⬅️ NEW MOCK HOST
+        port: "",
+        pathname: "/**",
       },
       {
-        protocol: 'https',
-        hostname: 'via.placeholder.com', // ⬅️ NEW MOCK HOST
-        port: '',
-        pathname: '/**',
+        protocol: "https",
+        hostname: "via.placeholder.com", // ⬅️ NEW MOCK HOST
+        port: "",
+        pathname: "/**",
       },
-
     ],
   },
   experimental: {
     serverActions: {
-      bodySizeLimit: '50mb',
+      bodySizeLimit: "500mb",
     },
   },
 };
