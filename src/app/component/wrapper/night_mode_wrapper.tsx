@@ -24,7 +24,9 @@ const ThemeWrapper: React.FC<WrapperProps> = ({ children }) => {
   useLayoutEffect(() => {
     const root = window.document.documentElement;
     const saved = localStorage.getItem("theme-mode");
-    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const prefersDark = window.matchMedia(
+      "(prefers-color-scheme: dark)",
+    ).matches;
     const isDark = saved === "dark" || (!saved && prefersDark);
     root.classList.toggle("dark", isDark);
   }, []);
@@ -41,7 +43,8 @@ const ThemeWrapper: React.FC<WrapperProps> = ({ children }) => {
         Render them as direct children of <main> — never wrap them
         together in another positioned div.
       */}
-      <AiAssistant />
+
+      {isAuthenticated && <AiAssistant />}
       {user?.isAdmin && <AdminFloatingToolbar />}
 
       <div
