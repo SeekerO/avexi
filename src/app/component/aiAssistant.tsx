@@ -982,7 +982,7 @@ export default function AiAssistant({
               <p className="text-[9.5px] text-white/13 text-center mt-1.5">
                 {selectedProvider.label} · {selectedModel.label} · Avexi v5.0.0
               </p>
-            </div>
+            </div> 
           </motion.div>
         )}
       </AnimatePresence>

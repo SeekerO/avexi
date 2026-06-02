@@ -13,7 +13,7 @@ import {
   ResultItem,
 } from "./components/supporting";
 import { logActivity } from "@/lib/firebase/firebase.actions.firestore/offlineLogger";
-import { CreditGate, CreditBadge } from "@/lib/creditComponent/CreditGate";
+import { CreditGate, CreditBadge } from "@/lib/components/creditComponent/CreditGate";
 
 const TOOL_ID = "matcher";
 

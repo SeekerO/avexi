@@ -53,14 +53,14 @@ const ADMIN_ACTIONS: AdminAction[] = [
     iconBg: "bg-sky-500/15 border-sky-500/25 text-sky-400",
     description: "Activity history",
   },
-  {
-    label: "Log Book",
-    href: "/admin/logbook",
-    icon: TestTube,
-    accent: "from-amber-500/20 to-orange-600/10",
-    iconBg: "bg-amber-500/15 border-amber-500/25 text-amber-400",
-    description: "Document logbook",
-  },
+  // {
+  //   label: "Log Book",
+  //   href: "/admin/logbook",
+  //   icon: TestTube,
+  //   accent: "from-amber-500/20 to-orange-600/10",
+  //   iconBg: "bg-amber-500/15 border-amber-500/25 text-amber-400",
+  //   description: "Document logbook",
+  // },
   {
     label: "Inventory",
     href: "/admin/inventory",

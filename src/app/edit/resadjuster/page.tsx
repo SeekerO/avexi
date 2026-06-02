@@ -11,7 +11,7 @@ import {
 import { MdOpacity } from "react-icons/md";
 import { useAuth } from "@/lib/auth/AuthContext";
 import { logActivity } from "@/lib/firebase/firebase.actions.firestore/offlineLogger";
-import { CreditGate, CreditBadge } from "@/lib/creditComponent/CreditGate";
+import { CreditGate, CreditBadge } from "@/lib/components/creditComponent/CreditGate";
 
 interface ImageMeta {
   name: string;

@@ -5,10 +5,13 @@ import { ref, onValue, update } from "firebase/database";
 import { Search, Users } from "lucide-react";
 import { AnimatePresence } from "framer-motion";
 
+//Library
 import { db } from "@/lib/firebase/firebase";
 import { useAuth } from "@/lib/auth/AuthContext";
-import { PageId, UserProfile, AVAILABLE_PAGES } from "@/lib/types/adminTypes";
+import { PageId, UserProfile } from "@/lib/types/adminTypes";
 import { useUserPresence } from "@/lib/hooks/useUserPresence";
+
+//panel/components
 import PermissionsModal from "./component/PermissionsModal";
 import UserCard from "./component/UserCard";
 import CreditsModal from "./component/creditModal";

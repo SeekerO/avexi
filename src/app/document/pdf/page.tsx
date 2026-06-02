@@ -34,7 +34,7 @@ import Image from "next/image";
 import Logo from "@/../public/Avexi.png";
 import ConversionItem from "./item";
 import { useAuth } from "@/lib/auth/AuthContext";
-import { CreditGate, CreditBadge } from "@/lib/creditComponent/CreditGate";
+import { CreditGate, CreditBadge } from "@/lib/components/creditComponent/CreditGate";
 
 const TOOL_ID = "pdf";
 

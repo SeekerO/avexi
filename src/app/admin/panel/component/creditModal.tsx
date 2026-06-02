@@ -17,10 +17,9 @@ import { ref, get, set } from "firebase/database";
 import { db } from "@/lib/firebase/firebase";
 import {
   TOOL_CREDIT_CONFIGS,
-  ToolCreditEntry,
   UserToolCredits,
   getDefaultEntry,
-} from "../../../../lib/creditComponent/creditsConfig";
+} from "../../../../lib/components/creditComponent/creditsConfig";
 import { UserProfile } from "@/lib/types/adminTypes";
 
 // ── Types ─────────────────────────────────────────────────────────────────────

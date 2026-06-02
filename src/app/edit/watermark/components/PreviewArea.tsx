@@ -22,7 +22,7 @@ import { useImageKeyNav } from "./hooks/useImageKeyNav";
 import { useInView } from "../lib/hooks/useInView";
 import { useAuth } from "@/lib/auth/AuthContext";
 import { logActivity } from "@/lib/firebase/firebase.actions.firestore/offlineLogger";
-import { CreditGate, CreditBadge } from "@/lib/creditComponent/CreditGate";
+import { CreditGate, CreditBadge } from "@/lib/components/creditComponent/CreditGate";
 
 const TOOL_ID = "watermark";
 

@@ -1,7 +1,7 @@
 // saveUserProfile.ts
 import { ref, get, update, set } from "firebase/database";
 import { db } from "@/lib/firebase/firebase";
-import { TOOL_CREDIT_CONFIGS, getDefaultEntry } from "@/lib/creditComponent/creditsConfig";
+import { TOOL_CREDIT_CONFIGS, getDefaultEntry } from "@/lib/components/creditComponent/creditsConfig";
 
 // Default pages all new users get access to
 export const DEFAULT_ALLOWED_PAGES = [
