@@ -96,7 +96,7 @@ const LazyImageCard = React.memo(
         {isDragOver &&
           dragFromIndex.current !== null &&
           dragFromIndex.current > index && (
-            <div className="absolute top-0 inset-x-0 h-1 bg-indigo-500 rounded-t-xl z-30" />
+            <div className="absolute top-0 inset-x-0 h-1 bg-indigo-500 rounded-t-xl " />
           )}
 
         {shouldRender ? (
@@ -116,10 +116,10 @@ const LazyImageCard = React.memo(
         {isDragOver &&
           dragFromIndex.current !== null &&
           dragFromIndex.current < index && (
-            <div className="absolute bottom-0 inset-x-0 h-1 bg-indigo-500 rounded-b-xl z-30" />
+            <div className="absolute bottom-0 inset-x-0 h-1 bg-indigo-500 rounded-b-xl" />
           )}
 
-        <div className="absolute top-2 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity z-20 pointer-events-none">
+        <div className="absolute top-2 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
           <div className="flex items-center gap-1 px-2 py-0.5 bg-black/50 backdrop-blur-sm rounded-full">
             <span className="text-white text-[10px] font-medium">
               ⠿ drag to reorder
@@ -507,7 +507,7 @@ export default function PreviewArea({ metadata }: { metadata: any }) {
   };
 
   return (
-    <div className="space-y-4 p-3 sm:p-6 w-full min-h-screen">
+    <div className="space-y-4 p-3 sm:p-6 w-full min-h-screen ">
       {/* Page header */}
       <div className="flex items-center justify-between">
         <h2 className="text-lg sm:text-2xl font-extrabold text-gray-900 dark:text-white flex items-center gap-3">
@@ -561,7 +561,7 @@ export default function PreviewArea({ metadata }: { metadata: any }) {
       {/* Sticky toolbar */}
       {images.length > 0 && (
         <div
-          className="sticky lg:top-4 top-[70px] z-30
+          className="sticky lg:top-4 top-[70px] z-10
                     bg-white/90 dark:bg-gray-900/90 backdrop-blur
                     border border-gray-200 dark:border-gray-700
                     rounded-xl shadow-md py-3 px-3 sm:py-4 sm:px-4 space-y-3"
@@ -574,7 +574,7 @@ export default function PreviewArea({ metadata }: { metadata: any }) {
                 value={fileName}
                 maxLength={256}
                 onChange={(e) => setFileName(e.target.value)}
-                className="w-full px-3 pl-10 sm:pl-12 py-2 text-sm
+                className="w-full px-3 pl-10 sm:pl-12 py-2 text-sm z-50
                                     border border-gray-300 dark:border-gray-600 rounded-lg
                                     bg-white dark:bg-gray-800
                                     text-gray-900 dark:text-white

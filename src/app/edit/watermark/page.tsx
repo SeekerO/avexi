@@ -116,13 +116,13 @@ function BottomSheet({
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 z-40 bg-black/40 dark:bg-black/60 backdrop-blur-sm"
+        className="fixed inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-sm"
         onClick={onClose}
       />
       {/* Sheet */}
       <div
         ref={sheetRef}
-        className="fixed bottom-0 left-0 right-0 z-50 flex flex-col rounded-t-2xl shadow-2xl
+        className="fixed bottom-0 left-0 right-0  flex flex-col rounded-t-2xl shadow-2xl
                     bg-white dark:bg-[#0d0d1a]
                     border-t border-indigo-200 dark:border-indigo-500/20"
         style={{
@@ -207,7 +207,7 @@ function MobileTabBar({
 }: MobileTabBarProps) {
   return (
     <div
-      className="fixed bottom-14 w-full right-0 z-30
+      className="fixed bottom-14 w-full right-0 
             bg-white/95 dark:bg-[#0d0d1a]/95 backdrop-blur-md
             border-t border-indigo-100 dark:border-indigo-500/20 safe-area-bottom"
     >
@@ -488,7 +488,7 @@ function WatermarkPageContent() {
           />
 
           {/* Header */}
-          <div className="px-5 pt-5 pb-4 border-b border-gray-200 dark:border-white/[0.06] relative z-10 flex-shrink-0">
+          <div className="px-5 pt-5 pb-4 border-b border-gray-200 dark:border-white/[0.06] relative  flex-shrink-0">
             <div className="flex items-center justify-between mt-4">
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-lg bg-indigo-100 dark:bg-indigo-600/20 border border-indigo-200 dark:border-indigo-500/30 flex items-center justify-center">
@@ -519,7 +519,7 @@ function WatermarkPageContent() {
           </div>
 
           {/* Privacy badge */}
-          <div className="px-4 pt-3 pb-0 flex-shrink-0 relative z-10">
+          <div className="px-4 pt-3 pb-0 flex-shrink-0 relative ">
             <PrivacyBadge />
           </div>
 
@@ -532,7 +532,7 @@ function WatermarkPageContent() {
             className="flex mt-3 mx-4
                             bg-gray-100 dark:bg-white/[0.04]
                             border border-gray-200 dark:border-white/[0.06]
-                            rounded-xl p-1 gap-1 flex-shrink-0 relative z-10"
+                            rounded-xl p-1 gap-1 flex-shrink-0 relative "
           >
             {TABS.map((tab) => (
               <DesktopTab
@@ -550,7 +550,7 @@ function WatermarkPageContent() {
 
           {/* Scrollable content */}
           <div
-            className="flex-1 overflow-y-auto px-4 py-4 space-y-4 relative z-10
+            className="flex-1 overflow-y-auto px-4 py-4 space-y-4 relative 
                             [&::-webkit-scrollbar]:w-1
                             [&::-webkit-scrollbar-track]:bg-transparent
                             [&::-webkit-scrollbar-thumb]:bg-gray-200
@@ -562,7 +562,7 @@ function WatermarkPageContent() {
 
           {/* Undo / Redo footer */}
           {images.length > 0 && (
-            <div className="px-4 py-3 border-t border-gray-200 dark:border-white/[0.06] flex items-center gap-2 flex-shrink-0 relative z-10">
+            <div className="px-4 py-3 border-t border-gray-200 dark:border-white/[0.06] flex items-center gap-2 flex-shrink-0 relative">
               <button
                 onClick={undo}
                 disabled={!canUndo}
@@ -597,7 +597,7 @@ function WatermarkPageContent() {
           )}
 
           {/* Version */}
-          <div className="px-4 pb-3 flex items-center gap-1.5 relative z-10">
+          <div className="px-4 pb-3 flex items-center gap-1.5 relative ">
             <Image src={Logo} alt="Avexi" width={14} />
             <span className="text-[10px] text-gray-400 dark:text-white/20 tracking-wider">
               Avexi · Watermark v5
@@ -606,7 +606,7 @@ function WatermarkPageContent() {
         </div>
 
         {/* ── Right: Preview area ── */}
-        <div className="flex-1 overflow-auto h-screen w-full bg-gray-50 dark:bg-[#0a0a12]">
+        <div className="flex-1 overflow-auto h-screen w-full bg-gray-50 dark:bg-[#0a0a12] ">
           <PreviewArea metadata={metadata} />
         </div>
       </div>
@@ -615,7 +615,7 @@ function WatermarkPageContent() {
       <div className="lg:hidden flex flex-col min-h-screen bg-gray-50 dark:bg-[#0a0a12] h-full w-full">
         {/* Mobile top bar */}
         <div
-          className="sticky top-0 z-30 flex items-center justify-between px-4 py-3
+          className="sticky top-0  flex items-center justify-between px-4 py-3
                         bg-white/95 dark:bg-[#0d0d1a]/95 backdrop-blur-md
                         border-b border-indigo-100 dark:border-indigo-500/20 shadow-lg"
         >
