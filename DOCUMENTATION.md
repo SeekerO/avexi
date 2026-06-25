@@ -679,4 +679,4 @@ Only the root (`/`) and `/login` pages are indexed. All workspace routes are dis
 
 ---
 
-*Last updated: April 2026 · Avexi v5.0.0*
+*Last updated: June  2026 · Avexi v5.0.0*
