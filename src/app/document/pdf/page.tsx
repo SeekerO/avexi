@@ -15,6 +15,7 @@ import {
   X,
   Trash2,
   Presentation,
+  FileImage,
 } from "lucide-react";
 import { GiCardExchange } from "react-icons/gi";
 import {
@@ -26,6 +27,7 @@ import {
   combinePDFs,
   imagesToPDF,
   pdfToPPTX,
+  pdfToImages,
   Logger,
 } from "./conversion_function";
 import Image from "next/image";
@@ -47,9 +49,11 @@ export type ConversionMode =
   | "combine-pdf"
   | "image-to-pdf"
   | "html-to-pdf"
-  | "pdf-to-pptx";
+  | "pdf-to-pptx"
+  | "pdf-to-image";
 
 export type PptxSlideMode = "image" | "text" | "hybrid";
+export type ImageFormat = "png" | "jpeg";
 
 export interface FileItem {
   id: string;
@@ -160,11 +164,87 @@ const PptxModePicker: React.FC<PptxModePickerProps> = ({ value, onChange }) => (
 );
 
 // ─────────────────────────────────────────────
+// Image Format Picker
+// Shown only when pdf-to-image is active
+// ─────────────────────────────────────────────
+interface ImageFormatPickerProps {
+  value: ImageFormat;
+  onChange: (format: ImageFormat) => void;
+}
+
+const IMAGE_FORMATS: { id: ImageFormat; label: string; desc: string; icon: string }[] = [
+  {
+    id: "png",
+    label: "PNG",
+    desc: "Lossless quality. Best for text and diagrams.",
+    icon: "🖼️",
+  },
+  {
+    id: "jpeg",
+    label: "JPEG",
+    desc: "Smaller file size. Best for photos and scans.",
+    icon: "📷",
+  },
+];
+
+const ImageFormatPicker: React.FC<ImageFormatPickerProps> = ({ value, onChange }) => (
+  <div className="bg-white dark:bg-[#0d0d1a] border border-slate-200 dark:border-white/[0.06] rounded-3xl p-6 mb-6 shadow-sm dark:shadow-none">
+    <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-white/20 mb-1">
+      Image Format
+    </p>
+    <p className="text-xs text-slate-400 dark:text-white/20 mb-4">
+      Multi-page PDFs are exported as a ZIP of images.
+    </p>
+
+    <div className="grid grid-cols-2 gap-3">
+      {IMAGE_FORMATS.map((f) => {
+        const isActive = value === f.id;
+        return (
+          <button
+            key={f.id}
+            onClick={() => onChange(f.id)}
+            className={`flex flex-col items-start gap-2 p-4 rounded-2xl border-2 transition-all text-left
+              ${
+                isActive
+                  ? "border-rose-500 bg-rose-50 dark:bg-rose-500/10 dark:border-rose-500/50 shadow-md dark:shadow-[0_0_20px_rgba(244,63,94,0.12)]"
+                  : "border-slate-100 dark:border-white/[0.04] bg-slate-50/50 dark:bg-white/[0.02] hover:border-slate-200 dark:hover:border-white/[0.1] hover:bg-slate-100 dark:hover:bg-white/[0.05]"
+              }`}
+          >
+            <span className="text-2xl">{f.icon}</span>
+            <div>
+              <p
+                className={`text-xs font-bold mb-0.5 ${
+                  isActive
+                    ? "text-rose-600 dark:text-rose-300"
+                    : "text-slate-600 dark:text-white/40"
+                }`}
+              >
+                {f.label}
+              </p>
+              <p
+                className={`text-[10px] leading-snug ${
+                  isActive
+                    ? "text-rose-500/70 dark:text-rose-400/60"
+                    : "text-slate-400 dark:text-white/20"
+                }`}
+              >
+                {f.desc}
+              </p>
+            </div>
+          </button>
+        );
+      })}
+    </div>
+  </div>
+);
+
+// ─────────────────────────────────────────────
 // Main PDFConverter Component
 // ─────────────────────────────────────────────
 const PDFConverter: React.FC = () => {
   const [mode, setMode] = useState<ConversionMode>("word-to-pdf");
   const [pptxSlideMode, setPptxSlideMode] = useState<PptxSlideMode>("image");
+  const [imageFormat, setImageFormat] = useState<ImageFormat>("png");
   const [files, setFiles] = useState<FileItem[]>([]);
   const [converting, setConverting] = useState(false);
   const [pdfJsLoaded, setPdfJsLoaded] = useState(false);
@@ -275,6 +355,15 @@ const PDFConverter: React.FC = () => {
         outputExt: ".pptx",
         description: "Convert PDF to PowerPoint",
         color: "text-orange-500",
+      },
+      {
+        id: "pdf-to-image",
+        label: "PDF → Image",
+        icon: FileImage,
+        accept: ".pdf",
+        outputExt: ".png",
+        description: "Convert PDF pages to images",
+        color: "text-rose-500",
       },
     ],
     []
@@ -416,6 +505,9 @@ const PDFConverter: React.FC = () => {
             case "pdf-to-pptx":
               blob = await pdfToPPTX(updatedFiles[i], pptxSlideMode);
               break;
+            case "pdf-to-image":
+              blob = await pdfToImages(updatedFiles[i], imageFormat);
+              break;
             default:
               throw new Error("Invalid conversion mode");
           }
@@ -423,14 +515,19 @@ const PDFConverter: React.FC = () => {
           await Logger(user, mode);
 
           const url = URL.createObjectURL(blob);
+          const outputExt =
+            mode === "pdf-to-image"
+              ? blob.type === "application/zip"
+                ? ".zip"
+                : imageFormat === "png"
+                  ? ".png"
+                  : ".jpg"
+              : currentMode.outputExt;
           updatedFiles[i] = {
             ...updatedFiles[i],
             status: "complete",
             downloadUrl: url,
-            outputName: generateOutputName(
-              updatedFiles[i].name,
-              currentMode.outputExt
-            ),
+            outputName: generateOutputName(updatedFiles[i].name, outputExt),
           };
         } catch (error: any) {
           updatedFiles[i] = {
@@ -522,13 +619,16 @@ const PDFConverter: React.FC = () => {
                     setMode(m.id);
                     clearAll();
                     setPptxSlideMode("image"); // reset pptx sub-mode
+                    setImageFormat("png"); // reset image format sub-mode
                   }}
                   className={`flex flex-col items-center gap-3 p-4 rounded-2xl border-2 transition-all
                     ${
                       isActive
                         ? m.id === "pdf-to-pptx"
                           ? "border-orange-500 bg-orange-50 dark:bg-orange-500/10 dark:border-orange-500/50 shadow-md dark:shadow-[0_0_20px_rgba(249,115,22,0.15)]"
-                          : "border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 dark:border-indigo-500/50 shadow-md dark:shadow-[0_0_20px_rgba(99,102,241,0.15)]"
+                          : m.id === "pdf-to-image"
+                            ? "border-rose-500 bg-rose-50 dark:bg-rose-500/10 dark:border-rose-500/50 shadow-md dark:shadow-[0_0_20px_rgba(244,63,94,0.15)]"
+                            : "border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 dark:border-indigo-500/50 shadow-md dark:shadow-[0_0_20px_rgba(99,102,241,0.15)]"
                         : "border-slate-100 dark:border-white/[0.04] bg-slate-50/50 dark:bg-white/[0.02] hover:border-slate-200 dark:hover:border-white/[0.1] hover:bg-slate-100 dark:hover:bg-white/[0.05]"
                     }`}
                 >
@@ -537,7 +637,9 @@ const PDFConverter: React.FC = () => {
                       isActive
                         ? m.id === "pdf-to-pptx"
                           ? "text-orange-500 dark:text-orange-300"
-                          : "text-indigo-600 dark:text-indigo-300"
+                          : m.id === "pdf-to-image"
+                            ? "text-rose-500 dark:text-rose-300"
+                            : "text-indigo-600 dark:text-indigo-300"
                         : m.color + " opacity-50 dark:opacity-40"
                     }`}
                   />
@@ -546,7 +648,9 @@ const PDFConverter: React.FC = () => {
                       isActive
                         ? m.id === "pdf-to-pptx"
                           ? "text-orange-600 dark:text-orange-200"
-                          : "text-indigo-700 dark:text-indigo-200"
+                          : m.id === "pdf-to-image"
+                            ? "text-rose-600 dark:text-rose-200"
+                            : "text-indigo-700 dark:text-indigo-200"
                         : "text-slate-500 dark:text-white/30"
                     }`}
                   >
@@ -561,6 +665,11 @@ const PDFConverter: React.FC = () => {
         {/* PPTX slide mode picker — only shown for pdf-to-pptx */}
         {mode === "pdf-to-pptx" && (
           <PptxModePicker value={pptxSlideMode} onChange={setPptxSlideMode} />
+        )}
+
+        {/* Image format picker — only shown for pdf-to-image */}
+        {mode === "pdf-to-image" && (
+          <ImageFormatPicker value={imageFormat} onChange={setImageFormat} />
         )}
 
         {/* Drop zone */}
@@ -604,7 +713,9 @@ const PDFConverter: React.FC = () => {
                       ? "text-indigo-600 dark:text-indigo-300"
                       : mode === "pdf-to-pptx"
                         ? "text-orange-300 dark:text-orange-500/30"
-                        : "text-slate-300 dark:text-white/10"
+                        : mode === "pdf-to-image"
+                          ? "text-rose-300 dark:text-rose-500/30"
+                          : "text-slate-300 dark:text-white/10"
                   }`}
                 />
               </div>
@@ -620,6 +731,11 @@ const PDFConverter: React.FC = () => {
                 {mode === "pdf-to-pptx" && (
                   <p className="text-[10px] font-semibold text-orange-400/70 dark:text-orange-400/50 mt-1 uppercase tracking-wider">
                     Mode: {pptxSlideMode}
+                  </p>
+                )}
+                {mode === "pdf-to-image" && (
+                  <p className="text-[10px] font-semibold text-rose-400/70 dark:text-rose-400/50 mt-1 uppercase tracking-wider">
+                    Format: {imageFormat}
                   </p>
                 )}
               </div>
@@ -653,7 +769,9 @@ const PDFConverter: React.FC = () => {
                   ${
                     mode === "pdf-to-pptx"
                       ? "bg-orange-500 hover:bg-orange-600 active:bg-orange-700"
-                      : "bg-indigo-500 hover:bg-indigo-600 active:bg-indigo-700"
+                      : mode === "pdf-to-image"
+                        ? "bg-rose-500 hover:bg-rose-600 active:bg-rose-700"
+                        : "bg-indigo-500 hover:bg-indigo-600 active:bg-indigo-700"
                   }`}
               >
                 <Download className="w-4 h-4" />
@@ -672,6 +790,11 @@ const PDFConverter: React.FC = () => {
                     {mode === "pdf-to-pptx" && (
                       <span className="ml-1 text-[10px] uppercase tracking-widest opacity-70">
                         ({pptxSlideMode})
+                      </span>
+                    )}
+                    {mode === "pdf-to-image" && (
+                      <span className="ml-1 text-[10px] uppercase tracking-widest opacity-70">
+                        ({imageFormat})
                       </span>
                     )}
                   </>
@@ -695,7 +818,9 @@ const PDFConverter: React.FC = () => {
                 <p className="text-xs font-medium text-emerald-600/60 dark:text-emerald-400/60">
                   {mode === "pdf-to-pptx"
                     ? `Your PDF has been converted to PowerPoint (${pptxSlideMode} mode).`
-                    : "Success! Your files are processed locally."}
+                    : mode === "pdf-to-image"
+                      ? `Your PDF has been converted to ${imageFormat.toUpperCase()} image(s).`
+                      : "Success! Your files are processed locally."}
                 </p>
               </div>
             </div>

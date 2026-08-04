@@ -414,6 +414,67 @@ export const pdfToPPTX = async (
 };
 
 // ─────────────────────────────────────────────
+// PDF → IMAGE
+// Renders each PDF page to a canvas via PDF.js,
+// exports as PNG/JPEG, and bundles the result in
+// a ZIP (single image when the PDF has 1 page)
+// ─────────────────────────────────────────────
+export const pdfToImages = async (
+  item: FileItem,
+  format: "png" | "jpeg" = "png",
+  scale: number = 2
+): Promise<Blob> => {
+  if (!(window as any).pdfjsLib) throw new Error("PDF.js library not loaded");
+
+  const arrayBuffer = await item.file.arrayBuffer();
+  const pdf = await (window as any).pdfjsLib.getDocument({ data: arrayBuffer })
+    .promise;
+
+  const mime = format === "png" ? "image/png" : "image/jpeg";
+  const ext = format === "png" ? "png" : "jpg";
+  const baseName = item.name.replace(/\.[^/.]+$/, "");
+
+  const renderPage = async (pageNum: number): Promise<string> => {
+    const page = await pdf.getPage(pageNum);
+    const viewport = page.getViewport({ scale });
+    const canvas = document.createElement("canvas");
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) throw new Error("Canvas context unavailable");
+
+    // JPEG has no alpha channel, so paint a white background first
+    if (format === "jpeg") {
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+
+    await page.render({ canvasContext: ctx, viewport }).promise;
+    return canvas.toDataURL(mime, format === "jpeg" ? 0.92 : undefined);
+  };
+
+  // Single-page PDF → return the image directly, no ZIP needed
+  if (pdf.numPages === 1) {
+    const dataUrl = await renderPage(1);
+    const res = await fetch(dataUrl);
+    return res.blob();
+  }
+
+  // Multi-page PDF → bundle all page images into a ZIP
+  const { default: JSZip } = await import("jszip");
+  const zip = new JSZip();
+
+  for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+    const dataUrl = await renderPage(pageNum);
+    const base64 = dataUrl.split(",")[1];
+    const pageLabel = String(pageNum).padStart(2, "0");
+    zip.file(`${baseName}_page${pageLabel}.${ext}`, base64, { base64: true });
+  }
+
+  return zip.generateAsync({ type: "blob" });
+};
+
+// ─────────────────────────────────────────────
 // HELPER: Extract text preserving row/col layout
 // ─────────────────────────────────────────────
 export const extractTextFromPDF = async (
