@@ -84,7 +84,7 @@ const LazyImageCard = React.memo(
         onDrop={onDrop}
         onDragEnd={onDragEnd}
         onClick={onClick}
-        className={`relative rounded-xl overflow-hidden transition-all duration-200 cursor-grab active:cursor-grabbing h-fit
+        className={`relative rounded-xl overflow-hidden transition-all duration-200 cursor-grab active:cursor-grabbing h-fit 
                 ${
                   isSelected
                     ? "ring-2 ring-indigo-500 ring-offset-2 ring-offset-white dark:ring-offset-gray-900 shadow-xl"
@@ -515,7 +515,7 @@ export default function PreviewArea({ metadata }: { metadata: any }) {
           {images.length > 0 && (
             <span
               className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-sm font-semibold
-                            bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+                            bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 "
             >
               <IoImage size={16} />
               {selectedImageIndex !== null ? (
@@ -561,20 +561,20 @@ export default function PreviewArea({ metadata }: { metadata: any }) {
       {/* Sticky toolbar */}
       {images.length > 0 && (
         <div
-          className="sticky lg:top-4 top-[70px] z-10
+          className="sticky lg:top-4 top-[70px] z-40
                     bg-white/90 dark:bg-gray-900/90 backdrop-blur
                     border border-gray-200 dark:border-gray-700
                     rounded-xl shadow-md py-3 px-3 sm:py-4 sm:px-4 space-y-3"
         >
-          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-            <div className="relative flex-1 min-w-[110px] sm:min-w-[160px]">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3 ">
+            <div className="relative flex-1 min-w-[110px] sm:min-w-[160px] z-40">
               <input
                 type="text"
                 placeholder="File name"
                 value={fileName}
                 maxLength={256}
                 onChange={(e) => setFileName(e.target.value)}
-                className="w-full px-3 pl-10 sm:pl-12 py-2 text-sm z-50
+                className="w-full px-3 pl-10 sm:pl-12 py-2 text-sm 
                                     border border-gray-300 dark:border-gray-600 rounded-lg
                                     bg-white dark:bg-gray-800
                                     text-gray-900 dark:text-white
@@ -699,7 +699,7 @@ export default function PreviewArea({ metadata }: { metadata: any }) {
             navigate
           </p>
 
-          <div className={`grid ${gridCols[gridSize]} gap-6`}>
+          <div  className={`grid ${gridCols[gridSize]} gap-6 `}>
             {images.map((image, index) => {
               const handlers = getCardHandlers(index);
               return (

@@ -606,7 +606,7 @@ function WatermarkPageContent() {
         </div>
 
         {/* ── Right: Preview area ── */}
-        <div className="flex-1 overflow-auto h-screen w-full bg-gray-50 dark:bg-[#0a0a12] ">
+        <div className="flex-1 overflow-auto h-screen w-full bg-gray-50 dark:bg-[#0a0a12]">
           <PreviewArea metadata={metadata} />
         </div>
       </div>
@@ -679,7 +679,7 @@ function WatermarkPageContent() {
         </div>
 
         {/* Preview — padded for tab bar */}
-        <div className="flex-1 pb-20">
+        <div className="flex-1 pb-20 z-0">
           <PreviewArea metadata={metadata} />
         </div>
 
@@ -736,4 +736,3 @@ function WatermarkPage() {
 }
 
 export default WatermarkPage;
-
